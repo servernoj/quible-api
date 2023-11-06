@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>Quible.io API</title>    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.1/swagger-ui.min.css"/>
+    <style>
+      html {
+        box-sizing: border-box;
+        overflow: -moz-scrollbars-vertical;
+        overflow-y: scroll;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.1/swagger-ui-bundle.min.js" charset="UTF-8"></script>
+    <script>      
+      window.addEventListener('load', function () {
+        const baseURL = location.origin + location.pathname        
+        window.ui = SwaggerUIBundle({
+          url: `${baseURL}/spec`,
+          dom_id: '#swagger-ui',
+          deepLinking: true,          
+        });        
+      })
+    </script>
+  </body>
+</html>

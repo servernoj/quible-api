@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Quible.io API</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="redoc-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js"></script>
+  <script>
+    ;(async function () {
+      const baseURL = location.origin + location.pathname    
+      Redoc.init(
+        `${baseURL}/spec`,
+        {
+          noAutoAuth: true,
+          hideDownloadButton: false,
+          sortPropsAlphabetically: false,
+          requiredPropsFirst: true,
+          maxDisplayedEnumValues: 10,
+          pathInMiddlePanel: true,
+          expandDefaultServerVariables: true
+        },
+        document.getElementById('redoc-container')
+      )
+    })()
+  </script>
+</body>
+
+</html>

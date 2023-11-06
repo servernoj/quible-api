@@ -1,0 +1,19 @@
+tmp/
+.air.toml
+
+start.sh
+
+# macOS
+.DS_Store
+
+# vim
+.*.sw*
+
+# binary
+/auth-service
+
+# database
+dbData/
+
+# generated swagger spec (has to be re-generated before running the service
+swagger/swagger.yaml
