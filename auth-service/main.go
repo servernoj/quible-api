@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -59,10 +60,19 @@ func Server() {
 	service := user.NewService(database)
 	controller := user.NewController(service)
 
+	// Register User controller routes
 	user.Routes(g, controller)
-
+	// Register Swagger/docs routes
 	swagger.Register(g, "/docs")
+	// Register helper routes
+	g.GET("/health", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "OK")
+	})
 
 	// run the server
-	log.Fatalf("%v", r.Run(":8001"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8001"
+	}
+	log.Fatalf("%v", r.Run(":"+port))
 }
