@@ -3,9 +3,6 @@ tmp/
 
 start.sh
 
-# macOS
-.DS_Store
-
 # vim
 .*.sw*
 
@@ -17,6 +14,3 @@ dbData/
 
 # generated swagger spec (has to be re-generated before running the service
 swagger/swagger.yaml
-
-# environment variables
-.env*

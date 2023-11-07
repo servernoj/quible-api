@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ import (
 //	@BasePath		/api/auth
 
 const BasePath = "/api/auth"
+const DefaultPort = 8001
 
 func main() {
 	// load environment variables based on the value of `APP_ENV`:
@@ -44,7 +46,7 @@ func Server() {
 	g := r.Group(BasePath)
 
 	// prepare postgresql database
-	dbPool, _, err := config.NewDBPool(
+	dbPool, err := config.NewDBPool(
 		os.Getenv("ENV_DSN"),
 	)
 
@@ -72,7 +74,8 @@ func Server() {
 	// run the server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8001"
+		port = strconv.Itoa(DefaultPort)
 	}
+	log.Printf("starting server on port: %s\n", port)
 	log.Fatalf("%v", r.Run(":"+port))
 }

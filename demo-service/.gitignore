@@ -1,8 +1,2 @@
-# macOS
-.DS_Store
-
 # binary
 /demo-service
-
-# environment variables
-.env*
