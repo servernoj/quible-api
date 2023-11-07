@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,14 @@ import (
 const BasePath = "/api/auth"
 
 func main() {
+	// load environment variables based on the value of `APP_ENV`:
+	// 1. When it is undefined => from file `.env`
+	// 2. When it is defined => from file `.env.${APP_ENV}`
+	// Note: content from the file does not override existing env variables, it only adds
+	if err := InitializeEnvironment(os.Getenv("APP_ENV")); err != nil {
+		log.Fatalln("unable to initialize environment", err)
+	}
+
 	// separate the code from the 'main' function.
 	// all code that available in main function were not testable
 	Server()
@@ -34,13 +43,9 @@ func Server() {
 	g := r.Group(BasePath)
 
 	// prepare postgresql database
-	dbPool, _, err := config.NewDBPool(config.DatabaseConfig{
-		Username: "scraper",
-		Password: "!QAZxsw2",
-		Hostname: "localhost",
-		Port:     "5432",
-		DBName:   "scraper",
-	})
+	dbPool, _, err := config.NewDBPool(
+		os.Getenv("ENV_DSN"),
+	)
 
 	// log for error if error occur while connecting to the database
 	if err != nil {

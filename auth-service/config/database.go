@@ -4,34 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// DatabaseConfig is configuration wrapper for our database setting
-type DatabaseConfig struct {
-	Username string
-	Password string
-	Hostname string
-	Port     string
-	DBName   string
-}
-
-// DSN will get datasource name of the database configuration
-func (db DatabaseConfig) DSN() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		db.Username, db.Password, db.Hostname, db.Port, db.DBName)
-}
-
 // NewDBPool will create pool connection to database
-func NewDBPool(dbConfig DatabaseConfig) (*pgxpool.Pool, func(), error) {
+func NewDBPool(dsn string) (*pgxpool.Pool, func(), error) {
 
 	f := func() {}
 
 	// create pgx connection pool
-	pool, err := pgxpool.New(context.Background(), dbConfig.DSN())
+	pool, err := pgxpool.New(context.Background(), dsn)
 
 	// return nil to connection and return error if error occur
 	if err != nil {
