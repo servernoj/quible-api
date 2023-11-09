@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const BasePath = "/api/demo"
+const BasePath = "/api/v1"
 const DefaultPort = 8010
 
 func main() {

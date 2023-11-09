@@ -19,7 +19,7 @@ import (
 //	@host			www.quible.io
 //	@BasePath		/api/auth
 
-const BasePath = "/api/auth"
+const BasePath = "/api/v1"
 const DefaultPort = 8001
 
 func main() {
