@@ -52,7 +52,7 @@ func Server() {
 
 	// log for error if error occur while connecting to the database
 	if err != nil {
-		log.Fatalf("unexpected error while tried to connect to database: %v\n", err)
+		log.Fatalf("unexpected  error while tried to connect to database: %v\n", err)
 	}
 
 	defer dbPool.Close()

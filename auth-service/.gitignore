@@ -1,7 +1,4 @@
 tmp/
-.air.toml
-
-start.sh
 
 # vim
 .*.sw*

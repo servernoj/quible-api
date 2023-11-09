@@ -31,14 +31,18 @@ func (r *Response) SendSuccess(c *gin.Context, message string, data interface{})
 
 func (r *Response) SendError(c *gin.Context, status int, message string, err error) {
 	// Log the error
-	fmt.Printf("Status %d: %s\n", status, err.Error())
+	if err != nil {
+		fmt.Printf("Status %d: %s\n", status, err)
+	}
 	// Send the error response to the client
 	r.sendResponse(c, false, status, message, nil)
 }
 
 func (r *Response) SendErrorAbort(c *gin.Context, status int, message string, err error) {
 	// Log the error
-	fmt.Printf("Status %d: %s\n", status, err.Error())
+	if err != nil {
+		fmt.Printf("Status %d: %s\n", status, err)
+	}
 	// Send the error response to the client
 	r.sendResponse(c, false, status, message, nil)
 	c.Abort()
