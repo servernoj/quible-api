@@ -1,0 +1,44 @@
+name: quible-api
+version: "3"
+x-environment: &env
+  ENV_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  ENV_EMAIL_ADDRESS: ${ENV_EMAIL_ADDRESS}
+  ENV_EMAIL_PASSWORD: ${ENV_EMAIL_PASSWORD}
+  ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
+  ENV_URL_DEMO_SERVICE: "http://demo:${DEMO_PORT}"
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - "./dbData:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER}
+  auth:
+    build: ./auth-service
+    restart: always
+    environment:
+      <<: *env
+      PORT: ${AUTH_PORT}
+    ports:
+      - "${AUTH_PORT}:${AUTH_PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
+  demo:
+    build: ./demo-service
+    restart: always
+    environment:
+      <<: *env
+      PORT: ${DEMO_PORT}
+    ports:
+      - "${DEMO_PORT}:${DEMO_PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
