@@ -11,7 +11,8 @@ services:
     image: postgres:latest
     restart: always
     volumes:
-      - "./dbData:/var/lib/postgresql/data"
+      - ./dbData:/var/lib/postgresql/data
+      - ./dbInit:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
