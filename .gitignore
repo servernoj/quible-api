@@ -2,4 +2,7 @@
 .DS_Store
 
 # environment variables
-.env*
+.env
+
+# database
+dbData/*

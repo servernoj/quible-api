@@ -23,14 +23,6 @@ const BasePath = "/api/v1"
 const DefaultPort = 8001
 
 func main() {
-	// load environment variables based on the value of `APP_ENV`:
-	// 1. When it is undefined => from file `.env`
-	// 2. When it is defined => from file `.env.${APP_ENV}`
-	// Note: content from the file does not override existing env variables, it only adds
-	if err := InitializeEnvironment(os.Getenv("APP_ENV")); err != nil {
-		log.Fatalln("unable to initialize environment", err)
-	}
-
 	// separate the code from the 'main' function.
 	// all code that available in main function were not testable
 	Server()
