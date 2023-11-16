@@ -5,6 +5,9 @@ import (
 	c "gitlab.com/quible-backend/lib/controller"
 )
 
+const userContextKey = "user"
+const serviceContextKey = "service"
+
 // Add "health" endpoint at /health
 var WithHealth = c.WithHealth
 
@@ -13,9 +16,10 @@ var WithSwagger = c.WithSwagger
 
 // Setup the controller and all handlers
 func Setup(g *gin.RouterGroup, options ...c.Option) {
-	// Process options
 	for _, option := range options {
 		option(g)
 	}
-
+	g.Use(injectUserService)
+	// -- Public API
+	g.POST("/register", RegisterUser)
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const generalErrorCode = 9999
+
 type ErrorResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -19,51 +21,55 @@ type ErrorMap map[int]map[int]string
 var errorMap = ErrorMap{
 	// 207
 	http.StatusMultiStatus: {
-		0001: "Partial Deletion: Some data remains undeleted",
+		1: "some data remains undeleted",
 	},
 	// 400
 	http.StatusBadRequest: {
-		0001: "email is not registered",
-		0002: "wrong password",
-		0003: "invalid email address format",
-		0004: "invalid username format",
-		0005: "username already exists",
-		0006: "password doesn't match regex",
-		0007: "Bad Request: Invalid phone number format",
+		1:   "email is not registered",
+		2:   "wrong password",
+		3:   "invalid email address format",
+		4:   "invalid username format",
+		5:   "user with such username exists",
+		6:   "password doesn't match regex",
+		7:   "invalid phone number format",
+		8:   "user with such email exists",
+		100: "invalid request body",
 	},
 	// 401
 	http.StatusUnauthorized: {
-		0001: "Unauthorized: Invalid credentials provided",
-		0002: "Unauthorized: Invalid credentials provided",
+		1: "invalid credentials provided",
+		2: "authorization header missing",
+		3: "authorization header is invalid",
+		4: "no user found",
 	},
 	// 403
 	http.StatusForbidden: {
-		0001: "Forbidden: Insufficient permissions for deletion",
-		0002: "Forbidden: Insufficient permissions for phone number edit",
+		1: "insufficient permissions for deletion",
+		2: "insufficient permissions for phone number edit",
 	},
 	// 404
 	http.StatusNotFound: {
-		0001: "Not Found: Player stats not Available",
-		0002: "Not Found: Player stats not Available",
-		0003: "Not Found: User or phone number not found",
-		0004: "Not Found: Account already deleted or does not exist",
+		1: "player stats not Available",
+		2: "player stats not Available",
+		3: "user or phone number not found",
+		4: "account already deleted or does not exist",
 	},
 	// 429
 	http.StatusTooManyRequests: {
-		0001: "Limit Exceeded: Edit requests reached limit",
+		1: "edit requests reached limit",
 	},
 	// 500
 	http.StatusInternalServerError: {
-		0001: "Internal Server Error: Unexpected issue during deletion",
-		0002: "Internal Server Error: Unexpected issue during phone number edit",
-		0003: "Internal Server Error: Unexpected issue occurred",
-		0004: "Internal Server Error: Unexpected issue occurred",
-		9999: "Unknown error",
+		1:                "unexpected issue during deletion",
+		2:                "unexpected issue during phone number edit",
+		3:                "unexpected issue occurred",
+		4:                "unexpected issue during registration",
+		generalErrorCode: "internal server error",
 	},
 	// 503
 	http.StatusServiceUnavailable: {
-		0001: "Service Unavailable: Database issue during deletion",
-		0002: "Service Unavailable: Database issue during phone number edit",
+		1: "Service Unavailable: Database issue during deletion",
+		2: "Service Unavailable: Database issue during phone number edit",
 	},
 }
 
@@ -76,9 +82,13 @@ func SendError(c *gin.Context, httpStatus, messageId int) {
 		}
 		c.JSON(httpStatus, errorResponse)
 	} else {
+		status := http.StatusInternalServerError
+		code, _ := strconv.Atoi(
+			fmt.Sprintf("%03d%04d", status, generalErrorCode),
+		)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Code:    500_9999,
-			Message: errorMap[500][9999],
+			Code:    code,
+			Message: errorMap[status][generalErrorCode],
 		})
 	}
 }

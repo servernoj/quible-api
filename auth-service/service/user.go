@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gitlab.com/quible-backend/lib/models"
@@ -39,9 +40,23 @@ func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
 	return models.Users(qm.Where("username = $1", username)).OneG(s.C)
 }
 
-func (s *UserService) CreateUser(user *models.User) (int, error) {
-	err := user.InsertG(s.C, boil.Blacklist("id", "image", "is_oauth"))
-	return user.ID, err
+func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
+	hashedPassword, err := s.HashPassword(dto.Password)
+	if err != nil {
+		return nil, ErrHashPassword
+	}
+	user := &models.User{
+		Email:          dto.Email,
+		Username:       dto.Username,
+		FullName:       null.StringFrom(dto.FullName),
+		Phone:          null.StringFrom(dto.Phone),
+		HashedPassword: hashedPassword,
+	}
+	err = user.InsertG(s.C, boil.Blacklist("id", "image", "is_oauth"))
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *UserService) Update(user models.User) error {
