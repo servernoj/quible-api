@@ -1,19 +1,14 @@
 package main
 
 import (
-	"context"
 	_ "embed"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 
-	"encoding/json"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/lib/models"
 	"gitlab.com/quible-backend/lib/store"
 	"gitlab.com/quible-backend/lib/swagger"
 )
@@ -48,11 +43,6 @@ func Server() {
 	if err := store.Init(os.Getenv("ENV_DSN")); err != nil {
 		log.Fatalf("unexpected  error while tried to connect to database: %v\n", err)
 	}
-
-	ctx := context.Background()
-	users, _ := models.Users().AllG(ctx)
-	asJSON, _ := json.MarshalIndent(users, "", "  ")
-	fmt.Printf("%s\n", string(asJSON))
 
 	// prepare postgresql database
 	// dbPool, err := config.NewDBPool(
