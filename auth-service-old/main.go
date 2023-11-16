@@ -1,21 +1,16 @@
 package main
 
 import (
-	"context"
-	_ "embed"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 
-	"encoding/json"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/lib/models"
-	"gitlab.com/quible-backend/lib/store"
-	"gitlab.com/quible-backend/lib/swagger"
+	"gitlab.com/quible-backend/auth-service-old/config"
+	"gitlab.com/quible-backend/auth-service-old/pkg/repository/user"
+	"gitlab.com/quible-backend/auth-service-old/swagger"
 )
 
 //	@title			Quible auth-service
@@ -25,10 +20,7 @@ import (
 //	@BasePath		/api/v1
 
 const BasePath = "/api/v1"
-const DefaultPort = 8002
-
-//go:embed swagger.yaml
-var swaggerSpec string
+const DefaultPort = 8001
 
 func main() {
 	// separate the code from the 'main' function.
@@ -45,36 +37,27 @@ func Server() {
 	r.Use(cors.Default())
 	g := r.Group(BasePath)
 
-	if err := store.Init(os.Getenv("ENV_DSN")); err != nil {
+	// prepare postgresql database
+	dbPool, err := config.NewDBPool(
+		os.Getenv("ENV_DSN"),
+	)
+
+	// log for error if error occur while connecting to the database
+	if err != nil {
 		log.Fatalf("unexpected  error while tried to connect to database: %v\n", err)
 	}
 
-	ctx := context.Background()
-	users, _ := models.Users().AllG(ctx)
-	asJSON, _ := json.MarshalIndent(users, "", "  ")
-	fmt.Printf("%s\n", string(asJSON))
+	defer dbPool.Close()
 
-	// prepare postgresql database
-	// dbPool, err := config.NewDBPool(
-	// 	os.Getenv("ENV_DSN"),
-	// )
-
-	// log for error if error occur while connecting to the database
-	// if err != nil {
-	// 	log.Fatalf("unexpected  error while tried to connect to database: %v\n", err)
-	// }
-
-	// defer dbPool.Close()
-
-	// // setup api
-	// database := user.NewRepository(dbPool)
-	// service := user.NewService(database)
-	// controller := user.NewController(service)
+	// setup api
+	database := user.NewRepository(dbPool)
+	service := user.NewService(database)
+	controller := user.NewController(service)
 
 	// Register User controller routes
-	// user.Routes(g, controller)
+	user.Routes(g, controller)
 	// Register Swagger/docs routes
-	swagger.Register(g, swaggerSpec, "/docs")
+	swagger.Register(g, "/docs")
 	// Register helper routes
 	g.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "OK")

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/quible-backend/auth-service/domain"
+	"gitlab.com/quible-backend/auth-service-old/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 

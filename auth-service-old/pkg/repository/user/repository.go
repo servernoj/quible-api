@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"gitlab.com/quible-backend/auth-service/domain"
+	"gitlab.com/quible-backend/auth-service-old/domain"
 )
 
 const (

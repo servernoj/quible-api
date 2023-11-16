@@ -1,6 +1,8 @@
-go 1.21.3
+go 1.21.4
 
 use (	
+	./lib
 	./auth-service
 	./demo-service
+	./auth-service-old
 )

@@ -5,5 +5,5 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN swag init --output swagger --outputTypes yaml
-RUN go build .
-CMD ["./auth-service"]  
+RUN go build -o service .
+CMD ["./service"]  

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"gitlab.com/quible-backend/auth-service/domain"
+	"gitlab.com/quible-backend/auth-service-old/domain"
 )
 
 var APPLICATION_NAME = "Quible"

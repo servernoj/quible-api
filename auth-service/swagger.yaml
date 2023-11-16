@@ -1,0 +1,45 @@
+basePath: /api/v1
+host: www.quible.io
+info:
+  contact: {}
+  description: Authentication and authorization service of Quible.io
+  title: Quible auth-service
+  version: "0.1"
+paths:
+  /docs:
+    get:
+      description: Render Swagger UI page
+      parameters:
+      - default: swagger
+        description: UI template
+        enum:
+        - swagger
+        - rapidoc
+        - redoc
+        in: query
+        name: ui
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Swagger UI
+      tags:
+      - docs
+  /docs/spec:
+    get:
+      description: Swagger spec in YAML format
+      produces:
+      - application/yaml
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Swagger spec
+      tags:
+      - docs
+swagger: "2.0"

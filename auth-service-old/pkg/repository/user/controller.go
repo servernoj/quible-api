@@ -13,7 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/quible-backend/auth-service/domain"
+	"gitlab.com/quible-backend/auth-service-old/domain"
 )
 
 type controller struct {
