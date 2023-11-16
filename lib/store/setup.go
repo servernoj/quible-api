@@ -8,7 +8,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-func Init(dsn string) error {
+func Setup(dsn string) error {
 	if len(dsn) == 0 {
 		return errors.New("undefined DSN")
 	}
@@ -19,4 +19,10 @@ func Init(dsn string) error {
 	boil.SetDB(db)
 
 	return nil
+}
+
+func Close() {
+	if db, ok := boil.GetDB().(*sql.DB); ok {
+		db.Close()
+	}
 }

@@ -2,18 +2,23 @@ package service
 
 import (
 	"context"
+	"errors"
 
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gitlab.com/quible-backend/lib/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
+const passwordHashCost = 15
+
 type UserInterface interface {
-	GetUserById(id int64) (*models.User, error)
+	GetUserById(id int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByUsername(username string) (*models.User, error)
-	CreateUser(user models.User) (int64, error)
-	Update(id int64, user models.User) (int64, error)
-	Delete(id int64) error
+	CreateUser(user models.User) (int, error)
+	Update(user models.User) error
+	Delete(id int) error
 	ValidatePassword(hashedPassword string, password string) error
 	HashPassword(password string) (string, error)
 }
@@ -22,6 +27,52 @@ type UserService struct {
 	C context.Context
 }
 
-func (s *UserService) GetUserById(id int64) (*models.User, error) {
-	return models.Users(qm.Where("id = $1", id)).OneG(s.C)
+func (s *UserService) GetUserById(id int) (*models.User, error) {
+	return models.FindUserG(s.C, id)
+}
+
+func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
+	return models.Users(qm.Where("email = $1", email)).OneG(s.C)
+}
+
+func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
+	return models.Users(qm.Where("username = $1", username)).OneG(s.C)
+}
+
+func (s *UserService) CreateUser(user *models.User) (int, error) {
+	err := user.InsertG(s.C, boil.Blacklist("id", "image", "is_oauth"))
+	return user.ID, err
+}
+
+func (s *UserService) Update(user models.User) error {
+	userInDB, _ := models.FindUserG(s.C, user.ID)
+	if userInDB == nil {
+		return ErrUserNotFound
+	}
+	_, err := userInDB.UpdateG(s.C, boil.Infer())
+	return err
+}
+
+func (s *UserService) Delete(id int) error {
+	user, _ := models.FindUserG(s.C, id)
+	if user != nil {
+		_, err := user.DeleteG(s.C)
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) ValidatePassword(hashedPassword string, password string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return ErrWrongCredentials
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), passwordHashCost)
+	return string(bytes), err
 }
