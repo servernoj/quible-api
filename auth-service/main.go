@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gitlab.com/quible-backend/lib/env"
 	"gitlab.com/quible-backend/lib/store"
 	"gitlab.com/quible-backend/lib/swagger"
 )
@@ -20,12 +21,13 @@ import (
 //	@BasePath		/api/v1
 
 const BasePath = "/api/v1"
-const DefaultPort = 8002
+const DefaultPort = 8001
 
 //go:embed swagger.yaml
 var swaggerSpec string
 
 func main() {
+	env.Setup()
 	// separate the code from the 'main' function.
 	// all code that available in main function were not testable
 	Server()

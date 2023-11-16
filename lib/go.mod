@@ -6,6 +6,7 @@ require (
 	github.com/friendsofgo/errors v0.9.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/jackc/pgx/v5 v5.5.0
+	github.com/joho/godotenv v1.5.1
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler/v4 v4.15.0
 	github.com/volatiletech/strmangle v0.0.5
