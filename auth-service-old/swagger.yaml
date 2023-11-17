@@ -1,0 +1,313 @@
+basePath: /api/v1
+definitions:
+  domain.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: integer
+      success:
+        type: boolean
+    type: object
+  domain.UserEmailCheckRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  domain.UserLoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  domain.UserRegisterRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      image:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    - phone
+    - username
+    type: object
+  domain.UserUpdateRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      image:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - full_name
+    - phone
+    - username
+    type: object
+  domain.UserVerifyCodeRequest:
+    properties:
+      code:
+        type: integer
+      email:
+        type: string
+    required:
+    - code
+    - email
+    type: object
+host: www.quible.io
+info:
+  contact: {}
+  description: Authentication and authorization service of Quible.io
+  title: Quible auth-service
+  version: "0.1"
+paths:
+  /checkemail/{email}:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Check if an email address can be used to register.
+        WARNING: for a public API, it is generally considered as a security concern to allow users to query email validity.
+        We may want to revisit this API - https://quible.atlassian.net/browse/SPORT-66
+      parameters:
+      - description: Email to be checked
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserEmailCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Check email
+      tags:
+      - email
+  /docs:
+    get:
+      description: Render Swagger UI page
+      parameters:
+      - default: swagger
+        description: UI template
+        enum:
+        - swagger
+        - rapidoc
+        - redoc
+        in: query
+        name: ui
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Swagger UI
+      tags:
+      - docs
+  /docs/spec:
+    get:
+      description: Swagger spec in YAML format
+      produces:
+      - application/yaml
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Swagger spec
+      tags:
+      - docs
+  /login/{email}:
+    post:
+      consumes:
+      - application/json
+      description: User login.
+      parameters:
+      - description: User login information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Login
+      tags:
+      - auth
+  /register/{email}:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user.
+      parameters:
+      - description: User registration information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Register
+      tags:
+      - auth
+  /resetpassword/{email}:
+    post:
+      consumes:
+      - application/json
+      description: TODO this API is under development.
+      parameters:
+      - description: TODO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserVerifyCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Reset password
+      tags:
+      - auth
+  /user:
+    delete:
+      consumes:
+      - application/json
+      description: Delete the user that is currently logged in.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Delete user
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the user currently logged in.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Get user
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update the user that is currently logged in.
+      parameters:
+      - description: User update information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Update user
+      tags:
+      - user
+  /verify/{email}:
+    post:
+      consumes:
+      - application/json
+      description: TODO is it the same as validate? Try to verify email address by
+        sending out a verification email.
+      parameters:
+      - description: Email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserEmailCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+      summary: Validate email
+      tags:
+      - email
+swagger: "2.0"

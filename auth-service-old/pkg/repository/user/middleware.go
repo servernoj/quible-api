@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/auth-service/domain"
+	"gitlab.com/quible-backend/auth-service-old/domain"
 )
 
 const userContextKey = "user"

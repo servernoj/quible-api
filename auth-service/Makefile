@@ -3,5 +3,5 @@ all:
 	go mod tidy
 	go fmt ./...
 	swag fmt
-	swag init --output swagger --outputTypes yaml
+	swag init --output . --outputTypes yaml --dir ./,../lib/swagger,./controller,../lib/models
 	go build .

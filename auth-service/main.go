@@ -1,69 +1,53 @@
 package main
 
 import (
+	_ "embed"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/auth-service/config"
-	"gitlab.com/quible-backend/auth-service/pkg/repository/user"
-	"gitlab.com/quible-backend/auth-service/swagger"
+	"gitlab.com/quible-backend/auth-service/controller"
+	"gitlab.com/quible-backend/lib/env"
+	"gitlab.com/quible-backend/lib/store"
 )
 
 //	@title			Quible auth-service
 //	@description	Authentication and authorization service of Quible.io
 //	@version		0.1
 //	@host			www.quible.io
-//	@BasePath		/api/auth
+//	@BasePath		/api/v1
 
-const BasePath = "/api/v1"
 const DefaultPort = 8001
 
+//go:embed swagger.yaml
+var swaggerSpec string
+
 func main() {
+	env.Setup()
 	// separate the code from the 'main' function.
 	// all code that available in main function were not testable
 	Server()
 }
 
 func Server() {
-	// prepare gin
-	gin.SetMode(gin.ReleaseMode)
+	// Store + ORM
+	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
+		log.Fatalf("unable to setup DB connection: %s", err)
+	}
+	defer store.Close()
 
-	// gin setup
+	// HTTP server
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.Use(cors.Default())
-	g := r.Group(BasePath)
-
-	// prepare postgresql database
-	dbPool, err := config.NewDBPool(
-		os.Getenv("ENV_DSN"),
+	g := r.Group("/api/v1")
+	controller.Setup(
+		g,
+		controller.WithSwagger(swaggerSpec),
+		controller.WithHealth(),
 	)
-
-	// log for error if error occur while connecting to the database
-	if err != nil {
-		log.Fatalf("unexpected  error while tried to connect to database: %v\n", err)
-	}
-
-	defer dbPool.Close()
-
-	// setup api
-	database := user.NewRepository(dbPool)
-	service := user.NewService(database)
-	controller := user.NewController(service)
-
-	// Register User controller routes
-	user.Routes(g, controller)
-	// Register Swagger/docs routes
-	swagger.Register(g, "/docs")
-	// Register helper routes
-	g.GET("/health", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "OK")
-	})
-
-	// run the server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = strconv.Itoa(DefaultPort)

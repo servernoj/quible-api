@@ -1,0 +1,9 @@
+pkgname = "models"
+output  = "../models"
+no-tests = true
+
+[psql]
+  schema = "public"
+  host = "localhost"
+  port = "5432"
+  sslmode = "disable"
