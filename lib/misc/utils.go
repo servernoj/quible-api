@@ -2,7 +2,7 @@ package misc
 
 import "encoding/json"
 
-func Pick(data any, fields ...string) map[string]any {
+func PickFields(data any, fields ...string) map[string]any {
 	bytes, _ := json.Marshal(&data)
 	fullMap := make(map[string]any)
 	json.Unmarshal(bytes, &fullMap)

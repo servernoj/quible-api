@@ -21,5 +21,6 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	}
 	g.Use(injectUserService)
 	// -- Public API
-	g.POST("/register", RegisterUser)
+	g.POST("/register", UserRegister)
+	g.POST("/login", UserLogin)
 }
