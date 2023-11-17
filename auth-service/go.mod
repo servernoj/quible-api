@@ -1,6 +1,6 @@
 module gitlab.com/quible-backend/auth-service
 
-go 1.21.4
+go 1.21.3
 
 replace gitlab.com/quible-backend/lib => ../lib
 
