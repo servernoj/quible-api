@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN go mod tidy
 # -- compile Swagger spec
-RUN swag init --output . --outputTypes yaml --dir ./,../lib/swagger
+RUN swag init --output . --outputTypes yaml --dir ./,../lib/swagger,./controller,../lib/models
 # -- build the service
 RUN go build -o service . 
 CMD ["./service"]  

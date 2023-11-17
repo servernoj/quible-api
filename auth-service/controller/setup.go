@@ -23,4 +23,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	// -- Public API
 	g.POST("/register", UserRegister)
 	g.POST("/login", UserLogin)
+	//-- Protected API
+	protected := g.Group("", authMiddleware)
+	protected.GET("/me", GetUser)
 }

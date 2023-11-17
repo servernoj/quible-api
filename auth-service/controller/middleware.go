@@ -11,7 +11,7 @@ import (
 	"gitlab.com/quible-backend/lib/models"
 )
 
-func getUserService(c *gin.Context) *service.UserService {
+func getUserServiceFromContext(c *gin.Context) *service.UserService {
 	serviceCandidate, ok := c.Get(serviceContextKey)
 	if !ok {
 		return nil
@@ -23,13 +23,15 @@ func getUserService(c *gin.Context) *service.UserService {
 	return userService
 }
 
-func getUser(c *gin.Context) *models.User {
-	userCandidate, ok := c.Get("userContextKey")
+func getUserFromContext(c *gin.Context) *models.User {
+	userCandidate, ok := c.Get(userContextKey)
 	if !ok {
+		log.Printf("no user object in context")
 		return nil
 	}
 	user, ok := userCandidate.(*models.User)
 	if !ok {
+		log.Printf("unable to assert user type")
 		return nil
 	}
 	return user
@@ -37,7 +39,7 @@ func getUser(c *gin.Context) *models.User {
 
 func authMiddleware(c *gin.Context) {
 	authToken := strings.TrimSpace(c.GetHeader("Authorization"))
-	userService := getUserService(c)
+	userService := getUserServiceFromContext(c)
 	if userService == nil {
 		log.Printf("unable to retrieve user service")
 		SendError(c, http.StatusInternalServerError, generalErrorCode)
@@ -62,7 +64,7 @@ func authMiddleware(c *gin.Context) {
 	token := headerParts[1]
 	id, err := verifyJWT(token)
 	if err != nil {
-		log.Printf("unable to verify token %q", token)
+		log.Printf("unable to verify token %q: %s", token, err)
 		SendError(c, http.StatusUnauthorized, 3)
 		return
 	}

@@ -60,9 +60,10 @@ func verifyJWT(tokenString string) (int, error) {
 	if !ok || !token.Valid {
 		return 0, err
 	}
-	id, ok := claims["id"].(int)
+
+	id, ok := claims["id"].(float64)
 	if !ok {
-		return 0, fmt.Errorf("unable to extract `id` from token")
+		return 0, fmt.Errorf("unable to extract ID from token")
 	}
-	return id, nil
+	return int(id), nil
 }
