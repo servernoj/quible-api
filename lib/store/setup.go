@@ -16,6 +16,9 @@ func Setup(dsn string) error {
 	if err != nil {
 		return err
 	}
+	if err = db.Ping(); err != nil {
+		return errors.New("DB server cannot be reached")
+	}
 	boil.SetDB(db)
 
 	return nil

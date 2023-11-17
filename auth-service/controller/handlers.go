@@ -11,16 +11,16 @@ import (
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
 
-// @Summary		Register
-// @Description	Register a new user.
-// @Tags			user,public
-// @Accept		json
-// @Produce		json
-// @Param			request	body		service.UserRegisterDTO	true	"User registration information"
-// @Success		201		{object}	UserResponse
-// @Failure		400		{object}	ErrorResponse
-// @Failure		500		{object}	ErrorResponse
-// @Router		/register [post]
+//	@Summary		Register
+//	@Description	Register a new user.
+//	@Tags			user,public
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		service.UserRegisterDTO	true	"User registration information"
+//	@Success		201		{object}	UserResponse
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/register [post]
 func UserRegister(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 	var userRegisterDTO service.UserRegisterDTO
@@ -50,17 +50,17 @@ func UserRegister(c *gin.Context) {
 	)
 }
 
-// @Summary		Login
-// @Description	Login with user credentials to get token
-// @Tags			user,public
-// @Accept		json
-// @Produce		json
-// @Param			request	body		service.UserLoginDTO	true	"User login credentials"
-// @Success		200		{object}	TokenResponse
-// @Failure		400		{object}	ErrorResponse
-// @Failure		401		{object}	ErrorResponse
-// @Failure		500		{object}	ErrorResponse
-// @Router		/login [post]
+//	@Summary		Login
+//	@Description	Login with user credentials to get token
+//	@Tags			user,public
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		service.UserLoginDTO	true	"User login credentials"
+//	@Success		200		{object}	TokenResponse
+//	@Failure		400		{object}	ErrorResponse
+//	@Failure		401		{object}	ErrorResponse
+//	@Failure		500		{object}	ErrorResponse
+//	@Router			/login [post]
 func UserLogin(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 
@@ -85,14 +85,14 @@ func UserLogin(c *gin.Context) {
 	})
 }
 
-// @Summary		Get user
-// @Description	Get user profile associated with token
-// @Tags			user,private
-// @Produce		json
-// @Success		200		{object}	UserResponse
-// @Failure		401		{object}	ErrorResponse
-// @Failure		500		{object}	ErrorResponse
-// @Router		/user [get]
+//	@Summary		Get user
+//	@Description	Get user profile associated with token
+//	@Tags			user,private
+//	@Produce		json
+//	@Success		200	{object}	UserResponse
+//	@Failure		401	{object}	ErrorResponse
+//	@Failure		500	{object}	ErrorResponse
+//	@Router			/user [get]
 func GetUser(c *gin.Context) {
 	user := getUserFromContext(c)
 	c.JSON(

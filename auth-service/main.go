@@ -34,7 +34,7 @@ func main() {
 func Server() {
 	// Store + ORM
 	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
-		log.Fatalf("unexpected  error while tried to connect to database: %v\n", err)
+		log.Fatalf("unable to setup DB connection: %s", err)
 	}
 	defer store.Close()
 
