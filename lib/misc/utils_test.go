@@ -29,7 +29,7 @@ func TestPickFields(t *testing.T) {
 				Email string
 			}{ID: 2, Name: "John", Email: "john@example.com"},
 			fields: []string{"ID", "Email"},
-			want:   map[string]interface{}{"ID": 2, "Email": "john@example.com"},
+			want:   map[string]interface{}{"ID": float64(2), "Email": "john@example.com"},
 		},
 		{
 			name:   "Pick non-existent field",
