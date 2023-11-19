@@ -66,6 +66,18 @@ test_demo_service:
     - dev
     - merge_requests
 
+test_lib:
+  image: golang:latest
+  stage: test
+  script:
+    - cd lib
+    - go test ./...
+  interruptible: true
+  only:
+    - master
+    - dev
+    - merge_requests
+
 deploy:
   image: alpine
   stage: deploy
