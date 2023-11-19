@@ -4,44 +4,76 @@ stages:
   - test
   - deploy
 
+variables:
+  GO111MODULE: "on"
+
 lint:
   image: golangci/golangci-lint
   stage: lint
   script:
-    - golangci-lint run
+    - golangci-lint run ./auth-service/...
+    - golangci-lint run ./demo-service/...
+    - golangci-lint run ./lib/...
   interruptible: true
   only:
     - main
     - dev
     - merge_requests
 
-build:
+build_auth_service:
   image: golang:latest
   stage: build
   script:
-    - go build -o api-server .
+    - cd auth-service
+    - go build -o auth-service-binary .
+  only:
+    - main
+    - dev
+    - merge_requests
+
+build_demo_service:
+  image: golang:latest
+  stage: build
+  script:
+    - cd demo-service
+    - go build -o demo-service-binary .
+  only:
+    - main
+    - dev
+    - merge_requests
+
+test_auth_service:
+  image: golang:latest
+  stage: test
+  script:
+    - cd auth-service
+    - go test ./...
   interruptible: true
   only:
     - main
     - dev
     - merge_requests
 
-test:
+test_demo_service:
   image: golang:latest
   stage: test
   script:
+    - cd demo-service
     - go test ./...
   interruptible: true
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev")'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  only:
+    - main
+    - dev
+    - merge_requests
 
 deploy:
   image: alpine
   stage: deploy
   script:
-    - echo "Deploying the project..."
-    # Needing more deployment scripts here
+    - echo "Deploying auth-service..."
+    # Add deployment script for auth-service
+    - echo "Deploying demo-service..."
+    # Add deployment script for demo-service
   interruptible: true
   only:
     - main
