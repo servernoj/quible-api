@@ -33,6 +33,7 @@ var errorMap = ErrorMap{
 		6:   "password doesn't match regex",
 		7:   "invalid phone number format",
 		8:   "user with such email exists",
+		99:  "malformed JSON request",
 		100: "invalid request body",
 	},
 	// 401

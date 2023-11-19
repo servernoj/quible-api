@@ -119,8 +119,12 @@ func UserPatch(c *gin.Context) {
 	if err := c.ShouldBindJSON(&userPatchDTO); err != nil {
 		errorCode := 100
 		errorFields := misc.ParseValidationError(err)
-		if errorFields.CheckAll("Email") {
-			errorCode = 3
+		if errorFields.IsValidationError {
+			if errorFields.CheckAll("Email") {
+				errorCode = 3
+			}
+		} else {
+			errorCode = 99
 		}
 		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
 		SendError(c, http.StatusBadRequest, errorCode)

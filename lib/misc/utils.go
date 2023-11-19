@@ -20,9 +20,10 @@ func PickFields(data any, fields ...string) map[string]any {
 }
 
 type ErrorFields struct {
-	CheckSome    func(...string) bool
-	CheckAll     func(...string) bool
-	GetAllFields func() []string
+	IsValidationError bool
+	CheckSome         func(...string) bool
+	CheckAll          func(...string) bool
+	GetAllFields      func() []string
 }
 
 // Function parses validation error and returns a CLOSURE with 3 functions:
@@ -32,7 +33,9 @@ type ErrorFields struct {
 //	checkAll() -- checks if ALL of the listed fields have been reported to have valiadtion errors
 func ParseValidationError(err error) ErrorFields {
 	set := make(map[string]string)
+	IsValidationError := false
 	if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		IsValidationError = true
 		for _, fe := range validationErrors {
 			key := fe.StructField()
 			set[key] = fe.Tag()
@@ -73,8 +76,9 @@ func ParseValidationError(err error) ErrorFields {
 		return !flag
 	}
 	return ErrorFields{
-		CheckSome:    checkSome,
-		CheckAll:     checkAll,
-		GetAllFields: getAllFields,
+		IsValidationError: IsValidationError,
+		CheckSome:         checkSome,
+		CheckAll:          checkAll,
+		GetAllFields:      getAllFields,
 	}
 }

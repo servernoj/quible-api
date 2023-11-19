@@ -9,7 +9,7 @@ type UserRegisterDTO struct {
 }
 
 type UserPatchDTO struct {
-	Username *string `json:"username" binding:""`
+	Username *string `json:"username"`
 	Email    *string `json:"email" binding:"omitempty,email"`
 	FullName *string `json:"full_name"`
 	Phone    *string `json:"phone"`
