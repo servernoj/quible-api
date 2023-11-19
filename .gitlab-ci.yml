@@ -1,8 +1,6 @@
 stages:
   - lint
-  - build
   - test
-  - deploy
 
 variables:
   GO111MODULE: "on"
@@ -15,28 +13,6 @@ lint:
     - golangci-lint run ./demo-service/...
     - golangci-lint run ./lib/...
   interruptible: true
-  only:
-    - master
-    - dev
-    - merge_requests
-
-build_auth_service:
-  image: golang:latest
-  stage: build
-  script:
-    - cd auth-service
-    - go build -o auth-service-binary .
-  only:
-    - master
-    - dev
-    - merge_requests
-
-build_demo_service:
-  image: golang:latest
-  stage: build
-  script:
-    - cd demo-service
-    - go build -o demo-service-binary .
   only:
     - master
     - dev
@@ -77,15 +53,3 @@ test_lib:
     - master
     - dev
     - merge_requests
-
-deploy:
-  image: alpine
-  stage: deploy
-  script:
-    - echo "Deploying auth-service..."
-    # Add deployment script for auth-service
-    - echo "Deploying demo-service..."
-    # Add deployment script for demo-service
-  interruptible: true
-  only:
-    - master
