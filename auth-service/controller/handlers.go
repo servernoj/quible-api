@@ -78,6 +78,7 @@ func UserLogin(c *gin.Context) {
 	}
 	if err := userService.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
 		log.Printf("invalid password: %+v", userLoginDTO)
+		SendError(c, http.StatusUnauthorized, 2)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
