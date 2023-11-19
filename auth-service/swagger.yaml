@@ -132,7 +132,30 @@ paths:
       tags:
       - user
       - public
-  /register:
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Updates user profile associated with the token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Update user
+      tags:
+      - user
+      - private
     post:
       consumes:
       - application/json
@@ -163,26 +186,4 @@ paths:
       tags:
       - user
       - public
-  /user:
-    get:
-      description: Get user profile associated with token
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.UserResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/controller.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/controller.ErrorResponse'
-      summary: Get user
-      tags:
-      - user
-      - private
 swagger: "2.0"
