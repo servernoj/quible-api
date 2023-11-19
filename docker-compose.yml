@@ -42,9 +42,9 @@ services:
   demo:
     build: 
       context: ./demo-service
-      dockerfile: ../Dockerfile
-      # below line shows use of Dockerfile from inside service directory instead of shared one
-      # dockerfile: ./Dockerfile.sample
+      dockerfile: ./Dockerfile.sample
+      # You can always switch back to the shared Dockerfile by replacing the above line with the one below
+      # dockerfile: ../Dockerfile
       additional_contexts: 
         lib: ./lib
     restart: always

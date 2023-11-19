@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 //go:embed *
@@ -31,7 +32,7 @@ func Register(r *gin.RouterGroup, spec, path string) {
 // @Router			/docs/spec [get]
 func swaggerSpec(spec string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Add("content-type", "application/yaml")
+		c.Writer.Header().Add("content-type", binding.MIMEYAML)
 		_, _ = c.Writer.WriteString(spec)
 	}
 }
@@ -56,6 +57,6 @@ func swaggerPage(c *gin.Context) {
 	}
 	data, err := FS.ReadFile(templatesDir + "/" + template)
 	fmt.Println(err)
-	c.Writer.Header().Add("content-type", "text/html")
+	c.Writer.Header().Add("content-type", binding.MIMEHTML)
 	_, _ = c.Writer.Write(data)
 }

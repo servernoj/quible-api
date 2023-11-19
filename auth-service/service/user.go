@@ -59,12 +59,12 @@ func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 	return user, nil
 }
 
-func (s *UserService) Update(user models.User) error {
+func (s *UserService) Update(user *models.User) error {
 	userInDB, _ := models.FindUserG(s.C, user.ID)
 	if userInDB == nil {
 		return ErrUserNotFound
 	}
-	_, err := userInDB.UpdateG(s.C, boil.Infer())
+	_, err := user.UpdateG(s.C, boil.Infer())
 	return err
 }
 
