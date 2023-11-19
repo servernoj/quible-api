@@ -1,14 +1,67 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-const generalErrorCode = 9999
+const ErrGain = 10_000
+
+const (
+	Err207_Shift = ErrGain * http.StatusMultiStatus
+	Err400_Shift = ErrGain * http.StatusBadRequest
+	Err401_Shift = ErrGain * http.StatusUnauthorized
+	Err403_Shift = ErrGain * http.StatusForbidden
+	Err404_Shift = ErrGain * http.StatusNotFound
+	Err429_Shift = ErrGain * http.StatusTooManyRequests
+	Err500_Shift = ErrGain * http.StatusInternalServerError
+	Err503_Shift = ErrGain * http.StatusServiceUnavailable
+)
+
+const (
+	Err207_SomeDataUndeleted = Err207_Shift + iota + 1
+)
+const (
+	Err400_EmailNotRegistered = Err400_Shift + iota + 1
+	Err400_InvalidEmailFormat
+	Err400_InvalidUsernameFormat
+	Err400_InvalidPhoneFormat
+	Err400_UserWithUsernameExists
+	Err400_UserWithEmailExists
+	Err400_IsufficientPasswordComplexity
+	Err400_MalformedJSON
+	Err400_InvalidRequestBody
+)
+const (
+	Err401_InvalidCredentials = Err401_Shift + iota + 1
+	Err401_AuthorizationHeaderMissing
+	Err401_AuthorizationHeaderInvalid
+	Err401_UserNotFound
+)
+const (
+	Err403_CannotToDelete = Err403_Shift + iota + 1
+	Err403_CannotEditPhone
+)
+const (
+	Err404_PlayerStatsNotFound = Err404_Shift + iota + 1
+	Err404_UserOrPhoneNotFound
+	Err404_AccountNotFound
+)
+const (
+	Err429_EditRequestTimedOut = Err429_Shift + iota + 1
+)
+const (
+	Err500_UnableToDelete = Err500_Shift + iota + 1
+	Err500_UnableToEditPhone
+	Err500_UnableToRegister
+	//--
+	Err500_UnknownError
+)
+const (
+	Err503_DataBaseOnDelete = Err503_Shift + iota + 1
+	Err503_DataBaseOnPhoneEdit
+)
 
 type ErrorResponse struct {
 	Code    int    `json:"code"`
@@ -21,75 +74,63 @@ type ErrorMap map[int]map[int]string
 var errorMap = ErrorMap{
 	// 207
 	http.StatusMultiStatus: {
-		1: "some data remains undeleted",
+		Err207_SomeDataUndeleted: "some data remains undeleted",
 	},
 	// 400
 	http.StatusBadRequest: {
-		1:   "email is not registered",
-		2:   "wrong password",
-		3:   "invalid email address format",
-		4:   "invalid username format",
-		5:   "user with such username exists",
-		6:   "password doesn't match regex",
-		7:   "invalid phone number format",
-		8:   "user with such email exists",
-		99:  "malformed JSON request",
-		100: "invalid request body",
+		Err400_EmailNotRegistered:            "email is not registered",
+		Err400_InvalidEmailFormat:            "invalid email address format",
+		Err400_InvalidUsernameFormat:         "invalid username format",
+		Err400_InvalidPhoneFormat:            "invalid phone number format",
+		Err400_UserWithUsernameExists:        "user with such username exists",
+		Err400_IsufficientPasswordComplexity: "password doesn't match regex",
+		Err400_UserWithEmailExists:           "user with such email exists",
+		Err400_MalformedJSON:                 "malformed JSON request",
+		Err400_InvalidRequestBody:            "invalid request body",
 	},
 	// 401
 	http.StatusUnauthorized: {
-		1: "invalid credentials provided",
-		2: "authorization header missing",
-		3: "authorization header is invalid",
-		4: "no user found",
+		Err401_InvalidCredentials:         "invalid credentials provided",
+		Err401_AuthorizationHeaderMissing: "authorization header missing",
+		Err401_AuthorizationHeaderInvalid: "authorization header is invalid",
+		Err401_UserNotFound:               "no user found",
 	},
 	// 403
 	http.StatusForbidden: {
-		1: "insufficient permissions for deletion",
-		2: "insufficient permissions for phone number edit",
+		Err403_CannotToDelete:  "insufficient permissions for deletion",
+		Err403_CannotEditPhone: "insufficient permissions for phone number edit",
 	},
 	// 404
 	http.StatusNotFound: {
-		1: "player stats not Available",
-		2: "player stats not Available",
-		3: "user or phone number not found",
-		4: "account already deleted or does not exist",
+		Err404_PlayerStatsNotFound: "player stats not Available",
+		Err404_UserOrPhoneNotFound: "user or phone number not found",
+		Err404_AccountNotFound:     "account already deleted or does not exist",
 	},
 	// 429
 	http.StatusTooManyRequests: {
-		1: "edit requests reached limit",
+		Err429_EditRequestTimedOut: "edit requests reached limit",
 	},
 	// 500
 	http.StatusInternalServerError: {
-		1:                "unexpected issue during deletion",
-		2:                "unexpected issue during phone number edit",
-		3:                "unexpected issue occurred",
-		4:                "unexpected issue during registration",
-		generalErrorCode: "internal server error",
+		Err500_UnableToDelete:    "unexpected issue during deletion",
+		Err500_UnableToEditPhone: "unexpected issue during phone number edit",
+		Err500_UnableToRegister:  "unexpected issue during registration",
+		Err500_UnknownError:      "internal server error",
 	},
 	// 503
 	http.StatusServiceUnavailable: {
-		1: "Service Unavailable: Database issue during deletion",
-		2: "Service Unavailable: Database issue during phone number edit",
+		Err503_DataBaseOnDelete:    "Service Unavailable: Database issue during deletion",
+		Err503_DataBaseOnPhoneEdit: "Service Unavailable: Database issue during phone number edit",
 	},
 }
 
-func SendError(c *gin.Context, httpStatus, messageId int) {
-	if message, ok := errorMap[httpStatus][messageId]; ok {
-		code, _ := strconv.Atoi(fmt.Sprintf("%03d%04d", httpStatus, messageId))
-		errorResponse := ErrorResponse{
-			Code:    code,
-			Message: message,
-		}
-		c.JSON(httpStatus, errorResponse)
-	} else {
-		status := http.StatusInternalServerError
-		code, _ := strconv.Atoi(
-			fmt.Sprintf("%03d%04d", status, generalErrorCode),
-		)
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Code:    code,
-			Message: errorMap[status][generalErrorCode],
-		})
+func SendError(c *gin.Context, status, code int) {
+	if _, ok := errorMap[status][code]; !ok {
+		status = http.StatusInternalServerError
+		code = Err500_UnknownError
 	}
+	c.JSON(status, ErrorResponse{
+		Code:    code,
+		Message: errorMap[status][code],
+	})
 }

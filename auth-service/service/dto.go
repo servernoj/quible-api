@@ -12,7 +12,7 @@ type UserPatchDTO struct {
 	Username *string `json:"username"`
 	Email    *string `json:"email" binding:"omitempty,email"`
 	FullName *string `json:"full_name"`
-	Phone    *string `json:"phone"`
+	Phone    *string `json:"phone" binding:"omitempty,phone"`
 }
 
 type UserLoginDTO struct {

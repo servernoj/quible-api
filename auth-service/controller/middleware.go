@@ -42,36 +42,36 @@ func authMiddleware(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 	if userService == nil {
 		log.Printf("unable to retrieve user service")
-		SendError(c, http.StatusInternalServerError, generalErrorCode)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
 	}
 	if authToken == "" {
-		SendError(c, http.StatusUnauthorized, 2)
+		SendError(c, http.StatusUnauthorized, Err401_AuthorizationHeaderMissing)
 		return
 	}
 	re, _ := regexp.Compile(`\s+`)
 	headerParts := re.Split(authToken, -1)
 	if len(headerParts) != 2 {
 		log.Printf("authorization header format is invalid, missing space")
-		SendError(c, http.StatusUnauthorized, 3)
+		SendError(c, http.StatusUnauthorized, Err401_AuthorizationHeaderInvalid)
 		return
 	}
 	if headerParts[0] != "Bearer" {
 		log.Printf("authorization header doesn't carry bearer token")
-		SendError(c, http.StatusUnauthorized, 3)
+		SendError(c, http.StatusUnauthorized, Err401_AuthorizationHeaderInvalid)
 		return
 	}
 	token := headerParts[1]
 	id, err := verifyJWT(token)
 	if err != nil {
 		log.Printf("unable to verify token %q: %s", token, err)
-		SendError(c, http.StatusUnauthorized, 3)
+		SendError(c, http.StatusUnauthorized, Err401_AuthorizationHeaderInvalid)
 		return
 	}
 	user, err := userService.GetUserById(id)
 	if err != nil || user == nil {
 		log.Printf("user with id = %q not found", id)
-		SendError(c, http.StatusUnauthorized, 4)
+		SendError(c, http.StatusUnauthorized, Err401_UserNotFound)
 		return
 	}
 	c.Set(userContextKey, user)

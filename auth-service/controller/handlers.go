@@ -27,22 +27,22 @@ func UserRegister(c *gin.Context) {
 	var userRegisterDTO service.UserRegisterDTO
 	if err := c.ShouldBindJSON(&userRegisterDTO); err != nil {
 		log.Printf("invalid request body: %q", err)
-		SendError(c, http.StatusBadRequest, 100)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
 
 	if foundUser, _ := userService.GetUserByEmail(userRegisterDTO.Email); foundUser != nil {
-		SendError(c, http.StatusBadRequest, 8)
+		SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
 		return
 	}
 	if foundUser, _ := userService.GetUserByUsername(userRegisterDTO.Username); foundUser != nil {
-		SendError(c, http.StatusBadRequest, 5)
+		SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
 		return
 	}
 	createdUser, err := userService.CreateUser(&userRegisterDTO)
 	if err != nil {
 		log.Printf("unable to register user: %q", err)
-		SendError(c, http.StatusInternalServerError, 4)
+		SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
 		return
 	}
 	c.JSON(
@@ -68,18 +68,18 @@ func UserLogin(c *gin.Context) {
 	var userLoginDTO service.UserLoginDTO
 	if err := c.ShouldBindJSON(&userLoginDTO); err != nil {
 		log.Printf("invalid request body: %q", err)
-		SendError(c, http.StatusUnauthorized, 1)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
 	foundUser, _ := userService.GetUserByEmail(userLoginDTO.Email)
 	if foundUser == nil {
 		log.Printf("user with given email not found: %q", userLoginDTO.Email)
-		SendError(c, http.StatusUnauthorized, 1)
+		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
 	if err := userService.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
 		log.Printf("invalid password: %+v", userLoginDTO)
-		SendError(c, http.StatusUnauthorized, 1)
+		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -117,14 +117,16 @@ func UserGet(c *gin.Context) {
 func UserPatch(c *gin.Context) {
 	var userPatchDTO service.UserPatchDTO
 	if err := c.ShouldBindJSON(&userPatchDTO); err != nil {
-		errorCode := 100
+		errorCode := Err400_InvalidRequestBody
 		errorFields := misc.ParseValidationError(err)
 		if errorFields.IsValidationError {
 			if errorFields.CheckAll("Email") {
-				errorCode = 3
+				errorCode = Err400_InvalidEmailFormat
+			} else if errorFields.CheckAll("Phone") {
+				errorCode = Err400_InvalidPhoneFormat
 			}
 		} else {
-			errorCode = 99
+			errorCode = Err400_MalformedJSON
 		}
 		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
 		SendError(c, http.StatusBadRequest, errorCode)
@@ -150,7 +152,7 @@ func UserPatch(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 	if err := userService.Update(user); err != nil {
 		log.Printf("unable to update user: %q", err)
-		SendError(c, http.StatusInternalServerError, generalErrorCode)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
 	}
 	c.JSON(
