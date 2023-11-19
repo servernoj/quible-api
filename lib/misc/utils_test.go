@@ -41,7 +41,14 @@ func TestPickFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := PickFields(tt.data, tt.fields...); !reflect.DeepEqual(got, tt.want) {
+			got := PickFields(tt.data, tt.fields...)
+			if !reflect.DeepEqual(got, tt.want) {
+				for k, v := range got {
+					t.Logf("got[%v] = %v (%T)", k, v, v)
+				}
+				for k, v := range tt.want {
+					t.Logf("want[%v] = %v (%T)", k, v, v)
+				}
 				t.Errorf("PickFields() = %v, want %v", got, tt.want)
 			}
 		})
