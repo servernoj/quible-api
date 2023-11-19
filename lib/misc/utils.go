@@ -5,6 +5,7 @@ import "encoding/json"
 func PickFields(data any, fields ...string) map[string]any {
 	bytes, _ := json.Marshal(&data)
 	fullMap := make(map[string]any)
+	//nolint:errcheck
 	json.Unmarshal(bytes, &fullMap)
 	result := make(map[string]any, len(fields))
 	for _, f := range fields {
