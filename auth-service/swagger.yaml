@@ -35,6 +35,17 @@ definitions:
     - email
     - password
     type: object
+  service.UserPatchDTO:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    type: object
   service.UserRegisterDTO:
     properties:
       email:
@@ -134,9 +145,7 @@ paths:
       - public
   /user:
     get:
-      consumes:
-      - application/json
-      description: Updates user profile associated with the token
+      description: Returns user profile associated with the token
       produces:
       - application/json
       responses:
@@ -144,6 +153,40 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controller.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get user
+      tags:
+      - user
+      - private
+    patch:
+      consumes:
+      - application/json
+      description: Updates user profile associated with the token
+      parameters:
+      - description: Partial user object to be used for update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserPatchDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
