@@ -11,7 +11,6 @@ import (
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
 
-// @Summary		Register
 // @Description	Register a new user.
 // @Tags			user,public
 // @Accept			json
