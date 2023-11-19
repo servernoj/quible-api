@@ -1,0 +1,47 @@
+stages:
+  - lint
+  - build
+  - test
+  - deploy
+
+lint:
+  image: golangci/golangci-lint
+  stage: lint
+  script:
+    - golangci-lint run
+  interruptible: true
+  only:
+    - main
+    - dev
+    - merge_requests
+
+build:
+  image: golang:latest
+  stage: build
+  script:
+    - go build -o api-server .
+  interruptible: true
+  only:
+    - main
+    - dev
+    - merge_requests
+
+test:
+  image: golang:latest
+  stage: test
+  script:
+    - go test ./...
+  interruptible: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev")'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+deploy:
+  image: alpine
+  stage: deploy
+  script:
+    - echo "Deploying the project..."
+    # Needing more deployment scripts here
+  interruptible: true
+  only:
+    - main
