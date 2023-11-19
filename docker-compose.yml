@@ -42,7 +42,7 @@ services:
   demo:
     build: 
       context: ./demo-service
-      dockerfile: ./Dockerfile.sample
+      dockerfile: ./Dockerfile
       # You can always switch back to the shared Dockerfile by replacing the above line with the one below
       # dockerfile: ../Dockerfile
       additional_contexts: 
