@@ -8,8 +8,11 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"gitlab.com/quible-backend/auth-service/controller"
 	"gitlab.com/quible-backend/lib/env"
+	"gitlab.com/quible-backend/lib/misc"
 	"gitlab.com/quible-backend/lib/store"
 )
 
@@ -25,20 +28,24 @@ const DefaultPort = 8001
 var swaggerSpec string
 
 func main() {
-	env.Setup()
-	// separate the code from the 'main' function.
-	// all code that available in main function were not testable
 	Server()
 }
 
 func Server() {
-	// Store + ORM
+	// -- Environment vars from .env file
+	env.Setup()
+	// -- Custom validators
+	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		misc.RegisterValidators(validate)
+	} else {
+		log.Println("unable to attach custom validators")
+	}
+	// -- Store + ORM
 	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
 		log.Fatalf("unable to setup DB connection: %s", err)
 	}
 	defer store.Close()
-
-	// HTTP server
+	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.Use(cors.Default())

@@ -6,3 +6,6 @@
 
 # database
 dbData/*
+
+# air files
+tmp
