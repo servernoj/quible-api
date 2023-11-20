@@ -11,15 +11,17 @@ import (
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
 
-// @Description	Register a new user.
+// @Summary		Login
+// @Description	Login with user credentials to get token
 // @Tags			user,public
 // @Accept			json
 // @Produce		json
-// @Param			request	body		service.UserRegisterDTO	true	"User registration information"
-// @Success		201		{object}	UserResponse
+// @Param			request	body		service.UserLoginDTO	true	"User login credentials"
+// @Success		200		{object}	TokenResponse
 // @Failure		400		{object}	ErrorResponse
+// @Failure		401		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
-// @Router			/register [post]
+// @Router			/login [post]
 func UserRegister(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 	var userRegisterDTO service.UserRegisterDTO
