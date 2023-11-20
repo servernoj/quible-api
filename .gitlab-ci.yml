@@ -1,0 +1,55 @@
+stages:
+  - lint
+  - test
+
+variables:
+  GO111MODULE: "on"
+
+lint:
+  image: golangci/golangci-lint
+  stage: lint
+  script:
+    - golangci-lint run ./auth-service/...
+    - golangci-lint run ./demo-service/...
+    - golangci-lint run ./lib/...
+  interruptible: true
+  only:
+    - master
+    - dev
+    - merge_requests
+
+test_auth_service:
+  image: golang:latest
+  stage: test
+  script:
+    - cd auth-service
+    - go test ./...
+  interruptible: true
+  only:
+    - master
+    - dev
+    - merge_requests
+
+test_demo_service:
+  image: golang:latest
+  stage: test
+  script:
+    - cd demo-service
+    - go test ./...
+  interruptible: true
+  only:
+    - master
+    - dev
+    - merge_requests
+
+test_lib:
+  image: golang:latest
+  stage: test
+  script:
+    - cd lib
+    - go test ./...
+  interruptible: true
+  only:
+    - master
+    - dev
+    - merge_requests
