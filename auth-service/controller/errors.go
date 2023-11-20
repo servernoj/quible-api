@@ -1,12 +1,18 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
+	"sort"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 const ErrGain = 10_000
+
+//go:generate stringer -type=ErrorCode
+type ErrorCode int
 
 const (
 	Err207_Shift = ErrGain * http.StatusMultiStatus
@@ -20,10 +26,10 @@ const (
 )
 
 const (
-	Err207_SomeDataUndeleted = Err207_Shift + iota + 1
+	Err207_SomeDataUndeleted ErrorCode = Err207_Shift + iota + 1
 )
 const (
-	Err400_EmailNotRegistered = Err400_Shift + iota + 1
+	Err400_EmailNotRegistered ErrorCode = Err400_Shift + iota + 1
 	Err400_InvalidEmailFormat
 	Err400_InvalidUsernameFormat
 	Err400_InvalidPhoneFormat
@@ -33,33 +39,35 @@ const (
 	Err400_MalformedJSON
 	Err400_InvalidRequestBody
 )
+
 const (
-	Err401_InvalidCredentials = Err401_Shift + iota + 1
+	Err401_InvalidCredentials ErrorCode = Err401_Shift + iota + 1
 	Err401_AuthorizationHeaderMissing
 	Err401_AuthorizationHeaderInvalid
 	Err401_UserNotFound
 )
+
 const (
-	Err403_CannotToDelete = Err403_Shift + iota + 1
+	Err403_CannotToDelete ErrorCode = Err403_Shift + iota + 1
 	Err403_CannotEditPhone
 )
 const (
-	Err404_PlayerStatsNotFound = Err404_Shift + iota + 1
+	Err404_PlayerStatsNotFound ErrorCode = Err404_Shift + iota + 1
 	Err404_UserOrPhoneNotFound
 	Err404_AccountNotFound
 )
 const (
-	Err429_EditRequestTimedOut = Err429_Shift + iota + 1
+	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
 )
 const (
-	Err500_UnableToDelete = Err500_Shift + iota + 1
+	Err500_UnableToDelete ErrorCode = Err500_Shift + iota + 1
 	Err500_UnableToEditPhone
 	Err500_UnableToRegister
 	//--
 	Err500_UnknownError
 )
 const (
-	Err503_DataBaseOnDelete = Err503_Shift + iota + 1
+	Err503_DataBaseOnDelete ErrorCode = Err503_Shift + iota + 1
 	Err503_DataBaseOnPhoneEdit
 )
 
@@ -68,7 +76,7 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-type ErrorMap map[int]map[int]string
+type ErrorMap map[int]map[ErrorCode]string
 
 // TODO: Complete the mapping
 var errorMap = ErrorMap{
@@ -124,13 +132,38 @@ var errorMap = ErrorMap{
 	},
 }
 
-func SendError(c *gin.Context, status, code int) {
+func SendError(c *gin.Context, status int, code ErrorCode) {
 	if _, ok := errorMap[status][code]; !ok {
 		status = http.StatusInternalServerError
 		code = Err500_UnknownError
 	}
 	c.JSON(status, ErrorResponse{
-		Code:    code,
+		Code:    int(code),
 		Message: errorMap[status][code],
 	})
+}
+
+func GetErrorCodes(c *gin.Context) {
+	statuses := sort.IntSlice(make([]int, len(errorMap)))
+	idx := 0
+	for status := range errorMap {
+		statuses[idx] = status
+		idx++
+	}
+	sort.Sort(statuses)
+	builder := strings.Builder{}
+	builder.WriteString("<h2>Error codes</h2>")
+	for _, httpStatus := range statuses {
+		statusMap := errorMap[httpStatus]
+		builder.WriteString(fmt.Sprintf("<h3>Status code: %d</h3>", httpStatus))
+		builder.WriteString("<pre>")
+		for errorCode, message := range statusMap {
+			builder.WriteString(
+				fmt.Sprintf("%-50s%-20d%s\n", errorCode.String(), errorCode, message),
+			)
+		}
+		builder.WriteString("</pre>")
+	}
+	c.Writer.Header().Add("content-type", gin.MIMEHTML)
+	c.String(http.StatusOK, builder.String())
 }

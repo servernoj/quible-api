@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 	c "gitlab.com/quible-backend/lib/controller"
 )
@@ -18,6 +20,9 @@ var WithSwagger = c.WithSwagger
 func Setup(g *gin.RouterGroup, options ...c.Option) {
 	for _, option := range options {
 		option(g)
+	}
+	if os.Getenv("IS_DEVELOPMENT") == "1" {
+		g.GET("docs/errors", GetErrorCodes)
 	}
 	g.Use(injectUserService)
 	// -- Public API

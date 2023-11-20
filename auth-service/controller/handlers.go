@@ -116,8 +116,9 @@ func UserGet(c *gin.Context) {
 // @Router			/user [patch]
 func UserPatch(c *gin.Context) {
 	var userPatchDTO service.UserPatchDTO
+	var errorCode ErrorCode
 	if err := c.ShouldBindJSON(&userPatchDTO); err != nil {
-		errorCode := Err400_InvalidRequestBody
+		errorCode = Err400_InvalidRequestBody
 		errorFields := misc.ParseValidationError(err)
 		if errorFields.IsValidationError {
 			if errorFields.CheckAll("Email") {

@@ -8,6 +8,7 @@ x-environment: &env
   ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
   ENV_URL_DEMO_SERVICE: "http://demo:${DEMO_PORT}"
   IS_DOCKER: 1
+  IS_DEVELOPMENT: ${IS_DEVELOPMENT:-1}
 
 services:
   db:
