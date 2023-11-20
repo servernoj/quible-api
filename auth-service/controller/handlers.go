@@ -15,13 +15,13 @@ var UserFields = []string{"id", "username", "email", "phone", "full_name"}
 // @Summary		Register
 // @Description	Register a new user.
 // @Tags			user,public
-// @Accept			json
+// @Accept		json
 // @Produce		json
 // @Param			request	body		service.UserRegisterDTO	true	"User registration information"
 // @Success		201		{object}	UserResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
-// @Router			/user [post]
+// @Router		/user [post]
 func UserRegister(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 	var userRegisterDTO service.UserRegisterDTO
@@ -54,14 +54,14 @@ func UserRegister(c *gin.Context) {
 // @Summary		Login
 // @Description	Login with user credentials to get token
 // @Tags			user,public
-// @Accept			json
+// @Accept		json
 // @Produce		json
 // @Param			request	body		service.UserLoginDTO	true	"User login credentials"
 // @Success		200		{object}	TokenResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
-// @Router			/login [post]
+// @Router		/login [post]
 func UserLogin(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 
@@ -94,7 +94,7 @@ func UserLogin(c *gin.Context) {
 // @Success		200	{object}	UserResponse
 // @Failure		401	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
-// @Router			/user [get]
+// @Router		/user [get]
 func UserGet(c *gin.Context) {
 	user := getUserFromContext(c)
 	c.JSON(
@@ -106,14 +106,14 @@ func UserGet(c *gin.Context) {
 // @Summary		Update user
 // @Description	Updates user profile associated with the token
 // @Tags			user,private
-// @Accept			json
+// @Accept		json
 // @Produce		json
 // @Param			request	body		service.UserPatchDTO	true	"Partial user object to be used for update"
 // @Success		200		{object}	UserResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
-// @Router			/user [patch]
+// @Router		/user [patch]
 func UserPatch(c *gin.Context) {
 	var userPatchDTO service.UserPatchDTO
 	var errorCode ErrorCode
