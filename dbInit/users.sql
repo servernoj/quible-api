@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS users(
   created_at TIMESTAMPTZ NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL
 );
+CREATE INDEX idx_users_email ON users(email);
+
