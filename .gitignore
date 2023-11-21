@@ -9,3 +9,5 @@ dbData/*
 
 # air files
 tmp
+
+.vscode

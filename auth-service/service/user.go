@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"gitlab.com/quible-backend/lib/models"
@@ -28,8 +27,8 @@ type UserService struct {
 	C context.Context
 }
 
-func (s *UserService) GetUserById(id int) (*models.User, error) {
-	return models.FindUserG(s.C, id)
+func (s *UserService) GetUserById(ID string) (*models.User, error) {
+	return models.FindUserG(s.C, ID)
 }
 
 func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
@@ -48,8 +47,8 @@ func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 	user := &models.User{
 		Email:          dto.Email,
 		Username:       dto.Username,
-		FullName:       null.StringFrom(dto.FullName),
-		Phone:          null.StringFrom(dto.Phone),
+		FullName:       dto.FullName,
+		Phone:          dto.Phone,
 		HashedPassword: hashedPassword,
 	}
 	err = user.InsertG(s.C, boil.Blacklist("id", "image", "is_oauth"))
@@ -68,8 +67,8 @@ func (s *UserService) Update(user *models.User) error {
 	return err
 }
 
-func (s *UserService) Delete(id int) error {
-	user, _ := models.FindUserG(s.C, id)
+func (s *UserService) Delete(ID string) error {
+	user, _ := models.FindUserG(s.C, ID)
 	if user != nil {
 		_, err := user.DeleteG(s.C)
 		return err

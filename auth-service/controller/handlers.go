@@ -25,9 +25,21 @@ var UserFields = []string{"id", "username", "email", "phone", "full_name"}
 func UserRegister(c *gin.Context) {
 	userService := getUserServiceFromContext(c)
 	var userRegisterDTO service.UserRegisterDTO
+	var errorCode ErrorCode
 	if err := c.ShouldBindJSON(&userRegisterDTO); err != nil {
-		log.Printf("invalid request body: %q", err)
-		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		errorCode = Err400_InvalidRequestBody
+		errorFields := misc.ParseValidationError(err)
+		if errorFields.IsValidationError {
+			if errorFields.CheckAll("Email") {
+				errorCode = Err400_InvalidEmailFormat
+			} else if errorFields.CheckAll("Phone") {
+				errorCode = Err400_InvalidPhoneFormat
+			}
+		} else {
+			errorCode = Err400_MalformedJSON
+		}
+		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
+		SendError(c, http.StatusBadRequest, errorCode)
 		return
 	}
 

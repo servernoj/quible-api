@@ -5,7 +5,7 @@ type UserRegisterDTO struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 	FullName string `json:"full_name" binding:"required"`
-	Phone    string `json:"phone" binding:"required"`
+	Phone    string `json:"phone" binding:"required,phone"`
 }
 
 type UserPatchDTO struct {
