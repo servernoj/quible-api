@@ -26,11 +26,11 @@ type ErrorFields struct {
 	GetAllFields      func() []string
 }
 
-// Function parses validation error and returns a CLOSURE with 3 functions:
+// Function parses validation error and returns a CLOSURE with 3 functions and one flag:
 //
 //	getAllFields() -- reports all problem fields as a slice of strings formatted as `field:problem`
-//	checkSome() -- checks if SOME of the listed fields have been reported to have valiadtion errors
-//	checkAll() -- checks if ALL of the listed fields have been reported to have valiadtion errors
+//	checkSome() -- checks if SOME of the listed fields have been reported to have validation errors
+//	checkAll() -- checks if ALL of the listed fields have been reported to have validation errors
 func ParseValidationError(err error) ErrorFields {
 	set := make(map[string]string)
 	IsValidationError := false
