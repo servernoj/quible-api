@@ -16,7 +16,7 @@ var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 
 type MyClaims struct {
 	jwt.StandardClaims
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 	Email string `json:"email"`
 }
 
@@ -43,7 +43,7 @@ func generateToken(user *models.User) string {
 	return signedToken
 }
 
-func verifyJWT(tokenString string) (int, error) {
+func verifyJWT(tokenString string) (string, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("signing method invalid")
@@ -53,17 +53,17 @@ func verifyJWT(tokenString string) (int, error) {
 		return []byte(os.Getenv("ENV_JWT_SECRET")), nil
 	})
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return 0, err
+		return "", err
 	}
 
-	id, ok := claims["id"].(float64)
+	ID, ok := claims["id"].(string)
 	if !ok {
-		return 0, fmt.Errorf("unable to extract ID from token")
+		return "", fmt.Errorf("unable to extract ID from token")
 	}
-	return int(id), nil
+	return ID, nil
 }

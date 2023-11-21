@@ -1,12 +1,10 @@
 CREATE TABLE IF NOT EXISTS users(
-  id serial PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   username TEXT UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
   hashed_password TEXT NOT NULL,
-  full_name TEXT NULL,
-  phone TEXT NULL,
-  image TEXT NULL,
-  is_oauth boolean NOT NULL DEFAULT false,	
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  full_name TEXT NOT NULL,
+  phone TEXT not NULL,	
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
 );
