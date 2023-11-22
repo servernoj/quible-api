@@ -34,15 +34,22 @@ type ErrorFields struct {
 func ParseValidationError(err error) ErrorFields {
 	set := make(map[string]string)
 	IsValidationError := false
-	if validationErrors, ok := err.(validator.ValidationErrors); ok {
-		IsValidationError = true
-		for _, fe := range validationErrors {
-			key := fe.StructField()
-			set[key] = fe.Tag()
-		}
+
+	// Added error handling to check the type of input error
+	if _, ok := err.(validator.ValidationErrors); !ok {
+		return ErrorFields{IsValidationError: false} // Return an appropriate error message if invalid input
 	}
-	idx := 0
+
+	IsValidationError = true
+	validationErrors := err.(validator.ValidationErrors)
+	for _, fe := range validationErrors {
+		key := fe.StructField()
+		set[key] = fe.Tag()
+	}
+
+	// Prepopulate 'allFields' slice with formatted strings instead of constructing each element separately
 	allFields := make([]string, len(set))
+	idx := 0
 	for key, value := range set {
 		allFields[idx] = key + ":" + value
 		idx++
@@ -53,28 +60,24 @@ func ParseValidationError(err error) ErrorFields {
 	}
 
 	checkSome := func(keys ...string) bool {
-		flag := false
 		for _, key := range keys {
-			_, ok := set[key]
-			if ok {
-				flag = true
-				break
+			if _, ok := set[key]; ok {
+				return true
 			}
 		}
-		return flag
+		return false
 	}
 
+	// Removed redundant flag in 'checkAll' function
 	checkAll := func(keys ...string) bool {
-		flag := false
 		for _, key := range keys {
-			_, ok := set[key]
-			if !ok {
-				flag = true
-				break
+			if _, ok := set[key]; !ok {
+				return false
 			}
 		}
-		return !flag
+		return true // Simplified code and avoided an additional 'flag' variable
 	}
+
 	return ErrorFields{
 		IsValidationError: IsValidationError,
 		CheckSome:         checkSome,

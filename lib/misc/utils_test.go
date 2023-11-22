@@ -3,6 +3,9 @@ package misc
 import (
 	"reflect"
 	"testing"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestPickFields verifies that the PickFields function accurately selects the specified JSON fields from a struct.
@@ -87,5 +90,44 @@ func TestPickFields(t *testing.T) {
 				t.Errorf("PickFields() got = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestParseValidationError(t *testing.T) {
+	// Create a validator instance
+	v := validator.New()
+
+	type TestData struct {
+		Name  string `validate:"required"`
+		Email string `validate:"email"`
+	}
+
+	testData := TestData{Name: "", Email: "invalidemail"}
+
+	err := v.Struct(testData)
+
+	// Check if validation failed
+	if assert.Error(t, err) {
+		// Convert validation error to ValidationErrors
+		validationErrors := err.(validator.ValidationErrors)
+
+		// Test case using the generated validation errors
+		errFields := ParseValidationError(validationErrors)
+
+		// Check if IsValidationError is set to true
+		assert.True(t, errFields.IsValidationError)
+
+		// Check if GetAllFields returns the correct fields
+		allFields := errFields.GetAllFields()
+		expectedFields := []string{"Name:required", "Email:email"}
+		assert.ElementsMatch(t, expectedFields, allFields)
+
+		// Test cases for CheckSome and CheckAll as per your requirements...
+		// Add assertions to validate the behavior of CheckSome and CheckAll functions.
+		// For example:
+		assert.True(t, errFields.CheckSome("Name"))
+		assert.False(t, errFields.CheckSome("Password"))
+		assert.True(t, errFields.CheckAll("Name", "Email"))
+		assert.False(t, errFields.CheckAll("Name", "Password"))
 	}
 }
