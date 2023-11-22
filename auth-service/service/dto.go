@@ -19,3 +19,6 @@ type UserLoginDTO struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
+type UserRefreshDTO struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}

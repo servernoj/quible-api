@@ -94,14 +94,28 @@ func UserLogin(c *gin.Context) {
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
-	token, err := generateToken(foundUser, false)
+	generatedAccessToken, err := generateToken(foundUser, false)
 	if err != nil {
 		log.Printf("unable to generate access token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
 		return
 	}
+	generatedRefreshToken, err := generateToken(foundUser, true)
+	if err != nil {
+		log.Printf("unable to generate refresh token: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
+		return
+	}
+	foundUser.Refresh = generatedRefreshToken.ID
+	if err := userService.Update(foundUser); err != nil {
+		log.Printf("unable to associate refresh token with user: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
 	responseData := TokenResponse{
-		AccessToken: token,
+		AccessToken:  generatedAccessToken.String(),
+		RefreshToken: generatedRefreshToken.String(),
 	}
 	c.JSON(http.StatusOK, responseData)
 }
@@ -179,4 +193,61 @@ func UserPatch(c *gin.Context) {
 		http.StatusOK,
 		misc.PickFields(user, UserFields...),
 	)
+}
+
+func UserRefresh(c *gin.Context) {
+	var userRefreshDTO service.UserRefreshDTO
+	if err := c.ShouldBindJSON(&userRefreshDTO); err != nil {
+		errorFields := misc.ParseValidationError(err)
+		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+
+	claims, err := verifyJWT(userRefreshDTO.RefreshToken, true)
+	if err != nil {
+		log.Printf("invalid refresh token: %q", err)
+		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
+		return
+	}
+
+	userId := claims["userId"].(string)
+	userService := getUserServiceFromContext(c)
+	user, err := userService.GetUserById(userId)
+	if err != nil {
+		log.Printf("unable to retrieve user by id from the refresh token: %q", userId)
+		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
+		return
+	}
+
+	if refreshTokenId := claims["jti"].(string); user.Refresh != refreshTokenId {
+		log.Printf("provided refresh token has been revoked")
+		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
+		return
+	}
+
+	generatedAccessToken, err := generateToken(user, false)
+	if err != nil {
+		log.Printf("unable to generate access token: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
+		return
+	}
+	generatedRefreshToken, err := generateToken(user, true)
+	if err != nil {
+		log.Printf("unable to generate refresh token: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
+		return
+	}
+	user.Refresh = generatedRefreshToken.ID
+	if err := userService.Update(user); err != nil {
+		log.Printf("unable to associate refresh token with user: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	responseData := TokenResponse{
+		AccessToken:  generatedAccessToken.String(),
+		RefreshToken: generatedRefreshToken.String(),
+	}
+	c.JSON(http.StatusOK, responseData)
+
 }

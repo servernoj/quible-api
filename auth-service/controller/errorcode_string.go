@@ -22,7 +22,8 @@ func _() {
 	_ = x[Err401_AuthorizationHeaderMissing-4010002]
 	_ = x[Err401_AuthorizationHeaderInvalid-4010003]
 	_ = x[Err401_AuthorizationExpired-4010004]
-	_ = x[Err401_UserNotFound-4010005]
+	_ = x[Err401_InvalidRefreshToken-4010005]
+	_ = x[Err401_UserNotFound-4010006]
 	_ = x[Err403_CannotToDelete-4030001]
 	_ = x[Err403_CannotEditPhone-4030002]
 	_ = x[Err404_PlayerStatsNotFound-4040001]
@@ -41,7 +42,7 @@ func _() {
 const (
 	_ErrorCode_name_0 = "Err207_SomeDataUndeleted"
 	_ErrorCode_name_1 = "Err400_EmailNotRegisteredErr400_InvalidEmailFormatErr400_InvalidUsernameFormatErr400_InvalidPhoneFormatErr400_UserWithUsernameExistsErr400_UserWithEmailExistsErr400_IsufficientPasswordComplexityErr400_MalformedJSONErr400_InvalidRequestBody"
-	_ErrorCode_name_2 = "Err401_InvalidCredentialsErr401_AuthorizationHeaderMissingErr401_AuthorizationHeaderInvalidErr401_AuthorizationExpiredErr401_UserNotFound"
+	_ErrorCode_name_2 = "Err401_InvalidCredentialsErr401_AuthorizationHeaderMissingErr401_AuthorizationHeaderInvalidErr401_AuthorizationExpiredErr401_InvalidRefreshTokenErr401_UserNotFound"
 	_ErrorCode_name_3 = "Err403_CannotToDeleteErr403_CannotEditPhone"
 	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFound"
 	_ErrorCode_name_5 = "Err429_EditRequestTimedOut"
@@ -51,7 +52,7 @@ const (
 
 var (
 	_ErrorCode_index_1 = [...]uint8{0, 25, 50, 78, 103, 132, 158, 194, 214, 239}
-	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 137}
+	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 144, 163}
 	_ErrorCode_index_3 = [...]uint8{0, 21, 43}
 	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74}
 	_ErrorCode_index_6 = [...]uint8{0, 21, 45, 68, 96, 115}
@@ -65,7 +66,7 @@ func (i ErrorCode) String() string {
 	case 4000001 <= i && i <= 4000009:
 		i -= 4000001
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
-	case 4010001 <= i && i <= 4010005:
+	case 4010001 <= i && i <= 4010006:
 		i -= 4010001
 		return _ErrorCode_name_2[_ErrorCode_index_2[i]:_ErrorCode_index_2[i+1]]
 	case 4030001 <= i && i <= 4030002:

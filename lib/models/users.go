@@ -31,6 +31,7 @@ type User struct {
 	Phone          string    `boil:"phone" json:"phone" toml:"phone" yaml:"phone"`
 	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	Refresh        string    `boil:"refresh" json:"refresh" toml:"refresh" yaml:"refresh"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -45,6 +46,7 @@ var UserColumns = struct {
 	Phone          string
 	CreatedAt      string
 	UpdatedAt      string
+	Refresh        string
 }{
 	ID:             "id",
 	Username:       "username",
@@ -54,6 +56,7 @@ var UserColumns = struct {
 	Phone:          "phone",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
+	Refresh:        "refresh",
 }
 
 var UserTableColumns = struct {
@@ -65,6 +68,7 @@ var UserTableColumns = struct {
 	Phone          string
 	CreatedAt      string
 	UpdatedAt      string
+	Refresh        string
 }{
 	ID:             "users.id",
 	Username:       "users.username",
@@ -74,6 +78,7 @@ var UserTableColumns = struct {
 	Phone:          "users.phone",
 	CreatedAt:      "users.created_at",
 	UpdatedAt:      "users.updated_at",
+	Refresh:        "users.refresh",
 }
 
 // Generated where
@@ -135,6 +140,7 @@ var UserWhere = struct {
 	Phone          whereHelperstring
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
+	Refresh        whereHelperstring
 }{
 	ID:             whereHelperstring{field: "\"users\".\"id\""},
 	Username:       whereHelperstring{field: "\"users\".\"username\""},
@@ -144,6 +150,7 @@ var UserWhere = struct {
 	Phone:          whereHelperstring{field: "\"users\".\"phone\""},
 	CreatedAt:      whereHelpertime_Time{field: "\"users\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"users\".\"updated_at\""},
+	Refresh:        whereHelperstring{field: "\"users\".\"refresh\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -163,9 +170,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "username", "email", "hashed_password", "full_name", "phone", "created_at", "updated_at"}
+	userAllColumns            = []string{"id", "username", "email", "hashed_password", "full_name", "phone", "created_at", "updated_at", "refresh"}
 	userColumnsWithoutDefault = []string{"username", "email", "hashed_password", "full_name", "phone", "created_at", "updated_at"}
-	userColumnsWithDefault    = []string{"id"}
+	userColumnsWithDefault    = []string{"id", "refresh"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )

@@ -16,6 +16,7 @@ var (
 	ErrTokenInvalidSigningMethod = errors.New("invalid signing method")
 	ErrTokenInvalidType          = errors.New("invalid token type (access|refresh)")
 	ErrTokenMissingUserId        = errors.New("unable to extract userId from token")
+	ErrTokenMissingTokenId       = errors.New("unable to extract tokenId from token")
 )
 
 const ErrGain = 10_000
@@ -54,6 +55,7 @@ const (
 	Err401_AuthorizationHeaderMissing
 	Err401_AuthorizationHeaderInvalid
 	Err401_AuthorizationExpired
+	Err401_InvalidRefreshToken
 	Err401_UserNotFound
 )
 
@@ -113,6 +115,7 @@ var errorMap = ErrorMap{
 		Err401_AuthorizationHeaderMissing: "authorization header missing",
 		Err401_AuthorizationHeaderInvalid: "authorization header is invalid",
 		Err401_AuthorizationExpired:       "session expired",
+		Err401_InvalidRefreshToken:        "invalid refresh token",
 		Err401_UserNotFound:               "no user found",
 	},
 	// 403

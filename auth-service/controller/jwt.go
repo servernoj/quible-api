@@ -10,7 +10,7 @@ import (
 )
 
 var APPLICATION_NAME = "Quible"
-var ACCESS_TOKEN_DURATION = 4 * time.Hour
+var ACCESS_TOKEN_DURATION = 30 * time.Second
 var REFRESH_TOKEN_DURATION = 5 * 24 * time.Hour
 var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 
@@ -21,14 +21,24 @@ type MyClaims struct {
 	IsRefresh bool   `json:"isRefresh"`
 }
 
-func generateToken(user *models.User, isRefresh bool) (string, error) {
+type GeneratedToken struct {
+	Token string
+	ID    string
+}
+
+func (gt *GeneratedToken) String() string {
+	return gt.Token
+}
+
+func generateToken(user *models.User, isRefresh bool) (GeneratedToken, error) {
 
 	tokenLifespan := ACCESS_TOKEN_DURATION
+	tokenId := uuid.New().String()
 	if isRefresh {
 		tokenLifespan = REFRESH_TOKEN_DURATION
 	}
 	standardClaims := jwt.StandardClaims{
-		Id:        uuid.New().String(),
+		Id:        tokenId,
 		Issuer:    APPLICATION_NAME,
 		ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
 	}
@@ -46,13 +56,16 @@ func generateToken(user *models.User, isRefresh bool) (string, error) {
 	)
 	signedToken, err := token.SignedString([]byte(os.Getenv("ENV_JWT_SECRET")))
 	if err != nil {
-		return "", err
+		return GeneratedToken{}, err
 	}
 
-	return signedToken, nil
+	return GeneratedToken{
+		Token: signedToken,
+		ID:    tokenId,
+	}, nil
 }
 
-func verifyJWT(tokenString string, isRefresh bool) (string, error) {
+func verifyJWT(tokenString string, isRefresh bool) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(
 		tokenString,
 		func(token *jwt.Token) (interface{}, error) {
@@ -72,15 +85,15 @@ func verifyJWT(tokenString string, isRefresh bool) (string, error) {
 			if _, ok := mapClaims["userId"].(string); !ok {
 				return "", ErrTokenMissingUserId
 			}
+			if _, ok := mapClaims["jti"].(string); !ok {
+				return "", ErrTokenMissingTokenId
+			}
 			return []byte(os.Getenv("ENV_JWT_SECRET")), nil
 		},
 	)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
-	UserId := claims["userId"].(string)
-
-	return UserId, nil
+	return token.Claims.(jwt.MapClaims), nil
 }
