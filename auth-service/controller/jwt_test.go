@@ -29,7 +29,10 @@ func TestGenerateToken(t *testing.T) {
 			name: "EmptyUser",
 			user: &models.User{},
 		},
-		// could add more
+		{
+			name: "IDnilUser",
+			user: &models.User{ID: "", Email: "user2@example.com"},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -83,7 +86,11 @@ func TestVerifyJWT(t *testing.T) {
 			user:        nil,
 			expectError: true,
 		},
-		// could add more
+		{
+			name:        "TokenWithoutEmail",
+			user:        &models.User{ID: "user2", Email: " "},
+			expectError: false,
+		},
 	}
 
 	for _, tc := range testCases {
