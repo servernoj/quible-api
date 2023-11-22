@@ -62,10 +62,15 @@ func authMiddleware(c *gin.Context) {
 		return
 	}
 	token := headerParts[1]
-	id, err := verifyJWT(token)
+	id, err := verifyJWT(token, false)
 	if err != nil {
-		log.Printf("unable to verify token %q: %s", token, err)
-		SendError(c, http.StatusUnauthorized, Err401_AuthorizationHeaderInvalid)
+		errorCode := Err401_AuthorizationHeaderInvalid
+		// -- TODO: errors.Is(err,ErrTokenExpired) should work but it doesn't
+		if err.Error() == ErrTokenExpired.Error() {
+			errorCode = Err401_AuthorizationExpired
+		}
+		log.Printf("token verification failed: %q", err)
+		SendError(c, http.StatusUnauthorized, errorCode)
 		return
 	}
 	user, err := userService.GetUserById(id)

@@ -94,9 +94,16 @@ func UserLogin(c *gin.Context) {
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"token": generateToken(foundUser),
-	})
+	token, err := generateToken(foundUser, false)
+	if err != nil {
+		log.Printf("unable to generate access token: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
+		return
+	}
+	responseData := TokenResponse{
+		AccessToken: token,
+	}
+	c.JSON(http.StatusOK, responseData)
 }
 
 // @Summary		Get user

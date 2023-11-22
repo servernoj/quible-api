@@ -1,12 +1,21 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	ErrTokenExpired              = errors.New("token expired")
+	ErrTokenInvalidClaims        = errors.New("unable to process token claims")
+	ErrTokenInvalidSigningMethod = errors.New("invalid signing method")
+	ErrTokenInvalidType          = errors.New("invalid token type (access|refresh)")
+	ErrTokenMissingUserId        = errors.New("unable to extract userId from token")
 )
 
 const ErrGain = 10_000
@@ -44,6 +53,7 @@ const (
 	Err401_InvalidCredentials ErrorCode = Err401_Shift + iota + 1
 	Err401_AuthorizationHeaderMissing
 	Err401_AuthorizationHeaderInvalid
+	Err401_AuthorizationExpired
 	Err401_UserNotFound
 )
 
@@ -63,6 +73,7 @@ const (
 	Err500_UnableToDelete ErrorCode = Err500_Shift + iota + 1
 	Err500_UnableToEditPhone
 	Err500_UnableToRegister
+	Err500_UnableToGenerateToken
 	//--
 	Err500_UnknownError
 )
@@ -101,6 +112,7 @@ var errorMap = ErrorMap{
 		Err401_InvalidCredentials:         "invalid credentials provided",
 		Err401_AuthorizationHeaderMissing: "authorization header missing",
 		Err401_AuthorizationHeaderInvalid: "authorization header is invalid",
+		Err401_AuthorizationExpired:       "session expired",
 		Err401_UserNotFound:               "no user found",
 	},
 	// 403
@@ -120,10 +132,11 @@ var errorMap = ErrorMap{
 	},
 	// 500
 	http.StatusInternalServerError: {
-		Err500_UnableToDelete:    "unexpected issue during deletion",
-		Err500_UnableToEditPhone: "unexpected issue during phone number edit",
-		Err500_UnableToRegister:  "unexpected issue during registration",
-		Err500_UnknownError:      "internal server error",
+		Err500_UnableToDelete:        "unexpected issue during deletion",
+		Err500_UnableToEditPhone:     "unexpected issue during phone number edit",
+		Err500_UnableToRegister:      "unexpected issue during registration",
+		Err500_UnableToGenerateToken: "unable to generate JWT token",
+		Err500_UnknownError:          "internal server error",
 	},
 	// 503
 	http.StatusServiceUnavailable: {
@@ -137,10 +150,14 @@ func SendError(c *gin.Context, status int, code ErrorCode) {
 		status = http.StatusInternalServerError
 		code = Err500_UnknownError
 	}
-	c.JSON(status, ErrorResponse{
-		Code:    int(code),
-		Message: errorMap[status][code],
-	})
+	c.JSON(
+		status,
+		ErrorResponse{
+			Code:    int(code),
+			Message: errorMap[status][code],
+		},
+	)
+	c.Abort()
 }
 
 func GetErrorCodes(c *gin.Context) {
