@@ -8,35 +8,35 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Err207_SomeDataUndeleted-2070001]
-	_ = x[Err400_EmailNotRegistered-4000001]
-	_ = x[Err400_InvalidEmailFormat-4000002]
-	_ = x[Err400_InvalidUsernameFormat-4000003]
-	_ = x[Err400_InvalidPhoneFormat-4000004]
-	_ = x[Err400_UserWithUsernameExists-4000005]
-	_ = x[Err400_UserWithEmailExists-4000006]
-	_ = x[Err400_IsufficientPasswordComplexity-4000007]
-	_ = x[Err400_MalformedJSON-4000008]
-	_ = x[Err400_InvalidRequestBody-4000009]
-	_ = x[Err401_InvalidCredentials-4010001]
-	_ = x[Err401_AuthorizationHeaderMissing-4010002]
-	_ = x[Err401_AuthorizationHeaderInvalid-4010003]
-	_ = x[Err401_AuthorizationExpired-4010004]
-	_ = x[Err401_InvalidRefreshToken-4010005]
-	_ = x[Err401_UserNotFound-4010006]
-	_ = x[Err403_CannotToDelete-4030001]
-	_ = x[Err403_CannotEditPhone-4030002]
-	_ = x[Err404_PlayerStatsNotFound-4040001]
-	_ = x[Err404_UserOrPhoneNotFound-4040002]
-	_ = x[Err404_AccountNotFound-4040003]
-	_ = x[Err429_EditRequestTimedOut-4290001]
-	_ = x[Err500_UnableToDelete-5000001]
-	_ = x[Err500_UnableToEditPhone-5000002]
-	_ = x[Err500_UnableToRegister-5000003]
-	_ = x[Err500_UnableToGenerateToken-5000004]
-	_ = x[Err500_UnknownError-5000005]
-	_ = x[Err503_DataBaseOnDelete-5030001]
-	_ = x[Err503_DataBaseOnPhoneEdit-5030002]
+	_ = x[Err207_SomeDataUndeleted-2071001]
+	_ = x[Err400_EmailNotRegistered-4001001]
+	_ = x[Err400_InvalidEmailFormat-4001002]
+	_ = x[Err400_InvalidUsernameFormat-4001003]
+	_ = x[Err400_InvalidPhoneFormat-4001004]
+	_ = x[Err400_UserWithUsernameExists-4001005]
+	_ = x[Err400_UserWithEmailExists-4001006]
+	_ = x[Err400_IsufficientPasswordComplexity-4001007]
+	_ = x[Err400_MalformedJSON-4001008]
+	_ = x[Err400_InvalidRequestBody-4001009]
+	_ = x[Err401_InvalidCredentials-4011001]
+	_ = x[Err401_AuthorizationHeaderMissing-4011002]
+	_ = x[Err401_AuthorizationHeaderInvalid-4011003]
+	_ = x[Err401_AuthorizationExpired-4011004]
+	_ = x[Err401_InvalidRefreshToken-4011005]
+	_ = x[Err401_UserNotFound-4011006]
+	_ = x[Err403_CannotToDelete-4031001]
+	_ = x[Err403_CannotEditPhone-4031002]
+	_ = x[Err404_PlayerStatsNotFound-4041001]
+	_ = x[Err404_UserOrPhoneNotFound-4041002]
+	_ = x[Err404_AccountNotFound-4041003]
+	_ = x[Err429_EditRequestTimedOut-4291001]
+	_ = x[Err500_UnknownError-5001001]
+	_ = x[Err500_UnableToDelete-5001002]
+	_ = x[Err500_UnableToEditPhone-5001003]
+	_ = x[Err500_UnableToRegister-5001004]
+	_ = x[Err500_UnableToGenerateToken-5001005]
+	_ = x[Err503_DataBaseOnDelete-5031001]
+	_ = x[Err503_DataBaseOnPhoneEdit-5031002]
 }
 
 const (
@@ -46,7 +46,7 @@ const (
 	_ErrorCode_name_3 = "Err403_CannotToDeleteErr403_CannotEditPhone"
 	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFound"
 	_ErrorCode_name_5 = "Err429_EditRequestTimedOut"
-	_ErrorCode_name_6 = "Err500_UnableToDeleteErr500_UnableToEditPhoneErr500_UnableToRegisterErr500_UnableToGenerateTokenErr500_UnknownError"
+	_ErrorCode_name_6 = "Err500_UnknownErrorErr500_UnableToDeleteErr500_UnableToEditPhoneErr500_UnableToRegisterErr500_UnableToGenerateToken"
 	_ErrorCode_name_7 = "Err503_DataBaseOnDeleteErr503_DataBaseOnPhoneEdit"
 )
 
@@ -55,33 +55,33 @@ var (
 	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 144, 163}
 	_ErrorCode_index_3 = [...]uint8{0, 21, 43}
 	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74}
-	_ErrorCode_index_6 = [...]uint8{0, 21, 45, 68, 96, 115}
+	_ErrorCode_index_6 = [...]uint8{0, 19, 40, 64, 87, 115}
 	_ErrorCode_index_7 = [...]uint8{0, 23, 49}
 )
 
 func (i ErrorCode) String() string {
 	switch {
-	case i == 2070001:
+	case i == 2071001:
 		return _ErrorCode_name_0
-	case 4000001 <= i && i <= 4000009:
-		i -= 4000001
+	case 4001001 <= i && i <= 4001009:
+		i -= 4001001
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
-	case 4010001 <= i && i <= 4010006:
-		i -= 4010001
+	case 4011001 <= i && i <= 4011006:
+		i -= 4011001
 		return _ErrorCode_name_2[_ErrorCode_index_2[i]:_ErrorCode_index_2[i+1]]
-	case 4030001 <= i && i <= 4030002:
-		i -= 4030001
+	case 4031001 <= i && i <= 4031002:
+		i -= 4031001
 		return _ErrorCode_name_3[_ErrorCode_index_3[i]:_ErrorCode_index_3[i+1]]
-	case 4040001 <= i && i <= 4040003:
-		i -= 4040001
+	case 4041001 <= i && i <= 4041003:
+		i -= 4041001
 		return _ErrorCode_name_4[_ErrorCode_index_4[i]:_ErrorCode_index_4[i+1]]
-	case i == 4290001:
+	case i == 4291001:
 		return _ErrorCode_name_5
-	case 5000001 <= i && i <= 5000005:
-		i -= 5000001
+	case 5001001 <= i && i <= 5001005:
+		i -= 5001001
 		return _ErrorCode_name_6[_ErrorCode_index_6[i]:_ErrorCode_index_6[i+1]]
-	case 5030001 <= i && i <= 5030002:
-		i -= 5030001
+	case 5031001 <= i && i <= 5031002:
+		i -= 5031001
 		return _ErrorCode_name_7[_ErrorCode_index_7[i]:_ErrorCode_index_7[i+1]]
 	default:
 		return "ErrorCode(" + strconv.FormatInt(int64(i), 10) + ")"

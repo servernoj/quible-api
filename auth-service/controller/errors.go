@@ -19,20 +19,24 @@ var (
 	ErrTokenMissingTokenId       = errors.New("unable to extract tokenId from token")
 )
 
-const ErrGain = 10_000
+const ErrStatusGain = 10_000
+const ErrServiceIdGain = 1_000
+
+// -- specific case for `auth-service`
+const ErrServiceId = 1
 
 //go:generate stringer -type=ErrorCode
 type ErrorCode int
 
 const (
-	Err207_Shift = ErrGain * http.StatusMultiStatus
-	Err400_Shift = ErrGain * http.StatusBadRequest
-	Err401_Shift = ErrGain * http.StatusUnauthorized
-	Err403_Shift = ErrGain * http.StatusForbidden
-	Err404_Shift = ErrGain * http.StatusNotFound
-	Err429_Shift = ErrGain * http.StatusTooManyRequests
-	Err500_Shift = ErrGain * http.StatusInternalServerError
-	Err503_Shift = ErrGain * http.StatusServiceUnavailable
+	Err207_Shift = ErrStatusGain*http.StatusMultiStatus + ErrServiceIdGain*ErrServiceId
+	Err400_Shift = ErrStatusGain*http.StatusBadRequest + ErrServiceIdGain*ErrServiceId
+	Err401_Shift = ErrStatusGain*http.StatusUnauthorized + ErrServiceIdGain*ErrServiceId
+	Err403_Shift = ErrStatusGain*http.StatusForbidden + ErrServiceIdGain*ErrServiceId
+	Err404_Shift = ErrStatusGain*http.StatusNotFound + ErrServiceIdGain*ErrServiceId
+	Err429_Shift = ErrStatusGain*http.StatusTooManyRequests + ErrServiceIdGain*ErrServiceId
+	Err500_Shift = ErrStatusGain*http.StatusInternalServerError + ErrServiceIdGain*ErrServiceId
+	Err503_Shift = ErrStatusGain*http.StatusServiceUnavailable + ErrServiceIdGain*ErrServiceId
 )
 
 const (
@@ -72,12 +76,11 @@ const (
 	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
 )
 const (
-	Err500_UnableToDelete ErrorCode = Err500_Shift + iota + 1
+	Err500_UnknownError ErrorCode = Err500_Shift + iota + 1
+	Err500_UnableToDelete
 	Err500_UnableToEditPhone
 	Err500_UnableToRegister
 	Err500_UnableToGenerateToken
-	//--
-	Err500_UnknownError
 )
 const (
 	Err503_DataBaseOnDelete ErrorCode = Err503_Shift + iota + 1
