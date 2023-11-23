@@ -180,7 +180,18 @@ func GetErrorCodes(c *gin.Context) {
 		statusMap := errorMap[httpStatus]
 		builder.WriteString(fmt.Sprintf("<h3>Status code: %d</h3>", httpStatus))
 		builder.WriteString("<pre>")
-		for errorCode, message := range statusMap {
+
+		// sort statusMap keys
+		errorCodes := sort.IntSlice(make([]int, len(statusMap)))
+		idx := 0
+		for errorCode := range statusMap {
+			errorCodes[idx] = int(errorCode)
+			idx++
+		}
+		sort.Sort(errorCodes)
+		for _, errorCode := range errorCodes {
+			errorCode := ErrorCode(errorCode)
+			message := statusMap[errorCode]
 			builder.WriteString(
 				fmt.Sprintf("%-50s%-20d%s\n", errorCode.String(), errorCode, message),
 			)
