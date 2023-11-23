@@ -47,7 +47,7 @@ func ParseValidationError(err error) ErrorFields {
 		set[key] = fe.Tag()
 	}
 
-	// Prepopulate 'allFields' slice with formatted strings instead of constructing each element separately
+	// Pre-populate 'allFields' slice with formatted strings instead of constructing each element separately
 	allFields := make([]string, len(set))
 	idx := 0
 	for key, value := range set {

@@ -1,33 +1,53 @@
 package controller
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	"gitlab.com/quible-backend/lib/models"
 )
 
 var APPLICATION_NAME = "Quible"
-var LOGIN_EXPIRATION_DURATION = time.Duration(24) * time.Hour
+var ACCESS_TOKEN_DURATION = 8 * time.Hour
+var REFRESH_TOKEN_DURATION = 5 * 24 * time.Hour
 var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 
 type MyClaims struct {
 	jwt.StandardClaims
-	ID    string `json:"id"`
-	Email string `json:"email"`
+	UserId    string `json:"userId"`
+	Email     string `json:"email"`
+	IsRefresh bool   `json:"isRefresh"`
 }
 
-func generateToken(user *models.User) string {
+type GeneratedToken struct {
+	Token string
+	ID    string
+}
+
+func (gt *GeneratedToken) String() string {
+	return gt.Token
+}
+
+func generateToken(user *models.User, isRefresh bool) (GeneratedToken, error) {
+
+	tokenLifespan := ACCESS_TOKEN_DURATION
+	tokenId := uuid.New().String()
+	if isRefresh {
+		tokenLifespan = REFRESH_TOKEN_DURATION
+	}
+	standardClaims := jwt.StandardClaims{
+		Id:        tokenId,
+		Issuer:    APPLICATION_NAME,
+		ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+	}
+
 	claims := MyClaims{
-		StandardClaims: jwt.StandardClaims{
-			Issuer:    APPLICATION_NAME,
-			ExpiresAt: time.Now().Add(LOGIN_EXPIRATION_DURATION).Unix(),
-		},
-		ID:    user.ID,
-		Email: user.Email,
+		StandardClaims: standardClaims,
+		UserId:         user.ID,
+		Email:          user.Email,
+		IsRefresh:      isRefresh,
 	}
 
 	token := jwt.NewWithClaims(
@@ -36,34 +56,44 @@ func generateToken(user *models.User) string {
 	)
 	signedToken, err := token.SignedString([]byte(os.Getenv("ENV_JWT_SECRET")))
 	if err != nil {
-		log.Printf("unable to generate token: %q", err)
-		return ""
+		return GeneratedToken{}, err
 	}
 
-	return signedToken
+	return GeneratedToken{
+		Token: signedToken,
+		ID:    tokenId,
+	}, nil
 }
 
-func verifyJWT(tokenString string) (string, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("signing method invalid")
-		} else if method != JWT_SIGNING_METHOD {
-			return nil, fmt.Errorf("signing method invalid")
-		}
-		return []byte(os.Getenv("ENV_JWT_SECRET")), nil
-	})
+func verifyJWT(tokenString string, isRefresh bool) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(
+		tokenString,
+		func(token *jwt.Token) (interface{}, error) {
+			if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || method != JWT_SIGNING_METHOD {
+				return nil, ErrTokenInvalidSigningMethod
+			}
+			mapClaims, ok := token.Claims.(jwt.MapClaims)
+			if !ok {
+				return nil, ErrTokenInvalidClaims
+			}
+			if !mapClaims.VerifyExpiresAt(time.Now().Unix(), true) {
+				return nil, ErrTokenExpired
+			}
+			if IsRefresh, ok := mapClaims["isRefresh"].(bool); !ok || IsRefresh != isRefresh {
+				return nil, ErrTokenInvalidType
+			}
+			if _, ok := mapClaims["userId"].(string); !ok {
+				return "", ErrTokenMissingUserId
+			}
+			if _, ok := mapClaims["jti"].(string); !ok {
+				return "", ErrTokenMissingTokenId
+			}
+			return []byte(os.Getenv("ENV_JWT_SECRET")), nil
+		},
+	)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return "", err
-	}
-
-	ID, ok := claims["id"].(string)
-	if !ok {
-		return "", fmt.Errorf("unable to extract ID from token")
-	}
-	return ID, nil
+	return token.Claims.(jwt.MapClaims), nil
 }
