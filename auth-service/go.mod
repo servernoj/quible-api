@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.14.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.3
 	github.com/volatiletech/sqlboiler/v4 v4.15.0
 	gitlab.com/quible-backend/lib v0.0.0-00010101000000-000000000000

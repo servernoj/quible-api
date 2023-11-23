@@ -62,15 +62,21 @@ func authMiddleware(c *gin.Context) {
 		return
 	}
 	token := headerParts[1]
-	id, err := verifyJWT(token)
+	tokenClaims, err := verifyJWT(token, false)
 	if err != nil {
-		log.Printf("unable to verify token %q: %s", token, err)
-		SendError(c, http.StatusUnauthorized, Err401_AuthorizationHeaderInvalid)
+		errorCode := Err401_AuthorizationHeaderInvalid
+		// -- TODO: errors.Is(err,ErrTokenExpired) should work but it doesn't
+		if err.Error() == ErrTokenExpired.Error() {
+			errorCode = Err401_AuthorizationExpired
+		}
+		log.Printf("token verification failed: %q", err)
+		SendError(c, http.StatusUnauthorized, errorCode)
 		return
 	}
-	user, err := userService.GetUserById(id)
+	userId := tokenClaims["userId"].(string)
+	user, err := userService.GetUserById(userId)
 	if err != nil || user == nil {
-		log.Printf("user with id = %q not found", id)
+		log.Printf("user with id = %q not found", userId)
 		SendError(c, http.StatusUnauthorized, Err401_UserNotFound)
 		return
 	}
@@ -81,7 +87,7 @@ func authMiddleware(c *gin.Context) {
 // Inject user service object for all requests to use
 func injectUserService(c *gin.Context) {
 	userService := service.UserService{
-		// TODO: possibly need to send a context dettached context instead of the original one
+		// TODO: possibly need to send a dettached context instead of the original one
 		C: c.Request.Context(),
 	}
 	c.Set(serviceContextKey, &userService)
