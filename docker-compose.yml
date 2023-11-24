@@ -6,6 +6,7 @@ x-environment: &env
   ENV_EMAIL_PASSWORD: ${ENV_EMAIL_PASSWORD}
   ENV_JWT_SECRET: ${ENV_JWT_SECRET}
   ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
+  ENV_URL_APP_SERVICE: "http://app:${APP_PORT}"
   ENV_URL_DEMO_SERVICE: "http://demo:${DEMO_PORT}"
   IS_DOCKER: 1
 
@@ -36,6 +37,21 @@ services:
       PORT: ${AUTH_PORT}
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"    
+    depends_on:
+      db:
+        condition: service_healthy
+  app:
+    build: 
+      context: ./app-service
+      dockerfile: ../Dockerfile
+      additional_contexts: 
+        lib: ./lib
+    restart: always
+    environment:
+      <<: *env
+      PORT: ${APP_PORT}
+    ports:
+      - "${APP_PORT}:${APP_PORT}"    
     depends_on:
       db:
         condition: service_healthy
