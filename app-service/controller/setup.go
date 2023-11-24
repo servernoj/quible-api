@@ -19,6 +19,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	for _, option := range options {
 		option(g)
 	}
+    /*
 	g.GET("docs/errors", GetErrorCodes)
 	g.Use(injectUserService)
 	// -- Public API
@@ -29,5 +30,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected := g.Group("", authMiddleware)
 	protected.GET("/user", UserGet)
 	protected.PATCH("/user", UserPatch)
-
+    */
 }

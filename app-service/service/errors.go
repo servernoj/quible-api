@@ -1,5 +1,6 @@
 package service
 
+/*
 import "errors"
 
 var (
@@ -7,3 +8,4 @@ var (
 	ErrUserNotFound     = errors.New("user not found")
 	ErrHashPassword     = errors.New("unable to hash password")
 )
+*/

@@ -1,5 +1,6 @@
 package controller
 
+/*
 import (
 	"log"
 	"net/http"
@@ -251,3 +252,4 @@ func UserRefresh(c *gin.Context) {
 	c.JSON(http.StatusOK, responseData)
 
 }
+*/

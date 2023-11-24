@@ -1,5 +1,6 @@
 package controller
 
+/*
 import (
 	"errors"
 	"fmt"
@@ -25,7 +26,7 @@ const ErrServiceIdGain = 1_000
 // -- specific case for `app-service`
 const ErrServiceId = 1
 
-//go:generate stringer -type=ErrorCode
+//nogo:generate stringer -type=ErrorCode
 type ErrorCode int
 
 const (
@@ -201,3 +202,4 @@ func GetErrorCodes(c *gin.Context) {
 	c.Writer.Header().Add("content-type", gin.MIMEHTML)
 	c.String(http.StatusOK, builder.String())
 }
+*/

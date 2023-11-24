@@ -1,5 +1,6 @@
 package service
 
+/*
 type UserRegisterDTO struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
@@ -22,3 +23,4 @@ type UserLoginDTO struct {
 type UserRefreshDTO struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
+*/

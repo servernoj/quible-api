@@ -9,7 +9,9 @@ definitions:
     type: object
   controller.TokenResponse:
     properties:
-      token:
+      access_token:
+        type: string
+      refresh_token:
         type: string
     type: object
   controller.UserResponse:

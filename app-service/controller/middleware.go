@@ -1,5 +1,6 @@
 package controller
 
+/*
 import (
 	"log"
 	"net/http"
@@ -93,3 +94,4 @@ func injectUserService(c *gin.Context) {
 	c.Set(serviceContextKey, &userService)
 	c.Next()
 }
+*/

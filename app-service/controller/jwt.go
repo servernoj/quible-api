@@ -1,5 +1,6 @@
 package controller
 
+/*
 import (
 	"os"
 	"time"
@@ -97,3 +98,4 @@ func verifyJWT(tokenString string, isRefresh bool) (jwt.MapClaims, error) {
 
 	return token.Claims.(jwt.MapClaims), nil
 }
+*/

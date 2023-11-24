@@ -1,5 +1,6 @@
 package service
 
+/*
 import (
 	"context"
 	"errors"
@@ -90,3 +91,4 @@ func (s *UserService) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), passwordHashCost)
 	return string(bytes), err
 }
+*/
