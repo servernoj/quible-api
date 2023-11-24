@@ -5,8 +5,10 @@ import (
 	c "gitlab.com/quible-backend/lib/controller"
 )
 
+/*
 const userContextKey = "user"
 const serviceContextKey = "service"
+*/
 
 // Add "health" endpoint at /health
 var WithHealth = c.WithHealth
