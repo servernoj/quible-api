@@ -10,6 +10,7 @@ lint:
   stage: lint
   script:
     - golangci-lint run ./auth-service/...
+    - golangci-lint run ./app-service/...
     - golangci-lint run ./demo-service/...
     - golangci-lint run ./lib/...
   interruptible: true
@@ -23,6 +24,18 @@ test_auth_service:
   stage: test
   script:
     - cd auth-service
+    - go test ./...
+  interruptible: true
+  only:
+    - master
+    - dev
+    - merge_requests
+
+test_app_service:
+  image: golang:latest
+  stage: test
+  script:
+    - cd app-service
     - go test ./...
   interruptible: true
   only:
