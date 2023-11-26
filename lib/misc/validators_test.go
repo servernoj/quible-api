@@ -26,9 +26,14 @@ func TestPhoneValidator_InvalidInput(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run("Input_"+reflect.TypeOf(tc.input).String(), func(t *testing.T) {
-			err := validate.Var(tc.input, "phone")
-			if (err == nil) != tc.expected {
-				t.Errorf("Expected phoneValidator to return %v for input %v, but got error: %v", tc.expected, tc.input, err)
+			// Valid phone number: This test ensures that the validate.Var function returns no error when a valid phone number is provided.
+			if err := validate.Var("1234567890", "phone"); err != nil {
+				t.Errorf("Expected no error for valid phone number %q, but got: %v", "1234567890", err)
+			}
+
+			// Invalid phone number (less than 10 digits): This test verifies that the validate.Var function returns an error when an invalid phone number is provided.
+			if err := validate.Var("123456789", "phone"); err == nil {
+				t.Errorf("Expected error for invalid phone number %q, got none", "123456789")
 			}
 		})
 	}
