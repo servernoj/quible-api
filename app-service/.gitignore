@@ -4,7 +4,7 @@ tmp/
 .*.sw*
 
 # binary
-/app-service
+/auth-service
 
 # generated swagger spec (has to be re-generated before running the service
 swagger/swagger.yaml

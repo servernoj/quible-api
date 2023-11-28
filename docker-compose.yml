@@ -7,7 +7,6 @@ x-environment: &env
   ENV_JWT_SECRET: ${ENV_JWT_SECRET}
   ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
   ENV_URL_APP_SERVICE: "http://app:${APP_PORT}"
-  ENV_URL_DEMO_SERVICE: "http://demo:${DEMO_PORT}"
   IS_DOCKER: 1
 
 services:
@@ -53,35 +52,4 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"    
     depends_on:
-      db:
-        condition: service_healthy
-  demo:
-    build: 
-      context: ./demo-service
-      dockerfile: ./Dockerfile
-      # You can always switch back to the shared Dockerfile by replacing the above line with the one below
-      # dockerfile: ../Dockerfile
-      additional_contexts: 
-        lib: ./lib
-    restart: always
-    environment:
-      <<: *env
-      PORT: ${DEMO_PORT}
-    ports:
-      - "${DEMO_PORT}:${DEMO_PORT}"
-    depends_on:
-      db:
-        condition: service_healthy
-  auth-old:
-    build: ./auth-service-old
-    restart: always
-    profiles:
-      - debug
-    environment:
-      <<: *env
-      PORT: ${AUTH_PORT}
-    ports:
-      - "${AUTH_PORT}:${AUTH_PORT}"
-    depends_on:
-      db:
-        condition: service_healthy
+      - auth

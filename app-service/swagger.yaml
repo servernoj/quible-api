@@ -2,7 +2,7 @@ basePath: /api/v1
 host: www.quible.io
 info:
   contact: {}
-  description: Authentication and authorization service of Quible.io
+  description: Wrapper to RSC API
   title: Quible app-service
   version: "0.1"
 paths:
