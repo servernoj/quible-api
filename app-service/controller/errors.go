@@ -19,6 +19,7 @@ type ErrorCode int
 
 const (
 	Err400_Shift = ErrStatusGain*http.StatusBadRequest + ErrServiceId
+	Err401_Shift = ErrStatusGain*http.StatusUnauthorized + ErrServiceId
 	Err404_Shift = ErrStatusGain*http.StatusNotFound + ErrServiceId
 	Err424_Shift = ErrStatusGain*http.StatusFailedDependency + ErrServiceId
 	Err500_Shift = ErrStatusGain*http.StatusInternalServerError + ErrServiceId
@@ -28,6 +29,11 @@ const (
 	Err400_UnknownError ErrorCode = Err400_Shift + iota + 1
 	Err400_MalformedJSON
 	Err400_InvalidRequestBody
+)
+const (
+	Err401_UnknownError ErrorCode = Err401_Shift + iota + 1
+	Err401_UserIdNotFound
+	Err401_UserNotFound
 )
 const (
 	Err404_UnknownError ErrorCode = Err404_Shift + iota + 1
@@ -53,6 +59,12 @@ var errorMap = ErrorMap{
 		Err400_UnknownError:       "unknown error",
 		Err400_MalformedJSON:      "malformed JSON request",
 		Err400_InvalidRequestBody: "invalid request body",
+	},
+	// 401
+	http.StatusUnauthorized: {
+		Err401_UnknownError:   "unknown error",
+		Err401_UserIdNotFound: "userId not present",
+		Err401_UserNotFound:   "user not found",
 	},
 	// 404
 	http.StatusNotFound: {

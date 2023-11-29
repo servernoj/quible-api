@@ -11,6 +11,7 @@ import (
 	"gitlab.com/quible-backend/app-service/controller"
 	c "gitlab.com/quible-backend/lib/controller"
 	"gitlab.com/quible-backend/lib/env"
+	"gitlab.com/quible-backend/lib/store"
 )
 
 //	@title			Quible app-service
@@ -19,7 +20,7 @@ import (
 //	@host			www.quible.io
 //	@BasePath		/api/v1
 
-const DefaultPort = 8001
+const DefaultPort = 8002
 
 //go:embed swagger.yaml
 var swaggerSpec string
@@ -31,6 +32,11 @@ func main() {
 func Server() {
 	// -- Environment vars from .env file
 	env.Setup()
+	// -- Store + ORM
+	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
+		log.Fatalf("unable to setup DB connection: %s", err)
+	}
+	defer store.Close()
 	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

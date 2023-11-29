@@ -11,6 +11,9 @@ func _() {
 	_ = x[Err400_UnknownError-4002001]
 	_ = x[Err400_MalformedJSON-4002002]
 	_ = x[Err400_InvalidRequestBody-4002003]
+	_ = x[Err401_UnknownError-4012001]
+	_ = x[Err401_UserIdNotFound-4012002]
+	_ = x[Err401_UserNotFound-4012003]
 	_ = x[Err404_UnknownError-4042001]
 	_ = x[Err424_UnknownError-4242001]
 	_ = x[Err500_UnknownError-5002001]
@@ -18,13 +21,15 @@ func _() {
 
 const (
 	_ErrorCode_name_0 = "Err400_UnknownErrorErr400_MalformedJSONErr400_InvalidRequestBody"
-	_ErrorCode_name_1 = "Err404_UnknownError"
-	_ErrorCode_name_2 = "Err424_UnknownError"
-	_ErrorCode_name_3 = "Err500_UnknownError"
+	_ErrorCode_name_1 = "Err401_UnknownErrorErr401_UserIdNotFoundErr401_UserNotFound"
+	_ErrorCode_name_2 = "Err404_UnknownError"
+	_ErrorCode_name_3 = "Err424_UnknownError"
+	_ErrorCode_name_4 = "Err500_UnknownError"
 )
 
 var (
 	_ErrorCode_index_0 = [...]uint8{0, 19, 39, 64}
+	_ErrorCode_index_1 = [...]uint8{0, 19, 40, 59}
 )
 
 func (i ErrorCode) String() string {
@@ -32,12 +37,15 @@ func (i ErrorCode) String() string {
 	case 4002001 <= i && i <= 4002003:
 		i -= 4002001
 		return _ErrorCode_name_0[_ErrorCode_index_0[i]:_ErrorCode_index_0[i+1]]
+	case 4012001 <= i && i <= 4012003:
+		i -= 4012001
+		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	case i == 4042001:
-		return _ErrorCode_name_1
-	case i == 4242001:
 		return _ErrorCode_name_2
-	case i == 5002001:
+	case i == 4242001:
 		return _ErrorCode_name_3
+	case i == 5002001:
+		return _ErrorCode_name_4
 	default:
 		return "ErrorCode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}

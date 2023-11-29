@@ -13,6 +13,6 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	g.GET("docs/errors", GetErrorCodes)
 	// -- Public API
 	//-- Protected API
-	// protected := g.Group("", authMiddleware)
-
+	protected := g.Group("", c.InjectUserId)
+	protected.GET("/test", Test)
 }
