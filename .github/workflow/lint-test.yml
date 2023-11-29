@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [ master, dev, task/SPORT-151-ci ]
   pull_request:
-    branches: [ master, dev ] 
+    branches: [ master, dev, task/SPORT-151-ci ] 
 
 jobs:
   lint:
