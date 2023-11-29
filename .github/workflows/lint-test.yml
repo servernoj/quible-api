@@ -18,7 +18,8 @@ jobs:
           # git config --global --add safe.directory /__w/quible-api/quible-api
           git status
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        # run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        run: sudo apt-get install golangci-lint
       - name: Lint auth-service
         run: golangci-lint run ./auth-service/...
       - name: Lint demo-service
