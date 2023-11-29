@@ -1,4 +1,93 @@
 basePath: /api/v1
+definitions:
+  RSC.ScheduleSeasonEventName:
+    enum:
+    - First Round
+    - Semifinals
+    - Conference Finals
+    - NBA Finals
+    type: string
+    x-enum-varnames:
+    - FirstRound
+    - Semifinals
+    - ConferenceFinals
+    - NBAFinals
+  RSC.ScheduleSeasonItem:
+    properties:
+      away_team:
+        type: string
+      away_team_ID:
+        type: integer
+      broadcast:
+        type: string
+      event_name:
+        $ref: '#/definitions/RSC.ScheduleSeasonEventName'
+      game_ID:
+        type: string
+      game_time:
+        type: string
+      home_team:
+        type: string
+      home_team_ID:
+        type: integer
+      round:
+        $ref: '#/definitions/RSC.ScheduleSeasonRound'
+      season:
+        type: string
+      season_type:
+        $ref: '#/definitions/RSC.ScheduleSeasonType'
+      status:
+        $ref: '#/definitions/RSC.ScheduleSeasonStatus'
+    type: object
+  RSC.ScheduleSeasonRound:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    type: integer
+    x-enum-varnames:
+    - One
+    - Two
+    - Three
+    - Four
+  RSC.ScheduleSeasonStatus:
+    enum:
+    - scheduled
+    - delayed
+    - postponed
+    - suspended
+    - canceled
+    - inprogress
+    - final
+    - completed
+    type: string
+    x-enum-varnames:
+    - Scheduled
+    - Delayed
+    - Postponed
+    - Suspended
+    - Canceled
+    - Inprogress
+    - Final
+    - Completed
+  RSC.ScheduleSeasonType:
+    enum:
+    - Preseason
+    - Regular Season
+    - Postseason
+    type: string
+    x-enum-varnames:
+    - Preseason
+    - RegularSeason
+    - Postseason
+  controller.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
 host: www.quible.io
 info:
   contact: {}
@@ -42,4 +131,32 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+  /schedule-season:
+    get:
+      description: Returns list of gamnes for the selected season
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.ScheduleSeasonItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get Schedule for Season
+      tags:
+      - RSC
+      - private
 swagger: "2.0"

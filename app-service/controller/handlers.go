@@ -7,6 +7,15 @@ import (
 	"github.com/quible-io/quible-api/app-service/RSC"
 )
 
+// @Summary		Get Schedule for Season
+// @Description	Returns list of gamnes for the selected season
+// @Tags			RSC,private
+// @Produce		json
+// @Success		200	{object}	[]RSC.ScheduleSeasonItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/schedule-season [get]
 func ScheduleSeason(c *gin.Context) {
 	if c.IsAborted() {
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
