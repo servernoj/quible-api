@@ -20,6 +20,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
+          version: v1.54
           working-directory: ./auth-service
   test_auth_service:
     runs-on: ubuntu-latest
