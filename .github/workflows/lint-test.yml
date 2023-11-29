@@ -15,7 +15,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          working-directory: ./auth-service/...
+          working-directory: ./auth-service
   test_auth_service:
     runs-on: ubuntu-latest
     container: golang:latest
