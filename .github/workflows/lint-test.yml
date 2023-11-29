@@ -13,13 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        run: brew install golangci-lint
+        # run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
       - name: Lint auth-service
-        run: golangci-lint run ./auth-service/... -buildvcs=false
+        run: golangci-lint run ./auth-service/...
       - name: Lint demo-service
-        run: golangci-lint run ./demo-service/... -buildvcs=false
+        run: golangci-lint run ./demo-service/...
       - name: Lint lib
-        run: golangci-lint run ./lib/... -buildvcs=false
+        run: golangci-lint run ./lib/...
   test_auth_service:
     runs-on: ubuntu-latest
     container: golang:latest
