@@ -9,7 +9,6 @@ on:
 jobs:
   lint_all:
     runs-on: ubuntu-latest
-    # container: golang:latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +31,7 @@ jobs:
         with:
           version: v1.54
           working-directory: ./lib
+
   test_all:
     runs-on: ubuntu-latest
     container: golang:latest
