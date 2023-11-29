@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,7 @@ func ScheduleSeason(c *gin.Context) {
 	}
 	data, err := RSC.NewClient().GetScheduleSeason()
 	if err != nil {
+		log.Printf("failed to use ScheduleSeason API: %q", err)
 		SendError(c, http.StatusFailedDependency, Err424_UnknownError)
 		return
 	}

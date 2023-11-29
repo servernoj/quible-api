@@ -44,6 +44,9 @@ func (client *Client) GetScheduleSeason() ([]ScheduleSeasonItem, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to execute the RSC request: %w", err)
 	}
+	if res.StatusCode >= 400 {
+		return nil, fmt.Errorf("RSC request returned error: %s", res.Status)
+	}
 	body := res.Body
 	defer body.Close()
 	var data ScheduleSeason
