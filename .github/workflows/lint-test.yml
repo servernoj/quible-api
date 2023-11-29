@@ -13,19 +13,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Debug
-        run: |
-          # git config --global --add safe.directory /__w/quible-api/quible-api
-          git status
-      - name: Install golangci-lint
-        # run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-        run: sudo apt-get install golangci-lint
-      - name: Lint auth-service
-        run: golangci-lint run ./auth-service/...
-      - name: Lint demo-service
-        run: golangci-lint run ./demo-service/...
-      - name: Lint lib
-        run: golangci-lint run ./lib/...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          working-directory: [./auth-service, ./demo-service, .lib]
   test_auth_service:
     runs-on: ubuntu-latest
     container: golang:latest
