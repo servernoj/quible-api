@@ -9,12 +9,13 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container: golang:latest
+    # container: golang:latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Debug
         run: |
-          git config --global --add safe.directory /__w/quible-api/quible-api
+          # git config --global --add safe.directory /__w/quible-api/quible-api
           git status
       - name: Install golangci-lint
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
@@ -27,6 +28,7 @@ jobs:
   test_auth_service:
     runs-on: ubuntu-latest
     container: golang:latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Test auth-service
@@ -36,6 +38,7 @@ jobs:
   test_demo_service:
     runs-on: ubuntu-latest
     container: golang:latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Test demo-service
@@ -45,6 +48,7 @@ jobs:
   test_lib:
     runs-on: ubuntu-latest
     container: golang:latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Test lib
