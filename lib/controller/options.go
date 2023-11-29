@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/lib/swagger"
+	"github.com/quible-io/quible-api/lib/swagger"
 )
 
 type Option func(g *gin.RouterGroup)

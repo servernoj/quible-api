@@ -2,7 +2,12 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	c "gitlab.com/quible-backend/lib/controller"
+	c "github.com/quible-io/quible-api/lib/controller"
+)
+
+var (
+	WithSwagger = c.WithSwagger
+	WithHealth  = c.WithHealth
 )
 
 // Setup the controller and all handlers
@@ -13,6 +18,6 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	g.GET("docs/errors", GetErrorCodes)
 	// -- Public API
 	//-- Protected API
-	protected := g.Group("", c.InjectUserId)
-	protected.GET("/test", Test)
+	protected := g.Group("", c.InjectUserIdOrFail)
+	protected.GET("/schedule-season", ScheduleSeason)
 }

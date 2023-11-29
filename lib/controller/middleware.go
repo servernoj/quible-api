@@ -12,7 +12,7 @@ import (
 
 const userIdContextKey = "userId"
 
-func InjectUserId(c *gin.Context) {
+func InjectUserIdOrFail(c *gin.Context) {
 	request, _ := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf(
@@ -40,7 +40,11 @@ func InjectUserId(c *gin.Context) {
 		c.AbortWithStatusJSON(response.StatusCode, data)
 		return
 	}
-	if userId, ok := data["id"].(string); ok {
+	if userId, ok := data["id"].(string); !ok {
+		log.Println("field `id` is not present in the returned user object")
+		c.Abort()
+		return
+	} else {
 		c.Set(userIdContextKey, userId)
 	}
 

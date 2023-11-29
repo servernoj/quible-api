@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/app-service/controller"
-	c "gitlab.com/quible-backend/lib/controller"
-	"gitlab.com/quible-backend/lib/env"
-	"gitlab.com/quible-backend/lib/store"
+	"github.com/quible-io/quible-api/app-service/controller"
+
+	"github.com/quible-io/quible-api/lib/env"
+	"github.com/quible-io/quible-api/lib/store"
 )
 
 //	@title			Quible app-service
@@ -44,8 +44,8 @@ func Server() {
 	g := r.Group("/api/v1")
 	controller.Setup(
 		g,
-		c.WithSwagger(swaggerSpec),
-		c.WithHealth(),
+		controller.WithSwagger(swaggerSpec),
+		controller.WithHealth(),
 	)
 	port := os.Getenv("PORT")
 	if port == "" {

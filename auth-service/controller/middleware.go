@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/auth-service/service"
-	"gitlab.com/quible-backend/lib/models"
+	"github.com/quible-io/quible-api/auth-service/service"
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 func getUserServiceFromContext(c *gin.Context) *service.UserService {
