@@ -13,7 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Debug
-        run: git status
+        run: |
+          git config --global --add safe.directory /__w/quible-api/quible-api
+          git status
       - name: Install golangci-lint
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
       - name: Lint auth-service
