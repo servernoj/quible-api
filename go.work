@@ -1,9 +1,10 @@
 go 1.21.3
 
-use (	
-	./lib
+use (
 	./app-service
 	./auth-service
-	./demo-service
 	./auth-service-old
+	./demo-service
+	./lib
+	./mail-service
 )
