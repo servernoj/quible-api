@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  RSC.ScheduleSeasonEventName:
+  RSC.ScheduleEventName:
     enum:
     - First Round
     - Semifinals
@@ -12,7 +12,7 @@ definitions:
     - Semifinals
     - ConferenceFinals
     - NBAFinals
-  RSC.ScheduleSeasonItem:
+  RSC.ScheduleItem:
     properties:
       away_team:
         type: string
@@ -21,7 +21,7 @@ definitions:
       broadcast:
         type: string
       event_name:
-        $ref: '#/definitions/RSC.ScheduleSeasonEventName'
+        $ref: '#/definitions/RSC.ScheduleEventName'
       game_ID:
         type: string
       game_time:
@@ -31,15 +31,15 @@ definitions:
       home_team_ID:
         type: integer
       round:
-        $ref: '#/definitions/RSC.ScheduleSeasonRound'
+        $ref: '#/definitions/RSC.ScheduleRound'
       season:
         type: string
       season_type:
-        $ref: '#/definitions/RSC.ScheduleSeasonType'
+        $ref: '#/definitions/RSC.ScheduleType'
       status:
-        $ref: '#/definitions/RSC.ScheduleSeasonStatus'
+        $ref: '#/definitions/RSC.ScheduleStatus'
     type: object
-  RSC.ScheduleSeasonRound:
+  RSC.ScheduleRound:
     enum:
     - 1
     - 2
@@ -51,7 +51,7 @@ definitions:
     - Two
     - Three
     - Four
-  RSC.ScheduleSeasonStatus:
+  RSC.ScheduleStatus:
     enum:
     - scheduled
     - delayed
@@ -71,7 +71,7 @@ definitions:
     - Inprogress
     - Final
     - Completed
-  RSC.ScheduleSeasonType:
+  RSC.ScheduleType:
     enum:
     - Preseason
     - Regular Season
@@ -81,6 +81,23 @@ definitions:
     - Preseason
     - RegularSeason
     - Postseason
+  RSC.TeamInfoItem:
+    properties:
+      abbrv:
+        type: string
+      arena:
+        type: string
+      conf:
+        type: string
+      location:
+        type: string
+      mascot:
+        type: string
+      team:
+        type: string
+      team_id:
+        type: integer
+    type: object
   controller.ErrorResponse:
     properties:
       code:
@@ -95,6 +112,50 @@ info:
   title: Quible app-service
   version: "0.1"
 paths:
+  /daily-schedule:
+    get:
+      description: Returns list of games for the next 7 days
+      parameters:
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
+      - description: Game ID
+        in: query
+        name: game_id
+        type: string
+      - default: now
+        description: Report for date and 7 days in advance
+        example: "2023-11-23"
+        format: date
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.ScheduleItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get Daily Schedule
+      tags:
+      - RSC
+      - private
   /docs:
     get:
       description: Render Swagger UI page
@@ -133,7 +194,7 @@ paths:
       - docs
   /schedule-season:
     get:
-      description: Returns list of gamnes for the selected season
+      description: Returns list of games for the selected season
       produces:
       - application/json
       responses:
@@ -141,7 +202,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/RSC.ScheduleSeasonItem'
+              $ref: '#/definitions/RSC.ScheduleItem'
             type: array
         "401":
           description: Unauthorized
@@ -156,6 +217,39 @@ paths:
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
       summary: Get Schedule for Season
+      tags:
+      - RSC
+      - private
+  /team-info:
+    get:
+      description: Returns list of teams or a single team info
+      parameters:
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.TeamInfoItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get list of teams
       tags:
       - RSC
       - private

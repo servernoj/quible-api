@@ -14,3 +14,13 @@ type ScheduleItem struct {
 	Status     ScheduleStatus     `json:"status"`
 	Broadcast  *string            `json:"broadcast"`
 }
+
+type TeamInfoItem struct {
+	TeamID   int    `json:"team_id"`
+	Team     string `json:"team"`
+	Abbrv    string `json:"abbrv"`
+	Arena    string `json:"arena"`
+	Mascot   string `json:"mascot"`
+	Conf     string `json:"conf"`
+	Location string `json:"location"`
+}

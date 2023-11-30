@@ -24,7 +24,7 @@ type ErrorMap[T ErrorCode] map[int]map[T]string
 
 func (errorMap ErrorMap[T]) SendError(c *gin.Context, status int, code T) {
 	if _, ok := errorMap[status][code]; !ok {
-		log.Println("unable to find mapping for [%d]%d", status, code)
+		log.Printf("unable to find mapping for [%d]%d", status, code)
 		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 	c.AbortWithStatusJSON(

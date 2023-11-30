@@ -41,7 +41,7 @@ const (
 )
 
 // TODO: Complete the mapping
-var errorMap = c.ErrorMap[ErrorCode]{
+var ErrorMap = c.ErrorMap[ErrorCode]{
 	// 400
 	http.StatusBadRequest: {
 		Err400_UnknownError:       "unknown error",
@@ -67,8 +67,3 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err500_UnknownError: "internal server error",
 	},
 }
-
-var (
-	SendError     = errorMap.SendError
-	GetErrorCodes = errorMap.GetErrorCodes
-)
