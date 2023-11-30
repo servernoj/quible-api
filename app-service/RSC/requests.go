@@ -34,7 +34,7 @@ type Client struct {
 func (client *Client) GetScheduleSeason() ([]ScheduleSeasonItem, error) {
 	req, err := http.NewRequest(
 		http.MethodGet,
-		fmt.Sprintf("%s/schedule-season/%s?%s", client.URL, client.Sport, client.Query.Encode()),
+		fmt.Sprintf("%s/schedule-season/%s??%s", client.URL, client.Sport, client.Query.Encode()),
 		http.NoBody,
 	)
 	if err != nil {

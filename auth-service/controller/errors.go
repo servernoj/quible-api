@@ -2,13 +2,16 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"sort"
-	"strings"
 
-	"github.com/gin-gonic/gin"
+	c "github.com/quible-io/quible-api/lib/controller"
 )
+
+const ErrStatusGain = 10000
+const ErrServiceId = 1000
+
+//go:generate stringer -type=ErrorCode
+type ErrorCode int
 
 var (
 	ErrTokenExpired              = errors.New("token expired")
@@ -18,12 +21,6 @@ var (
 	ErrTokenMissingUserId        = errors.New("unable to extract userId from token")
 	ErrTokenMissingTokenId       = errors.New("unable to extract tokenId from token")
 )
-
-const ErrStatusGain = 10000
-const ErrServiceId = 1000
-
-//go:generate stringer -type=ErrorCode
-type ErrorCode int
 
 const (
 	Err207_Shift = ErrStatusGain*http.StatusMultiStatus + ErrServiceId
@@ -84,15 +81,8 @@ const (
 	Err503_DataBaseOnPhoneEdit
 )
 
-type ErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-type ErrorMap map[int]map[ErrorCode]string
-
 // TODO: Complete the mapping
-var errorMap = ErrorMap{
+var errorMap = c.ErrorMap[ErrorCode]{
 	// 207
 	http.StatusMultiStatus: {
 		Err207_SomeDataUndeleted: "some data remains undeleted",
@@ -148,53 +138,7 @@ var errorMap = ErrorMap{
 	},
 }
 
-func SendError(c *gin.Context, status int, code ErrorCode) {
-	if _, ok := errorMap[status][code]; !ok {
-		status = http.StatusInternalServerError
-		code = Err500_UnknownError
-	}
-	c.JSON(
-		status,
-		ErrorResponse{
-			Code:    int(code),
-			Message: errorMap[status][code],
-		},
-	)
-	c.Abort()
-}
-
-func GetErrorCodes(c *gin.Context) {
-	statuses := sort.IntSlice(make([]int, len(errorMap)))
-	idx := 0
-	for status := range errorMap {
-		statuses[idx] = status
-		idx++
-	}
-	sort.Sort(statuses)
-	builder := strings.Builder{}
-	builder.WriteString("<h2>Error codes</h2>")
-	for _, httpStatus := range statuses {
-		statusMap := errorMap[httpStatus]
-		builder.WriteString(fmt.Sprintf("<h3>Status code: %d</h3>", httpStatus))
-		builder.WriteString("<pre>")
-
-		// sort statusMap keys
-		errorCodes := sort.IntSlice(make([]int, len(statusMap)))
-		idx := 0
-		for errorCode := range statusMap {
-			errorCodes[idx] = int(errorCode)
-			idx++
-		}
-		sort.Sort(errorCodes)
-		for _, errorCode := range errorCodes {
-			errorCode := ErrorCode(errorCode)
-			message := statusMap[errorCode]
-			builder.WriteString(
-				fmt.Sprintf("%-50s%-20d%s\n", errorCode.String(), errorCode, message),
-			)
-		}
-		builder.WriteString("</pre>")
-	}
-	c.Writer.Header().Add("content-type", gin.MIMEHTML)
-	c.String(http.StatusOK, builder.String())
-}
+var (
+	SendError     = errorMap.SendError
+	GetErrorCodes = errorMap.GetErrorCodes
+)
