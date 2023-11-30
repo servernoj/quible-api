@@ -20,4 +20,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail)
 	protected.GET("/schedule-season", ScheduleSeason)
+	protected.GET("/daily-schedule", DailySchedule)
 }

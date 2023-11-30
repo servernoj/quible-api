@@ -1,40 +1,40 @@
 package RSC
 
-type ScheduleSeasonStatus string
+type ScheduleStatus string
 
 const (
-	Scheduled  ScheduleSeasonStatus = "scheduled"
-	Delayed    ScheduleSeasonStatus = "delayed"
-	Postponed  ScheduleSeasonStatus = "postponed"
-	Suspended  ScheduleSeasonStatus = "suspended"
-	Canceled   ScheduleSeasonStatus = "canceled"
-	Inprogress ScheduleSeasonStatus = "inprogress"
-	Final      ScheduleSeasonStatus = "final"
-	Completed  ScheduleSeasonStatus = "completed"
+	Scheduled  ScheduleStatus = "scheduled"
+	Delayed    ScheduleStatus = "delayed"
+	Postponed  ScheduleStatus = "postponed"
+	Suspended  ScheduleStatus = "suspended"
+	Canceled   ScheduleStatus = "canceled"
+	Inprogress ScheduleStatus = "inprogress"
+	Final      ScheduleStatus = "final"
+	Completed  ScheduleStatus = "completed"
 )
 
-type ScheduleSeasonType string
+type ScheduleType string
 
 const (
-	Preseason     ScheduleSeasonType = "Preseason"
-	RegularSeason ScheduleSeasonType = "Regular Season"
-	Postseason    ScheduleSeasonType = "Postseason"
+	Preseason     ScheduleType = "Preseason"
+	RegularSeason ScheduleType = "Regular Season"
+	Postseason    ScheduleType = "Postseason"
 )
 
-type ScheduleSeasonEventName string
+type ScheduleEventName string
 
 const (
-	FirstRound       ScheduleSeasonEventName = "First Round"
-	Semifinals       ScheduleSeasonEventName = "Semifinals"
-	ConferenceFinals ScheduleSeasonEventName = "Conference Finals"
-	NBAFinals        ScheduleSeasonEventName = "NBA Finals"
+	FirstRound       ScheduleEventName = "First Round"
+	Semifinals       ScheduleEventName = "Semifinals"
+	ConferenceFinals ScheduleEventName = "Conference Finals"
+	NBAFinals        ScheduleEventName = "NBA Finals"
 )
 
-type ScheduleSeasonRound int
+type ScheduleRound int
 
 const (
-	One   ScheduleSeasonRound = 1
-	Two   ScheduleSeasonRound = 2
-	Three ScheduleSeasonRound = 3
-	Four  ScheduleSeasonRound = 4
+	One   ScheduleRound = 1
+	Two   ScheduleRound = 2
+	Three ScheduleRound = 3
+	Four  ScheduleRound = 4
 )
