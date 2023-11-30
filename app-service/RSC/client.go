@@ -38,7 +38,22 @@ func (client *Client) GetDate() string {
 			date = ts.Format(time.DateOnly)
 			client.Query.Del("date")
 		} else {
-			log.Printf("unable to parse `date` sinto YYYY-MM-DD format: %s", err)
+			log.Printf("unable to parse `date` into YYYY-MM-DD format: %s", err)
+		}
+	}
+	return date
+}
+
+func (client *Client) GetSeason() string {
+	// -- defaults to "current season"
+	date := ""
+	dateLayout := "2006"
+	if client.Query.Has("date") {
+		if ts, err := time.Parse(dateLayout, client.Query.Get("date")); err == nil {
+			date = ts.Format(dateLayout)
+			client.Query.Del("date")
+		} else {
+			log.Printf("unable to parse `date` into YYYY format: %s", err)
 		}
 	}
 	return date

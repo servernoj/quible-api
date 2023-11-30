@@ -98,6 +98,60 @@ definitions:
       team_id:
         type: integer
     type: object
+  RSC.TeamSeasonStatItem:
+    properties:
+      postseason:
+        $ref: '#/definitions/RSC.TeamStatItem'
+      regular_season:
+        $ref: '#/definitions/RSC.TeamStatItem'
+      team:
+        type: string
+      team_id:
+        type: integer
+    type: object
+  RSC.TeamStatItem:
+    properties:
+      assists:
+        type: integer
+      blocks:
+        type: integer
+      defensive_rebounds:
+        type: integer
+      field_goals_attempted:
+        type: integer
+      field_goals_made:
+        type: integer
+      fouls:
+        type: integer
+      free_throws_attempted:
+        type: integer
+      free_throws_made:
+        type: integer
+      games_played:
+        type: integer
+      losses:
+        type: integer
+      offensive_rebounds:
+        type: integer
+      points:
+        type: integer
+      steals:
+        type: integer
+      three_points_attempted:
+        type: integer
+      three_points_made:
+        type: integer
+      total_rebounds:
+        type: integer
+      turnovers:
+        type: integer
+      two_points_attempted:
+        type: integer
+      two_points_made:
+        type: integer
+      wins:
+        type: integer
+    type: object
   controller.ErrorResponse:
     properties:
       code:
@@ -195,6 +249,13 @@ paths:
   /schedule-season:
     get:
       description: Returns list of games for the selected season
+      parameters:
+      - default: <current season>
+        description: Sport season
+        example: "2023"
+        in: query
+        name: date
+        type: string
       produces:
       - application/json
       responses:
@@ -250,6 +311,45 @@ paths:
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
       summary: Get list of teams
+      tags:
+      - RSC
+      - private
+  /team-stats:
+    get:
+      description: Returns teams stats for the selected season
+      parameters:
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
+      - default: <current season>
+        description: Beginning of sport season
+        example: "2023"
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.TeamSeasonStatItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get teams stats
       tags:
       - RSC
       - private

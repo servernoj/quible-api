@@ -12,13 +12,14 @@ import (
 // @Description	Returns list of games for the selected season
 // @Tags			RSC,private
 // @Produce		json
+// @Param			date	query		string	false	"Sport season" default(<current season>) example(2023)
 // @Success		200	{array}	  RSC.ScheduleItem
 // @Failure		401	{object}	ErrorResponse
 // @Failure		424	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
 // @Router		/schedule-season [get]
 func ScheduleSeason(c *gin.Context) {
-	data, err := RSC.NewClient().GetScheduleSeason()
+	data, err := RSC.NewClient().GetScheduleSeason(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use ScheduleSeason API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
@@ -63,6 +64,27 @@ func TeamInfo(c *gin.Context) {
 	data, err := RSC.NewClient().GetTeamInfo(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamInfo API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get teams stats
+// @Description	Returns teams stats for the selected season
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Param			date	query		string	false	"Beginning of sport season" default(<current season>) example(2023)
+// @Success		200	{array}		RSC.TeamSeasonStatItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/team-stats [get]
+func TeamStats(c *gin.Context) {
+	data, err := RSC.NewClient().GetTeamStats(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use TeamStats API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
 		return
 	}

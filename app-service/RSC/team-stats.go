@@ -8,14 +8,14 @@ import (
 	"net/url"
 )
 
-func (client *Client) GetScheduleSeason(query url.Values) ([]ScheduleItem, error) {
+func (client *Client) GetTeamStats(query url.Values) ([]TeamSeasonStatItem, error) {
 	for queryKey := range query {
 		client.Query.Add(queryKey, query.Get(queryKey))
 	}
 	season := client.GetSeason()
 	req, err := http.NewRequest(
 		http.MethodGet,
-		fmt.Sprintf("%s/schedule-season/%s/%s?%s", client.URL, season, client.Sport, client.Query.Encode()),
+		fmt.Sprintf("%s/team-stats/%s/%s?%s", client.URL, season, client.Sport, client.Query.Encode()),
 		http.NoBody,
 	)
 	if err != nil {
@@ -30,11 +30,11 @@ func (client *Client) GetScheduleSeason(query url.Values) ([]ScheduleItem, error
 		return nil, fmt.Errorf("RSC request returned error: %s", res.Status)
 	}
 	if res.StatusCode == 304 {
-		return []ScheduleItem{}, nil
+		return []TeamSeasonStatItem{}, nil
 	}
 	body := res.Body
 	defer body.Close()
-	var data Schedule
+	var data TeamSeasonStats
 	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		return nil, fmt.Errorf("unable to parse response from the RSC request: %w", err)
 	}
