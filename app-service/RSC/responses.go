@@ -12,6 +12,9 @@ type TeamSeasonStatData struct {
 type PlayerInfoData struct {
 	NBA []PlayerInfoItem `json:"NBA"`
 }
+type PlayerSeasonStatData struct {
+	NBA []PlayerSeasonStatItem `json:"NBA"`
+}
 
 type Schedule struct {
 	Data ScheduleData `json:"data"`
@@ -25,4 +28,8 @@ type TeamSeasonStats struct {
 
 type PlayerInfo struct {
 	Data PlayerInfoData `json:"data"`
+}
+
+type PlayerSeasonStats struct {
+	Data PlayerSeasonStatData `json:"data"`
 }

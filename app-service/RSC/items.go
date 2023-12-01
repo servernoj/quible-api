@@ -25,11 +25,9 @@ type TeamInfoItem struct {
 	Location string `json:"location"`
 }
 
-type TeamStatItem struct {
-	WINS                 int `json:"wins"`
+type StatItem struct {
 	Fouls                int `json:"fouls"`
 	Blocks               int `json:"blocks"`
-	Losses               int `json:"losses"`
 	Points               int `json:"points"`
 	Steals               int `json:"steals"`
 	Assists              int `json:"assists"`
@@ -46,6 +44,16 @@ type TeamStatItem struct {
 	FieldGoalsAttempted  int `json:"field_goals_attempted"`
 	FreeThrowsAttempted  int `json:"free_throws_attempted"`
 	ThreePointsAttempted int `json:"three_points_attempted"`
+}
+
+type PlayerStatItem struct {
+	StatItem
+	Minutes int64 `json:"minutes"`
+}
+type TeamStatItem struct {
+	StatItem
+	Wins   int `json:"wins"`
+	Losses int `json:"losses"`
 }
 
 type TeamSeasonStatItem struct {
@@ -68,4 +76,13 @@ type PlayerInfoItem struct {
 	Weight           *int            `json:"weight"`
 	Age              string          `json:"age"`
 	College          *string         `json:"college"`
+}
+
+type PlayerSeasonStatItem struct {
+	PlayerID      int             `json:"player_id"`
+	Player        string          `json:"player"`
+	Team          string          `json:"team"`
+	TeamID        int             `json:"team_id"`
+	RegularSeason *PlayerStatItem `json:"regular_season"`
+	Postseason    *PlayerStatItem `json:"postseason"`
 }

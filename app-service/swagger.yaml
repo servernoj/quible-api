@@ -49,6 +49,62 @@ definitions:
     - SG
     - PF
     - PG
+  RSC.PlayerSeasonStatItem:
+    properties:
+      player:
+        type: string
+      player_id:
+        type: integer
+      postseason:
+        $ref: '#/definitions/RSC.PlayerStatItem'
+      regular_season:
+        $ref: '#/definitions/RSC.PlayerStatItem'
+      team:
+        type: string
+      team_id:
+        type: integer
+    type: object
+  RSC.PlayerStatItem:
+    properties:
+      assists:
+        type: integer
+      blocks:
+        type: integer
+      defensive_rebounds:
+        type: integer
+      field_goals_attempted:
+        type: integer
+      field_goals_made:
+        type: integer
+      fouls:
+        type: integer
+      free_throws_attempted:
+        type: integer
+      free_throws_made:
+        type: integer
+      games_played:
+        type: integer
+      minutes:
+        type: integer
+      offensive_rebounds:
+        type: integer
+      points:
+        type: integer
+      steals:
+        type: integer
+      three_points_attempted:
+        type: integer
+      three_points_made:
+        type: integer
+      total_rebounds:
+        type: integer
+      turnovers:
+        type: integer
+      two_points_attempted:
+        type: integer
+      two_points_made:
+        type: integer
+    type: object
   RSC.PlayerStatus:
     enum:
     - ACT
@@ -338,6 +394,49 @@ paths:
       tags:
       - RSC
       - private
+  /player-stats:
+    get:
+      description: Returns players stats for the selected season
+      parameters:
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
+      - description: Player ID
+        in: query
+        name: player_id
+        type: integer
+      - default: <current season>
+        description: Beginning of sport season
+        example: "2023"
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.PlayerSeasonStatItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get player(s) stats
+      tags:
+      - RSC
+      - private
   /schedule-season:
     get:
       description: Returns list of games for the selected season
@@ -441,7 +540,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
-      summary: Get teams stats
+      summary: Get team(s) stats
       tags:
       - RSC
       - private

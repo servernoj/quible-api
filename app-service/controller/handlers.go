@@ -70,7 +70,7 @@ func TeamInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-// @Summary		Get teams stats
+// @Summary		Get team(s) stats
 // @Description	Returns teams stats for the selected season
 // @Tags			RSC,private
 // @Produce		json
@@ -106,6 +106,28 @@ func PlayerInfo(c *gin.Context) {
 	if err != nil {
 		log.Printf("failed to use PlayerInfo API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerInfo)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get player(s) stats
+// @Description	Returns players stats for the selected season
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Param			player_id	query		int	false	"Player ID"
+// @Param			date	query		string	false	"Beginning of sport season" default(<current season>) example(2023)
+// @Success		200	{array}		RSC.PlayerSeasonStatItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/player-stats [get]
+func PlayerStats(c *gin.Context) {
+	data, err := RSC.NewClient().GetPlayerStats(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use PlayerStats API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerStats)
 		return
 	}
 	c.JSON(http.StatusOK, data)
