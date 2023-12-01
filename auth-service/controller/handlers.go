@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -264,7 +265,6 @@ func UserRefresh(c *gin.Context) {
 // @Failure      401  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /user/image [put]
-
 func UserUploadImage(c *gin.Context) {
 	user := getUserFromContext(c)
 	file, err := c.FormFile("image")
@@ -290,7 +290,6 @@ func UserUploadImage(c *gin.Context) {
 	defer uploadedFile.Close()
 
 	// Read the file into a byte slice
-	// Read the file into a byte slice
 	fileBytes, err := io.ReadAll(uploadedFile)
 	if err != nil {
 		log.Printf("unable to read uploaded file: %q", err)
@@ -298,9 +297,25 @@ func UserUploadImage(c *gin.Context) {
 		return
 	}
 
-	// Save the image to the user's record (handle this in userService)
+	// Prepare the image data as a JSON blob
+	imageInput := struct {
+		ContentType string `json:"contentType"`
+		Data        []byte `json:"data"`
+	}{
+		ContentType: file.Header.Get("Content-Type"),
+		Data:        fileBytes,
+	}
+
+	imageData, err := json.Marshal(imageInput)
+	if err != nil {
+		log.Printf("unable to marshal image data: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
+	// Save the image data to the user's record
 	userService := getUserServiceFromContext(c)
-	if err := userService.UpdateUserProfileImage(user.ID, fileBytes); err != nil {
+	if err := userService.UpdateUserProfileImage(user.ID, imageData); err != nil {
 		log.Printf("unable to update user profile image: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
