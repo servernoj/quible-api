@@ -132,3 +132,23 @@ func PlayerStats(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, data)
 }
+
+// @Summary		Get players injuries
+// @Description	Returns list of recorded players injuries
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Success		200	{array}		RSC.InjuryItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/injuries [get]
+func Injuries(c *gin.Context) {
+	data, err := RSC.NewClient().GetInjuries(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use Injuries API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_Injuries)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}

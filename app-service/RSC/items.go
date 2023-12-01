@@ -86,3 +86,19 @@ type PlayerSeasonStatItem struct {
 	RegularSeason *PlayerStatItem `json:"regular_season"`
 	Postseason    *PlayerStatItem `json:"postseason"`
 }
+
+type InjuryItem struct {
+	Team     string             `json:"team"`
+	TeamID   int                `json:"team_id"`
+	Injuries []PlayerInjuryItem `json:"injuries"`
+}
+
+// TODO: the response from RSC API reports `player_id` as `string` instead of `int`
+// we can fix it on our end by traversing entire slice, but we don't do it now...
+type PlayerInjuryItem struct {
+	Injury      string `json:"injury"`
+	Player      string `json:"player"`
+	Returns     string `json:"returns"`
+	PlayerID    string `json:"player_id"`
+	DateInjured string `json:"date_injured"`
+}

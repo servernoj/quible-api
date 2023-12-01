@@ -41,6 +41,7 @@ const (
 	Err424_TeamStats
 	Err424_PlayerInfo
 	Err424_PlayerStats
+	Err424_Injuries
 )
 const (
 	Err500_UnknownError ErrorCode = Err500_Shift + iota + 1
@@ -73,6 +74,7 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 		Err424_TeamStats:      "unknown error",
 		Err424_PlayerInfo:     "unknown error",
 		Err424_PlayerStats:    "unknown error",
+		Err424_Injuries:       "unknown error",
 	},
 	// 500
 	http.StatusInternalServerError: {

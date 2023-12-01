@@ -1,5 +1,16 @@
 basePath: /api/v1
 definitions:
+  RSC.InjuryItem:
+    properties:
+      injuries:
+        items:
+          $ref: '#/definitions/RSC.PlayerInjuryItem'
+        type: array
+      team:
+        type: string
+      team_id:
+        type: integer
+    type: object
   RSC.PlayerInfoItem:
     properties:
       age:
@@ -26,6 +37,19 @@ definitions:
         type: integer
       weight:
         type: integer
+    type: object
+  RSC.PlayerInjuryItem:
+    properties:
+      date_injured:
+        type: string
+      injury:
+        type: string
+      player:
+        type: string
+      player_id:
+        type: string
+      returns:
+        type: string
     type: object
   RSC.PlayerPosition:
     enum:
@@ -361,6 +385,39 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+  /injuries:
+    get:
+      description: Returns list of recorded players injuries
+      parameters:
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.InjuryItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get players injuries
+      tags:
+      - RSC
+      - private
   /player-info:
     get:
       description: Returns list of players of all or selected team
