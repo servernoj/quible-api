@@ -13,13 +13,14 @@ import (
 // @Tags			RSC,private
 // @Produce		json
 // @Param			date	query		string	false	"Sport season" default(<current season>) example(2023)
+// @Param			team_id	query		int	false	"Team ID"
 // @Success		200	{array}	  RSC.ScheduleItem
 // @Failure		401	{object}	ErrorResponse
 // @Failure		424	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
 // @Router		/schedule-season [get]
 func ScheduleSeason(c *gin.Context) {
-	data, err := RSC.NewClient().GetScheduleSeason(c.Request.URL.Query())
+	data, err := RSC.GetScheduleSeason(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use ScheduleSeason API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_ScheduleSeason)
@@ -41,7 +42,7 @@ func ScheduleSeason(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/daily-schedule [get]
 func DailySchedule(c *gin.Context) {
-	data, err := RSC.NewClient().GetDailySchedule(c.Request.URL.Query())
+	data, err := RSC.GetDailySchedule(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use DailySchedule API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_DailySchedule)
@@ -61,7 +62,7 @@ func DailySchedule(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/team-info [get]
 func TeamInfo(c *gin.Context) {
-	data, err := RSC.NewClient().GetTeamInfo(c.Request.URL.Query())
+	data, err := RSC.GetTeamInfo(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamInfo API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamInfo)
@@ -82,7 +83,7 @@ func TeamInfo(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/team-stats [get]
 func TeamStats(c *gin.Context) {
-	data, err := RSC.NewClient().GetTeamStats(c.Request.URL.Query())
+	data, err := RSC.GetTeamStats(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamStats API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamStats)
@@ -102,7 +103,7 @@ func TeamStats(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/player-info [get]
 func PlayerInfo(c *gin.Context) {
-	data, err := RSC.NewClient().GetPlayerInfo(c.Request.URL.Query())
+	data, err := RSC.GetPlayerInfo(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use PlayerInfo API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerInfo)
@@ -124,7 +125,7 @@ func PlayerInfo(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/player-stats [get]
 func PlayerStats(c *gin.Context) {
-	data, err := RSC.NewClient().GetPlayerStats(c.Request.URL.Query())
+	data, err := RSC.GetPlayerStats(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use PlayerStats API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerStats)
@@ -144,10 +145,30 @@ func PlayerStats(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/injuries [get]
 func Injuries(c *gin.Context) {
-	data, err := RSC.NewClient().GetInjuries(c.Request.URL.Query())
+	data, err := RSC.GetInjuries(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use Injuries API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_Injuries)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get live feed
+// @Description	Returns [live] data on current/past game(s)
+// @Tags			RSC,private
+// @Produce		json
+// @Param			date	query		string	false	"Specific date returns started and finished events from that date" format(date) default(now) example(2023-11-23)
+// @Success		200	{array}		RSC.LiveFeedItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/live [get]
+func LiveFeed(c *gin.Context) {
+	data, err := RSC.GetLiveFeed(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use LiveFeed API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_LiveFeed)
 		return
 	}
 	c.JSON(http.StatusOK, data)

@@ -25,14 +25,12 @@ type TeamInfoItem struct {
 	Location string `json:"location"`
 }
 
-type StatItem struct {
+type BaseStatsItem struct {
 	Fouls                int `json:"fouls"`
 	Blocks               int `json:"blocks"`
-	Points               int `json:"points"`
 	Steals               int `json:"steals"`
 	Assists              int `json:"assists"`
 	Turnovers            int `json:"turnovers"`
-	GamesPlayed          int `json:"games_played"`
 	TotalRebounds        int `json:"total_rebounds"`
 	TwoPointsMade        int `json:"two_points_made"`
 	FieldGoalsMade       int `json:"field_goals_made"`
@@ -46,21 +44,25 @@ type StatItem struct {
 	ThreePointsAttempted int `json:"three_points_attempted"`
 }
 
-type PlayerStatItem struct {
-	StatItem
-	Minutes int64 `json:"minutes"`
+type PlayerStatsItem struct {
+	BaseStatsItem
+	Points      int   `json:"points"`
+	GamesPlayed int   `json:"games_played"`
+	Minutes     int64 `json:"minutes"`
 }
-type TeamStatItem struct {
-	StatItem
-	Wins   int `json:"wins"`
-	Losses int `json:"losses"`
+type TeamStatsItem struct {
+	BaseStatsItem
+	Points      int `json:"points"`
+	GamesPlayed int `json:"games_played"`
+	Wins        int `json:"wins"`
+	Losses      int `json:"losses"`
 }
 
 type TeamSeasonStatItem struct {
-	TeamID        int           `json:"team_id"`
-	Team          string        `json:"team"`
-	RegularSeason *TeamStatItem `json:"regular_season"`
-	Postseason    *TeamStatItem `json:"postseason"`
+	TeamID        int            `json:"team_id"`
+	Team          string         `json:"team"`
+	RegularSeason *TeamStatsItem `json:"regular_season"`
+	Postseason    *TeamStatsItem `json:"postseason"`
 }
 
 type PlayerInfoItem struct {
@@ -79,12 +81,12 @@ type PlayerInfoItem struct {
 }
 
 type PlayerSeasonStatItem struct {
-	PlayerID      int             `json:"player_id"`
-	Player        string          `json:"player"`
-	Team          string          `json:"team"`
-	TeamID        int             `json:"team_id"`
-	RegularSeason *PlayerStatItem `json:"regular_season"`
-	Postseason    *PlayerStatItem `json:"postseason"`
+	PlayerID      int              `json:"player_id"`
+	Player        string           `json:"player"`
+	Team          string           `json:"team"`
+	TeamID        int              `json:"team_id"`
+	RegularSeason *PlayerStatsItem `json:"regular_season"`
+	Postseason    *PlayerStatsItem `json:"postseason"`
 }
 
 type InjuryItem struct {
@@ -101,4 +103,73 @@ type PlayerInjuryItem struct {
 	Returns     string `json:"returns"`
 	PlayerID    string `json:"player_id"`
 	DateInjured string `json:"date_injured"`
+}
+
+// -- Live
+type PlayerBox struct {
+	AwayTeam map[string]PlayerBoxItem `json:"away_team"`
+	HomeTeam map[string]PlayerBoxItem `json:"home_team"`
+}
+
+type Current struct {
+	Quarter       Quarter `json:"Quarter"`
+	TimeRemaining *string `json:"TimeRemaining"`
+}
+
+type FullBox struct {
+	Current  Current     `json:"current"`
+	AwayTeam TeamBoxItem `json:"away_team"`
+	HomeTeam TeamBoxItem `json:"home_team"`
+}
+
+type PlayerBoxItem struct {
+	BaseStatsItem
+	Points             int             `json:"points"`
+	TwoPointPercentage float64         `json:"two_point_percentage"`
+	Player             *string         `json:"player"`
+	Status             *PlayerStatus   `json:"status"`
+	Minutes            *string         `json:"minutes"`
+	Position           *PlayerPosition `json:"position"`
+}
+
+type TeamBoxStats struct {
+	BaseStatsItem
+	TwoPointPercentage float64 `json:"two_point_percentage"`
+}
+
+type QuarterScores struct {
+	Q1 int  `json:"1"`
+	Q2 int  `json:"2"`
+	Q3 int  `json:"3"`
+	Q4 int  `json:"4"`
+	OT *int `json:"OT,omitempty"`
+}
+
+type TeamBoxItem struct {
+	Abbrv         string        `json:"abbrv"`
+	Score         int           `json:"score"`
+	Mascot        string        `json:"mascot"`
+	Record        string        `json:"record"`
+	TeamID        int           `json:"team_id"`
+	TeamStats     TeamBoxStats  `json:"team_stats"`
+	DivisionName  string        `json:"division_name"`
+	QuarterScores QuarterScores `json:"quarter_scores"`
+}
+
+type LiveFeedItem struct {
+	Round        *any               `json:"round"`
+	Sport        Sport              `json:"sport"`
+	Season       string             `json:"season"`
+	Status       ScheduleStatus     `json:"status"`
+	GameID       string             `json:"game_ID"`
+	FullBox      FullBox            `json:"full_box"`
+	Broadcast    *string            `json:"broadcast"`
+	GameTime     string             `json:"game_time"`
+	EventName    *ScheduleEventName `json:"event_name"`
+	PlayerBox    PlayerBox          `json:"player_box"`
+	GameStatus   string             `json:"game_status"`
+	SeasonType   ScheduleType       `json:"season_type"`
+	GameLocation string             `json:"game_location"`
+	AwayTeamName string             `json:"away_team_name"`
+	HomeTeamName string             `json:"home_team_name"`
 }
