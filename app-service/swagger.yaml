@@ -372,6 +372,19 @@ paths:
       summary: Swagger UI
       tags:
       - docs
+  /docs/errors:
+    get:
+      description: Renders list of erros reported by microservice
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Error Codes UI
+      tags:
+      - docs
   /docs/spec:
     get:
       description: Swagger spec in YAML format
