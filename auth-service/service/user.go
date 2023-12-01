@@ -90,3 +90,15 @@ func (s *UserService) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), passwordHashCost)
 	return string(bytes), err
 }
+
+func (s *UserService) UpdateUserProfileImage(userID string, imageBytes []byte) error {
+	user, err := models.FindUserG(s.C, userID)
+	if err != nil {
+		return err // User not found or other error
+	}
+
+	user.Image = imageBytes
+
+	_, err = user.UpdateG(s.C, boil.Whitelist("image"))
+	return err
+}

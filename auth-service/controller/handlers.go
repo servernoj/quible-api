@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"reflect"
@@ -250,4 +251,60 @@ func UserRefresh(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, responseData)
 
+}
+
+// @Summary      Upload Profile Image
+// @Description  Uploads a profile image for the current user.
+// @Tags         user,private
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        image formData file true "Profile Image"
+// @Success      200  {object}  SimpleSuccessResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /user/image [put]
+
+func UserUploadImage(c *gin.Context) {
+	user := getUserFromContext(c)
+	file, err := c.FormFile("image")
+	if err != nil {
+		log.Printf("image upload error: %q", err)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+
+	// Restrict image size (example: 1MB)
+	if file.Size > 1*1024*1024 {
+		SendError(c, http.StatusBadRequest, Err400_FileTooLarge)
+		return
+	}
+
+	// Open the file
+	uploadedFile, err := file.Open()
+	if err != nil {
+		log.Printf("unable to open uploaded file: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	defer uploadedFile.Close()
+
+	// Read the file into a byte slice
+	// Read the file into a byte slice
+	fileBytes, err := io.ReadAll(uploadedFile)
+	if err != nil {
+		log.Printf("unable to read uploaded file: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
+	// Save the image to the user's record (handle this in userService)
+	userService := getUserServiceFromContext(c)
+	if err := userService.UpdateUserProfileImage(user.ID, fileBytes); err != nil {
+		log.Printf("unable to update user profile image: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
 }
