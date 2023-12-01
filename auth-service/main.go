@@ -10,10 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/quible-backend/auth-service/controller"
-	"gitlab.com/quible-backend/lib/env"
-	"gitlab.com/quible-backend/lib/misc"
-	"gitlab.com/quible-backend/lib/store"
+	"github.com/quible-io/quible-api/auth-service/controller"
+	"github.com/quible-io/quible-api/lib/env"
+	"github.com/quible-io/quible-api/lib/misc"
+	"github.com/quible-io/quible-api/lib/store"
 )
 
 //	@title			Quible auth-service

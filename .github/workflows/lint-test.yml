@@ -42,9 +42,9 @@ jobs:
         run: |
           cd auth-service
           go test ./...
-      - name: Test demo-service
+      - name: Test app-service
         run: |
-          cd demo-service
+          cd app-service
           go test ./...
       - name: Test lib
         run: |

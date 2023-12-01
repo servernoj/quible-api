@@ -4,6 +4,4 @@ use (
 	./lib
 	./app-service
 	./auth-service
-	./demo-service
-	./auth-service-old
 )

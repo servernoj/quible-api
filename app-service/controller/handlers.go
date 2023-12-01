@@ -1,255 +1,154 @@
 package controller
 
-/*
 import (
 	"log"
 	"net/http"
-	"reflect"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/app-service/service"
-	"gitlab.com/quible-backend/lib/misc"
+	"github.com/quible-io/quible-api/app-service/RSC"
 )
 
-var UserFields = []string{"id", "username", "email", "phone", "full_name"}
-
-// @Summary		Register
-// @Description	Register a new user.
-// @Tags			user,public
-// @Accept		json
+// @Summary		Get Schedule for Season
+// @Description	Returns list of games for the selected season
+// @Tags			RSC,private
 // @Produce		json
-// @Param			request	body		service.UserRegisterDTO	true	"User registration information"
-// @Success		201		{object}	UserResponse
-// @Failure		400		{object}	ErrorResponse
-// @Failure		500		{object}	ErrorResponse
-// @Router		/user [post]
-func UserRegister(c *gin.Context) {
-	userService := getUserServiceFromContext(c)
-	var userRegisterDTO service.UserRegisterDTO
-	var errorCode ErrorCode
-	if err := c.ShouldBindJSON(&userRegisterDTO); err != nil {
-		errorCode = Err400_InvalidRequestBody
-		errorFields := misc.ParseValidationError(err)
-		if errorFields.IsValidationError {
-			if errorFields.CheckAll("Email") {
-				errorCode = Err400_InvalidEmailFormat
-			} else if errorFields.CheckAll("Phone") {
-				errorCode = Err400_InvalidPhoneFormat
-			}
-		} else {
-			errorCode = Err400_MalformedJSON
-		}
-		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
-		SendError(c, http.StatusBadRequest, errorCode)
-		return
-	}
-
-	if foundUser, _ := userService.GetUserByEmail(userRegisterDTO.Email); foundUser != nil {
-		SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
-		return
-	}
-	if foundUser, _ := userService.GetUserByUsername(userRegisterDTO.Username); foundUser != nil {
-		SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
-		return
-	}
-	createdUser, err := userService.CreateUser(&userRegisterDTO)
-	if err != nil {
-		log.Printf("unable to register user: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
-		return
-	}
-	c.JSON(
-		http.StatusCreated,
-		misc.PickFields(createdUser, UserFields...),
-	)
-}
-
-// @Summary		Login
-// @Description	Login with user credentials to get token
-// @Tags			user,public
-// @Accept		json
-// @Produce		json
-// @Param			request	body		service.UserLoginDTO	true	"User login credentials"
-// @Success		200		{object}	TokenResponse
-// @Failure		400		{object}	ErrorResponse
-// @Failure		401		{object}	ErrorResponse
-// @Failure		500		{object}	ErrorResponse
-// @Router		/login [post]
-func UserLogin(c *gin.Context) {
-	userService := getUserServiceFromContext(c)
-
-	var userLoginDTO service.UserLoginDTO
-	if err := c.ShouldBindJSON(&userLoginDTO); err != nil {
-		log.Printf("invalid request body: %q", err)
-		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
-		return
-	}
-	foundUser, _ := userService.GetUserByEmail(userLoginDTO.Email)
-	if foundUser == nil {
-		log.Printf("user with given email not found: %q", userLoginDTO.Email)
-		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
-		return
-	}
-	if err := userService.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
-		log.Printf("invalid password: %+v", userLoginDTO)
-		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
-		return
-	}
-	generatedAccessToken, err := generateToken(foundUser, false)
-	if err != nil {
-		log.Printf("unable to generate access token: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
-		return
-	}
-	generatedRefreshToken, err := generateToken(foundUser, true)
-	if err != nil {
-		log.Printf("unable to generate refresh token: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
-		return
-	}
-	foundUser.Refresh = generatedRefreshToken.ID
-	if err := userService.Update(foundUser); err != nil {
-		log.Printf("unable to associate refresh token with user: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
-		return
-	}
-
-	responseData := TokenResponse{
-		AccessToken:  generatedAccessToken.String(),
-		RefreshToken: generatedRefreshToken.String(),
-	}
-	c.JSON(http.StatusOK, responseData)
-}
-
-// @Summary		Get user
-// @Description	Returns user profile associated with the token
-// @Tags			user,private
-// @Produce		json
-// @Success		200	{object}	UserResponse
+// @Param			date	query		string	false	"Sport season" default(<current season>) example(2023)
+// @Success		200	{array}	  RSC.ScheduleItem
 // @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
-// @Router		/user [get]
-func UserGet(c *gin.Context) {
-	user := getUserFromContext(c)
-	c.JSON(
-		http.StatusCreated,
-		misc.PickFields(user, UserFields...),
-	)
+// @Router		/schedule-season [get]
+func ScheduleSeason(c *gin.Context) {
+	data, err := RSC.NewClient().GetScheduleSeason(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use ScheduleSeason API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_ScheduleSeason)
+		return
+	}
+	c.JSON(http.StatusOK, data)
 }
 
-// @Summary		Update user
-// @Description	Updates user profile associated with the token
-// @Tags			user,private
-// @Accept		json
+// @Summary		Get Daily Schedule
+// @Description	Returns list of games for the next 7 days
+// @Tags			RSC,private
 // @Produce		json
-// @Param			request	body		service.UserPatchDTO	true	"Partial user object to be used for update"
-// @Success		200		{object}	UserResponse
-// @Failure		400		{object}	ErrorResponse
-// @Failure		401		{object}	ErrorResponse
-// @Failure		500		{object}	ErrorResponse
-// @Router		/user [patch]
-func UserPatch(c *gin.Context) {
-	var userPatchDTO service.UserPatchDTO
-	var errorCode ErrorCode
-	if err := c.ShouldBindJSON(&userPatchDTO); err != nil {
-		errorCode = Err400_InvalidRequestBody
-		errorFields := misc.ParseValidationError(err)
-		if errorFields.IsValidationError {
-			if errorFields.CheckAll("Email") {
-				errorCode = Err400_InvalidEmailFormat
-			} else if errorFields.CheckAll("Phone") {
-				errorCode = Err400_InvalidPhoneFormat
-			}
-		} else {
-			errorCode = Err400_MalformedJSON
-		}
-		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
-		SendError(c, http.StatusBadRequest, errorCode)
+// @Param			team_id	query		int	false	"Team ID"
+// @Param			game_id	query		string	false	"Game ID"
+// @Param			date	query		string	false	"Report for date and 7 days in advance" format(date) default(now) example(2023-11-23)
+// @Success		200	{array}	  RSC.ScheduleItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/daily-schedule [get]
+func DailySchedule(c *gin.Context) {
+	data, err := RSC.NewClient().GetDailySchedule(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use DailySchedule API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_DailySchedule)
 		return
 	}
-	user := getUserFromContext(c)
-	dtoType := reflect.TypeOf(userPatchDTO)
-	dtoValue := reflect.ValueOf(userPatchDTO)
-	userValue := reflect.ValueOf(user).Elem()
-	for i := 0; i < dtoValue.NumField(); i++ {
-		dtoFieldName := dtoType.Field(i).Name
-		dtoFieldValue := dtoValue.Field(i).Elem()
-		if dtoFieldValue.IsValid() {
-			target := userValue.FieldByName(dtoFieldName)
-			if target.Kind().String() == "struct" && target.Type().String() == "null.String" {
-				target = target.FieldByName("String")
-			}
-			if target.CanSet() {
-				target.SetString(dtoFieldValue.String())
-			}
-		}
-	}
-	userService := getUserServiceFromContext(c)
-	if err := userService.Update(user); err != nil {
-		log.Printf("unable to update user: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
-		return
-	}
-	c.JSON(
-		http.StatusOK,
-		misc.PickFields(user, UserFields...),
-	)
+	c.JSON(http.StatusOK, data)
 }
 
-func UserRefresh(c *gin.Context) {
-	var userRefreshDTO service.UserRefreshDTO
-	if err := c.ShouldBindJSON(&userRefreshDTO); err != nil {
-		errorFields := misc.ParseValidationError(err)
-		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
-		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
-		return
-	}
-
-	claims, err := verifyJWT(userRefreshDTO.RefreshToken, true)
+// @Summary		Get list of teams
+// @Description	Returns list of teams or a single team info
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Success		200	{array}		RSC.TeamInfoItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/team-info [get]
+func TeamInfo(c *gin.Context) {
+	data, err := RSC.NewClient().GetTeamInfo(c.Request.URL.Query())
 	if err != nil {
-		log.Printf("invalid refresh token: %q", err)
-		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
+		log.Printf("failed to use TeamInfo API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamInfo)
 		return
 	}
-
-	userId := claims["userId"].(string)
-	userService := getUserServiceFromContext(c)
-	user, err := userService.GetUserById(userId)
-	if err != nil {
-		log.Printf("unable to retrieve user by id from the refresh token: %q", userId)
-		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
-		return
-	}
-
-	if refreshTokenId := claims["jti"].(string); user.Refresh != refreshTokenId {
-		log.Printf("provided refresh token has been revoked")
-		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
-		return
-	}
-
-	generatedAccessToken, err := generateToken(user, false)
-	if err != nil {
-		log.Printf("unable to generate access token: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
-		return
-	}
-	generatedRefreshToken, err := generateToken(user, true)
-	if err != nil {
-		log.Printf("unable to generate refresh token: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
-		return
-	}
-	user.Refresh = generatedRefreshToken.ID
-	if err := userService.Update(user); err != nil {
-		log.Printf("unable to associate refresh token with user: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
-		return
-	}
-	responseData := TokenResponse{
-		AccessToken:  generatedAccessToken.String(),
-		RefreshToken: generatedRefreshToken.String(),
-	}
-	c.JSON(http.StatusOK, responseData)
-
+	c.JSON(http.StatusOK, data)
 }
-*/
+
+// @Summary		Get team(s) stats
+// @Description	Returns teams stats for the selected season
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Param			date	query		string	false	"Beginning of sport season" default(<current season>) example(2023)
+// @Success		200	{array}		RSC.TeamSeasonStatItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/team-stats [get]
+func TeamStats(c *gin.Context) {
+	data, err := RSC.NewClient().GetTeamStats(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use TeamStats API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamStats)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get list of players
+// @Description	Returns list of players of all or selected team
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Success		200	{array}		RSC.PlayerInfoItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/player-info [get]
+func PlayerInfo(c *gin.Context) {
+	data, err := RSC.NewClient().GetPlayerInfo(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use PlayerInfo API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerInfo)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get player(s) stats
+// @Description	Returns players stats for the selected season
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Param			player_id	query		int	false	"Player ID"
+// @Param			date	query		string	false	"Beginning of sport season" default(<current season>) example(2023)
+// @Success		200	{array}		RSC.PlayerSeasonStatItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/player-stats [get]
+func PlayerStats(c *gin.Context) {
+	data, err := RSC.NewClient().GetPlayerStats(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use PlayerStats API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerStats)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get players injuries
+// @Description	Returns list of recorded players injuries
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Success		200	{array}		RSC.InjuryItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/injuries [get]
+func Injuries(c *gin.Context) {
+	data, err := RSC.NewClient().GetInjuries(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use Injuries API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_Injuries)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}

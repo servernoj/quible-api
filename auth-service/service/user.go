@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"gitlab.com/quible-backend/lib/models"
 	"golang.org/x/crypto/bcrypt"
 )
 

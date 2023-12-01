@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/quible-io/quible-api/lib/models"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/quible-backend/lib/models"
 )
 
 // unit test for the jwt.go generateToken test

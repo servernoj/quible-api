@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	"gitlab.com/quible-backend/lib/models"
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 var APPLICATION_NAME = "Quible"
