@@ -36,6 +36,12 @@ func (errorMap ErrorMap[T]) SendError(c *gin.Context, status int, code T) {
 	)
 }
 
+// @Summary		Error Codes UI
+// @Description	Renders the list of erros reported by the microservice
+// @Tags			docs
+// @Produce		text/html
+// @Success		200	{string} string
+// @Router		/docs/errors [get]
 func (errorMap ErrorMap[T]) GetErrorCodes(c *gin.Context) {
 	statuses := sort.IntSlice(make([]int, len(errorMap)))
 	idx := 0

@@ -1,6 +1,8 @@
 package RSC
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,10 +15,10 @@ const (
 	DEFAULT_SPORT = "NBA"
 )
 
-func NewClient() *Client {
+func NewClient[T ResponseItem]() *Client[T] {
 	query := url.Values{}
 	query.Add("RSC_token", os.Getenv("ENV_RSC_TOKEN"))
-	return &Client{
+	return &Client[T]{
 		Client: *http.DefaultClient,
 		URL:    BASE_URL,
 		Sport:  DEFAULT_SPORT,
@@ -24,14 +26,14 @@ func NewClient() *Client {
 	}
 }
 
-type Client struct {
+type Client[T ResponseItem] struct {
 	http.Client
 	URL   string
 	Sport string
 	Query url.Values
 }
 
-func (client *Client) GetDate() string {
+func (client *Client[T]) GetDate() string {
 	date := "now"
 	if client.Query.Has("date") {
 		if ts, err := time.Parse(time.DateOnly, client.Query.Get("date")); err == nil {
@@ -44,7 +46,7 @@ func (client *Client) GetDate() string {
 	return date
 }
 
-func (client *Client) GetSeason() string {
+func (client *Client[T]) GetSeason() string {
 	// -- defaults to "current season"
 	date := ""
 	dateLayout := "2006"
@@ -57,4 +59,33 @@ func (client *Client) GetSeason() string {
 		}
 	}
 	return date
+}
+
+func (client *Client[T]) RequestRunner(url string) ([]T, error) {
+	req, err := http.NewRequest(
+		http.MethodGet,
+		url,
+		http.NoBody,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create RSC request: %w", err)
+	}
+	log.Println("making RSC request to", req.URL.String())
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to execute the RSC request: %w", err)
+	}
+	if res.StatusCode >= 400 {
+		return nil, fmt.Errorf("RSC request returned error: %s", res.Status)
+	}
+	if res.StatusCode == 304 {
+		return []T{}, nil
+	}
+	body := res.Body
+	defer body.Close()
+	var data Response[T]
+	if err := json.NewDecoder(body).Decode(&data); err != nil {
+		return nil, fmt.Errorf("unable to parse response from the RSC request: %w", err)
+	}
+	return data.Data.NBA, nil
 }
