@@ -35,6 +35,11 @@ const (
 )
 const (
 	Err424_UnknownError ErrorCode = Err424_Shift + iota + 1
+	Err424_ScheduleSeason
+	Err424_DailySchedule
+	Err424_TeamInfo
+	Err424_TeamStats
+	Err424_PlayerInfo
 )
 const (
 	Err500_UnknownError ErrorCode = Err500_Shift + iota + 1
@@ -60,7 +65,12 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 	},
 	// 424
 	http.StatusFailedDependency: {
-		Err424_UnknownError: "unknown error",
+		Err424_UnknownError:   "unknown error",
+		Err424_ScheduleSeason: "unknown error",
+		Err424_DailySchedule:  "unknown error",
+		Err424_TeamInfo:       "unknown error",
+		Err424_TeamStats:      "unknown error",
+		Err424_PlayerInfo:     "unknown error",
 	},
 	// 500
 	http.StatusInternalServerError: {

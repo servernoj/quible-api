@@ -33,4 +33,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/daily-schedule", DailySchedule)
 	protected.GET("/team-info", TeamInfo)
 	protected.GET("/team-stats", TeamStats)
+	protected.GET("/player-info", PlayerInfo)
 }

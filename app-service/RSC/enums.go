@@ -38,3 +38,26 @@ const (
 	Three ScheduleRound = 3
 	Four  ScheduleRound = 4
 )
+
+type PlayerPosition string
+
+const (
+	C PlayerPosition = "C"
+	F PlayerPosition = "F"
+	G PlayerPosition = "G"
+	// --
+	FC PlayerPosition = "FC"
+	GF PlayerPosition = "GF"
+	SF PlayerPosition = "SF"
+	SG PlayerPosition = "SG"
+	PF PlayerPosition = "PF"
+	PG PlayerPosition = "PG"
+)
+
+type PlayerStatus string
+
+const (
+	Act   PlayerStatus = "ACT"
+	Inact PlayerStatus = "INACT"
+	Ques  PlayerStatus = "QUES"
+)

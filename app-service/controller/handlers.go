@@ -22,7 +22,7 @@ func ScheduleSeason(c *gin.Context) {
 	data, err := RSC.NewClient().GetScheduleSeason(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use ScheduleSeason API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_ScheduleSeason)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -44,7 +44,7 @@ func DailySchedule(c *gin.Context) {
 	data, err := RSC.NewClient().GetDailySchedule(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use DailySchedule API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_DailySchedule)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -64,7 +64,7 @@ func TeamInfo(c *gin.Context) {
 	data, err := RSC.NewClient().GetTeamInfo(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamInfo API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamInfo)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -85,7 +85,27 @@ func TeamStats(c *gin.Context) {
 	data, err := RSC.NewClient().GetTeamStats(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamStats API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_UnknownError)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamStats)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get list of players
+// @Description	Returns list of players of all or selected team
+// @Tags			RSC,private
+// @Produce		json
+// @Param			team_id	query		int	false	"Team ID"
+// @Success		200	{array}		RSC.PlayerInfoItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/player-info [get]
+func PlayerInfo(c *gin.Context) {
+	data, err := RSC.NewClient().GetPlayerInfo(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use PlayerInfo API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerInfo)
 		return
 	}
 	c.JSON(http.StatusOK, data)

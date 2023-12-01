@@ -1,5 +1,64 @@
 basePath: /api/v1
 definitions:
+  RSC.PlayerInfoItem:
+    properties:
+      age:
+        type: string
+      college:
+        type: string
+      height:
+        type: string
+      number:
+        type: integer
+      player:
+        type: string
+      player_id:
+        type: integer
+      position:
+        $ref: '#/definitions/RSC.PlayerPosition'
+      position_category:
+        $ref: '#/definitions/RSC.PlayerPosition'
+      status:
+        $ref: '#/definitions/RSC.PlayerStatus'
+      team:
+        type: string
+      team_id:
+        type: integer
+      weight:
+        type: integer
+    type: object
+  RSC.PlayerPosition:
+    enum:
+    - C
+    - F
+    - G
+    - FC
+    - GF
+    - SF
+    - SG
+    - PF
+    - PG
+    type: string
+    x-enum-varnames:
+    - C
+    - F
+    - G
+    - FC
+    - GF
+    - SF
+    - SG
+    - PF
+    - PG
+  RSC.PlayerStatus:
+    enum:
+    - ACT
+    - INACT
+    - QUES
+    type: string
+    x-enum-varnames:
+    - Act
+    - Inact
+    - Ques
   RSC.ScheduleEventName:
     enum:
     - First Round
@@ -246,6 +305,39 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+  /player-info:
+    get:
+      description: Returns list of players of all or selected team
+      parameters:
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.PlayerInfoItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get list of players
+      tags:
+      - RSC
+      - private
   /schedule-season:
     get:
       description: Returns list of games for the selected season

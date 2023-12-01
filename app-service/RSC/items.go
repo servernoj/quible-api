@@ -49,8 +49,23 @@ type TeamStatItem struct {
 }
 
 type TeamSeasonStatItem struct {
-	TeamID        int64         `json:"team_id"`
+	TeamID        int           `json:"team_id"`
 	Team          string        `json:"team"`
 	RegularSeason *TeamStatItem `json:"regular_season"`
 	Postseason    *TeamStatItem `json:"postseason"`
+}
+
+type PlayerInfoItem struct {
+	PlayerID         int             `json:"player_id"`
+	Player           string          `json:"player"`
+	TeamID           int             `json:"team_id"`
+	Team             string          `json:"team"`
+	Number           *int            `json:"number"`
+	Status           *PlayerStatus   `json:"status"`
+	Position         *PlayerPosition `json:"position"`
+	PositionCategory *PlayerPosition `json:"position_category"`
+	Height           *string         `json:"height"`
+	Weight           *int            `json:"weight"`
+	Age              string          `json:"age"`
+	College          *string         `json:"college"`
 }
