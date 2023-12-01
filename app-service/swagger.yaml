@@ -1,5 +1,21 @@
 basePath: /api/v1
 definitions:
+  RSC.Current:
+    properties:
+      Quarter:
+        $ref: '#/definitions/RSC.Quarter'
+      TimeRemaining:
+        type: string
+    type: object
+  RSC.FullBox:
+    properties:
+      away_team:
+        $ref: '#/definitions/RSC.TeamBoxItem'
+      current:
+        $ref: '#/definitions/RSC.Current'
+      home_team:
+        $ref: '#/definitions/RSC.TeamBoxItem'
+    type: object
   RSC.InjuryItem:
     properties:
       injuries:
@@ -9,6 +25,96 @@ definitions:
       team:
         type: string
       team_id:
+        type: integer
+    type: object
+  RSC.LiveFeedItem:
+    properties:
+      away_team_name:
+        type: string
+      broadcast:
+        type: string
+      event_name:
+        $ref: '#/definitions/RSC.ScheduleEventName'
+      full_box:
+        $ref: '#/definitions/RSC.FullBox'
+      game_ID:
+        type: string
+      game_location:
+        type: string
+      game_status:
+        type: string
+      game_time:
+        type: string
+      home_team_name:
+        type: string
+      player_box:
+        $ref: '#/definitions/RSC.PlayerBox'
+      round: {}
+      season:
+        type: string
+      season_type:
+        $ref: '#/definitions/RSC.ScheduleType'
+      sport:
+        $ref: '#/definitions/RSC.Sport'
+      status:
+        $ref: '#/definitions/RSC.ScheduleStatus'
+    type: object
+  RSC.PlayerBox:
+    properties:
+      away_team:
+        additionalProperties:
+          $ref: '#/definitions/RSC.PlayerBoxItem'
+        type: object
+      home_team:
+        additionalProperties:
+          $ref: '#/definitions/RSC.PlayerBoxItem'
+        type: object
+    type: object
+  RSC.PlayerBoxItem:
+    properties:
+      assists:
+        type: integer
+      blocks:
+        type: integer
+      defensive_rebounds:
+        type: integer
+      field_goals_attempted:
+        type: integer
+      field_goals_made:
+        type: integer
+      fouls:
+        type: integer
+      free_throws_attempted:
+        type: integer
+      free_throws_made:
+        type: integer
+      minutes:
+        type: string
+      offensive_rebounds:
+        type: integer
+      player:
+        type: string
+      points:
+        type: integer
+      position:
+        $ref: '#/definitions/RSC.PlayerPosition'
+      status:
+        $ref: '#/definitions/RSC.PlayerStatus'
+      steals:
+        type: integer
+      three_points_attempted:
+        type: integer
+      three_points_made:
+        type: integer
+      total_rebounds:
+        type: integer
+      turnovers:
+        type: integer
+      two_point_percentage:
+        type: number
+      two_points_attempted:
+        type: integer
+      two_points_made:
         type: integer
     type: object
   RSC.PlayerInfoItem:
@@ -80,15 +186,15 @@ definitions:
       player_id:
         type: integer
       postseason:
-        $ref: '#/definitions/RSC.PlayerStatItem'
+        $ref: '#/definitions/RSC.PlayerStatsItem'
       regular_season:
-        $ref: '#/definitions/RSC.PlayerStatItem'
+        $ref: '#/definitions/RSC.PlayerStatsItem'
       team:
         type: string
       team_id:
         type: integer
     type: object
-  RSC.PlayerStatItem:
+  RSC.PlayerStatsItem:
     properties:
       assists:
         type: integer
@@ -139,6 +245,33 @@ definitions:
     - Act
     - Inact
     - Ques
+  RSC.Quarter:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    type: integer
+    x-enum-varnames:
+    - First
+    - Second
+    - Third
+    - Fourth
+    - Fifth
+  RSC.QuarterScores:
+    properties:
+      "1":
+        type: integer
+      "2":
+        type: integer
+      "3":
+        type: integer
+      "4":
+        type: integer
+      OT:
+        type: integer
+    type: object
   RSC.ScheduleEventName:
     enum:
     - First Round
@@ -220,6 +353,68 @@ definitions:
     - Preseason
     - RegularSeason
     - Postseason
+  RSC.Sport:
+    enum:
+    - NBA
+    type: string
+    x-enum-varnames:
+    - NBA
+  RSC.TeamBoxItem:
+    properties:
+      abbrv:
+        type: string
+      division_name:
+        type: string
+      mascot:
+        type: string
+      quarter_scores:
+        $ref: '#/definitions/RSC.QuarterScores'
+      record:
+        type: string
+      score:
+        type: integer
+      team_id:
+        type: integer
+      team_stats:
+        $ref: '#/definitions/RSC.TeamBoxStats'
+    type: object
+  RSC.TeamBoxStats:
+    properties:
+      assists:
+        type: integer
+      blocks:
+        type: integer
+      defensive_rebounds:
+        type: integer
+      field_goals_attempted:
+        type: integer
+      field_goals_made:
+        type: integer
+      fouls:
+        type: integer
+      free_throws_attempted:
+        type: integer
+      free_throws_made:
+        type: integer
+      offensive_rebounds:
+        type: integer
+      steals:
+        type: integer
+      three_points_attempted:
+        type: integer
+      three_points_made:
+        type: integer
+      total_rebounds:
+        type: integer
+      turnovers:
+        type: integer
+      two_point_percentage:
+        type: number
+      two_points_attempted:
+        type: integer
+      two_points_made:
+        type: integer
+    type: object
   RSC.TeamInfoItem:
     properties:
       abbrv:
@@ -240,15 +435,15 @@ definitions:
   RSC.TeamSeasonStatItem:
     properties:
       postseason:
-        $ref: '#/definitions/RSC.TeamStatItem'
+        $ref: '#/definitions/RSC.TeamStatsItem'
       regular_season:
-        $ref: '#/definitions/RSC.TeamStatItem'
+        $ref: '#/definitions/RSC.TeamStatsItem'
       team:
         type: string
       team_id:
         type: integer
     type: object
-  RSC.TeamStatItem:
+  RSC.TeamStatsItem:
     properties:
       assists:
         type: integer
@@ -374,7 +569,7 @@ paths:
       - docs
   /docs/errors:
     get:
-      description: Renders list of erros reported by microservice
+      description: Renders the list of erros reported by the microservice
       produces:
       - text/html
       responses:
@@ -428,6 +623,42 @@ paths:
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
       summary: Get players injuries
+      tags:
+      - RSC
+      - private
+  /live:
+    get:
+      description: Returns [live] data on current/past game(s)
+      parameters:
+      - default: now
+        description: Specific date returns started and finished events from that date
+        example: "2023-11-23"
+        format: date
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RSC.LiveFeedItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get live feed
       tags:
       - RSC
       - private
@@ -517,6 +748,10 @@ paths:
         in: query
         name: date
         type: string
+      - description: Team ID
+        in: query
+        name: team_id
+        type: integer
       produces:
       - application/json
       responses:

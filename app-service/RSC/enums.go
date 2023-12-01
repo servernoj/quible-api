@@ -39,6 +39,16 @@ const (
 	Four  ScheduleRound = 4
 )
 
+type Quarter int
+
+const (
+	First  Quarter = 1
+	Second Quarter = 2
+	Third  Quarter = 3
+	Fourth Quarter = 4
+	Fifth  Quarter = 5
+)
+
 type PlayerPosition string
 
 const (
@@ -60,4 +70,10 @@ const (
 	Act   PlayerStatus = "ACT"
 	Inact PlayerStatus = "INACT"
 	Ques  PlayerStatus = "QUES"
+)
+
+type Sport string
+
+const (
+	NBA Sport = "NBA"
 )

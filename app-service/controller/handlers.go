@@ -13,6 +13,7 @@ import (
 // @Tags			RSC,private
 // @Produce		json
 // @Param			date	query		string	false	"Sport season" default(<current season>) example(2023)
+// @Param			team_id	query		int	false	"Team ID"
 // @Success		200	{array}	  RSC.ScheduleItem
 // @Failure		401	{object}	ErrorResponse
 // @Failure		424	{object}	ErrorResponse
@@ -148,6 +149,26 @@ func Injuries(c *gin.Context) {
 	if err != nil {
 		log.Printf("failed to use Injuries API: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_Injuries)
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+// @Summary		Get live feed
+// @Description	Returns [live] data on current/past game(s)
+// @Tags			RSC,private
+// @Produce		json
+// @Param			date	query		string	false	"Specific date returns started and finished events from that date" format(date) default(now) example(2023-11-23)
+// @Success		200	{array}		RSC.LiveFeedItem
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/live [get]
+func LiveFeed(c *gin.Context) {
+	data, err := RSC.GetLiveFeed(c.Request.URL.Query())
+	if err != nil {
+		log.Printf("failed to use LiveFeed API: %q", err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_LiveFeed)
 		return
 	}
 	c.JSON(http.StatusOK, data)

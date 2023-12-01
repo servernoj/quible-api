@@ -71,3 +71,13 @@ func GetInjuries[T InjuryItem](query url.Values) ([]T, error) {
 	url := fmt.Sprintf("%s/injuries/%s?%s", client.URL, client.Sport, client.Query.Encode())
 	return client.RequestRunner(url)
 }
+
+func GetLiveFeed[T LiveFeedItem](query url.Values) ([]T, error) {
+	client := NewClient[T]()
+	for queryKey := range query {
+		client.Query.Add(queryKey, query.Get(queryKey))
+	}
+	date := client.GetDate()
+	url := fmt.Sprintf("%s/live/%s/%s?%s", client.URL, date, client.Sport, client.Query.Encode())
+	return client.RequestRunner(url)
+}
