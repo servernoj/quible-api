@@ -91,14 +91,16 @@ func (s *UserService) HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-func (s *UserService) UpdateUserProfileImage(userID string, imageBytes []byte) error {
+func (s *UserService) UpdateUserProfileImage(userID string, imageData []byte) error {
 	user, err := models.FindUserG(s.C, userID)
 	if err != nil {
 		return err // User not found or other error
 	}
 
-	user.Image = imageBytes
+	// Update the ImageData field with the new image data
+	user.ImageData = imageData
 
-	_, err = user.UpdateG(s.C, boil.Whitelist("image"))
+	// Update only the ImageData field in the database
+	_, err = user.UpdateG(s.C, boil.Whitelist("image_data"))
 	return err
 }
