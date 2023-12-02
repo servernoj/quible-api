@@ -6,8 +6,8 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/auth-service/service"
-	"gitlab.com/quible-backend/lib/misc"
+	"github.com/quible-io/quible-api/auth-service/service"
+	"github.com/quible-io/quible-api/lib/misc"
 )
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}

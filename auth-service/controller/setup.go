@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	c "gitlab.com/quible-backend/lib/controller"
+	c "github.com/quible-io/quible-api/lib/controller"
 )
 
 const userContextKey = "user"

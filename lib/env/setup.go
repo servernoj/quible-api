@@ -32,10 +32,10 @@ func Setup() {
 				),
 			)
 			os.Setenv(
-				"ENV_URL_DEMO_SERVICE",
+				"ENV_URL_APP_SERVICE",
 				fmt.Sprintf(
 					"http://localhost:%s",
-					os.Getenv("DEMO_PORT"),
+					os.Getenv("APP_PORT"),
 				),
 			)
 		}
