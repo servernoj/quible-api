@@ -17,6 +17,3 @@ build: docs
 
 run: docs	
 	go run .
-
-echo:
-	echo "--${ENV_DSN}--"
