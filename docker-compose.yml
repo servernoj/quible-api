@@ -2,13 +2,13 @@ name: quible-api
 version: "3"
 x-environment: &env
   ENV_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-  ENV_EMAIL_ADDRESS: ${ENV_EMAIL_ADDRESS}
-  ENV_EMAIL_PASSWORD: ${ENV_EMAIL_PASSWORD}
   ENV_JWT_SECRET: ${ENV_JWT_SECRET}
   ENV_RSC_TOKEN: ${ENV_RSC_TOKEN}
   ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
   ENV_URL_APP_SERVICE: "http://app:${APP_PORT}"
   IS_DOCKER: 1
+x-context: &context
+  lib: ./lib
 
 services:
   db:
@@ -16,7 +16,6 @@ services:
     restart: always
     volumes:
       - ./dbData:/var/lib/postgresql/data
-      - ./dbInit:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -25,12 +24,21 @@ services:
       - "5432:5432"
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER}
+  migrations:
+    build: 
+      context: ./cmd
+      dockerfile: ./Dockerfile     
+    environment:
+      <<: *env 
+    depends_on:
+      db:
+        condition: service_healthy
   auth:
     build: 
       context: ./auth-service
       dockerfile: ../Dockerfile
       additional_contexts: 
-        lib: ./lib
+        <<: *context
     restart: always
     environment:
       <<: *env
@@ -38,14 +46,14 @@ services:
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"    
     depends_on:
-      db:
-        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
   app:
     build: 
       context: ./app-service
       dockerfile: ../Dockerfile
       additional_contexts: 
-        lib: ./lib
+        <<: *context            
     restart: always
     environment:
       <<: *env

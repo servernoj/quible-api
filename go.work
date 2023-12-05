@@ -1,7 +1,8 @@
 go 1.21.3
 
-use (
-  ./lib
+use (	
+	./lib
+	./cmd
 	./app-service
 	./auth-service
 	./mail-service
