@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS users(
   id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
   username TEXT UNIQUE NOT NULL,
@@ -10,4 +12,9 @@ CREATE TABLE IF NOT EXISTS users(
   updated_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX idx_users_email ON users(email);
+-- +goose StatementEnd
 
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS users;
+-- +goose StatementEnd
