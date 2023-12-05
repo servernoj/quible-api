@@ -153,7 +153,7 @@ quible-api-app-1         | 2023/12/05 01:26:52 running in docker...
 quible-api-app-1         | 2023/12/05 01:26:52 starting server on port: 8002
 
 ```
-with `quible-api-db-1`, `quible-api-auth-1`, `quible-api-app-1` and `quible-api-migrations-1`  being log prefixes of individual services. 
+with `quible-api-db-1`, `quible-api-auth-1`, `quible-api-app-1` and `quible-api-migrations-1` being log prefixes of individual services. 
 
 ## Which Dockerfile is used by individual microservices?
 
