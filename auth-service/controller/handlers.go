@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/service"
 	"github.com/quible-io/quible-api/lib/misc"
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
@@ -322,4 +323,40 @@ func UserUploadImage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
+}
+
+// UserGetImage handles the retrieval of a user profile image.
+// @Summary      Get Profile Image
+// @Description  Retrieves the profile image of a user.
+// @Tags         user,public
+// @Produce      image/*
+// @Param        userId path string true "User ID"
+// @Success      200  {file}  byte[]
+// @Failure      404  {object}  ErrorResponse
+// @Router       /user/{userId}/image [get]
+func UserGetImage(c *gin.Context) {
+	userId := c.Param("userId")
+
+	userService := getUserServiceFromContext(c)
+	user, err := userService.GetUserById(userId)
+	if err != nil {
+		log.Printf("user not found: %q", err)
+		SendError(c, http.StatusNotFound, Err404_UserOrPhoneNotFound)
+		return
+	}
+
+	if user.ImageData == nil || len(user.ImageData) == 0 {
+		SendError(c, http.StatusNotFound, Err404_AccountNotFound)
+		return
+	}
+
+	var imageData models.ImageData
+	err = json.Unmarshal(user.ImageData, &imageData)
+	if err != nil {
+		log.Printf("unable to unmarshal image data: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
+	c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 }
