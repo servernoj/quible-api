@@ -1,42 +1,50 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"gitlab.com/quible-backend/mail-service/controller"
 	"gitlab.com/quible-backend/mail-service/service"
 )
 
+const (
+	serverTokenEnv  = "POSTMARK_SERVER_TOKEN"
+	accountTokenEnv = "POSTMARK_ACCOUNT_TOKEN"
+	webPort         = "80"
+)
+
 func main() {
+	// 从环境变量中读取 Postmark 令牌
+	serverToken := os.Getenv(serverTokenEnv)
+	if serverToken == "" {
+		log.Fatalf("Error: Missing environment variable %s\n", serverTokenEnv)
+	}
+	accountToken := os.Getenv(accountTokenEnv)
+	if accountToken == "" {
+		log.Fatalf("Error: Missing environment variable %s\n", accountTokenEnv)
+	}
 
-	// create Postmark client
-	client := service.Client{
+	// 创建 Postmark 客户端
+	client := &service.Client{
 		HTTPClient:   &http.Client{Timeout: 10 * time.Second},
-		ServerToken:  "your-server-token",           // your Postmark token
-		AccountToken: "your-account-token",          // your Postmark account
-		BaseURL:      "https://api.postmarkapp.com", // Postmark API URL
+		ServerToken:  serverToken,
+		AccountToken: accountToken,
+		BaseURL:      "https://api.postmarkapp.com",
 	}
 
-	// define the email to be sent
-	email := service.Email{
-		From:       "no-reply@example.com",
-		To:         "tito@example.com",
-		Subject:    "Reset your password",
-		HTMLBody:   "<p>Your password reset link is here.</p>",
-		TextBody:   "Your password reset link is here.",
-		Tag:        "password-reset",
-		TrackOpens: true,
-	}
+	// 初始化 Gin
+	router := gin.Default()
 
-	// send the email
-	response, err := client.SendEmail(context.Background(), email)
-	if err != nil {
-		fmt.Printf("Error sending email: %v\n", err)
-		return
-	}
+	// 设置路由
+	controller.SetupRoutes(router, client)
 
-	// print the response
-	fmt.Printf("Email sent! Response: %+v\n", response)
+	// 启动服务器
+	log.Printf("Starting mail service on port %s\n", webPort)
+	if err := router.Run(":" + webPort); err != nil {
+		log.Fatal("Unable to start server: ", err)
+	}
 }
