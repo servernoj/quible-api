@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/service"
 	"github.com/quible-io/quible-api/lib/misc"
 )
@@ -136,6 +137,31 @@ func UserGet(c *gin.Context) {
 	)
 }
 
+// @Summary		Get user by ID
+// @Description	Returns user profile corresponding to provided ID
+// @Tags			user,private
+// @Produce		json
+// @Param     id   path     string  true  "User ID"
+// @Success		200	{object}	UserResponse
+// @Failure		401	{object}	ErrorResponse
+// @Failure		404	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/user/:id [get]
+func UserGetById(c *gin.Context) {
+	userId := c.Param("id")
+	userservice := getUserServiceFromContext(c)
+	user, err := userservice.GetUserById(userId)
+	if err != nil || user == nil {
+		log.Printf("user not found: %q", userId)
+		SendError(c, http.StatusNotFound, Err404_UserNotFound)
+		return
+	}
+	c.JSON(
+		http.StatusOK,
+		misc.PickFields(user, UserFields...),
+	)
+}
+
 // @Summary		Update user
 // @Description	Updates user profile associated with the token
 // @Tags			user,private
@@ -250,4 +276,20 @@ func UserRefresh(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, responseData)
 
+}
+
+func AblyToken(c *gin.Context) {
+	user := getUserFromContext(c)
+	if c.Request.URL.Query().Has("clientId") && c.Request.URL.Query().Get("clientId") != user.ID {
+		log.Printf("provided clientId doesn't match authenticated user")
+		SendError(c, http.StatusBadRequest, Err400_InvalidClientId)
+		return
+	}
+	token, err := realtime.GetToken(user.ID)
+	if err != nil {
+		log.Printf("unable to retrieve ably token for user %q: %q", user.ID, err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, token)
 }

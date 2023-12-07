@@ -46,6 +46,7 @@ const (
 	Err400_IsufficientPasswordComplexity
 	Err400_MalformedJSON
 	Err400_InvalidRequestBody
+	Err400_InvalidClientId
 )
 
 const (
@@ -65,6 +66,7 @@ const (
 	Err404_PlayerStatsNotFound ErrorCode = Err404_Shift + iota + 1
 	Err404_UserOrPhoneNotFound
 	Err404_AccountNotFound
+	Err404_UserNotFound
 )
 const (
 	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
@@ -98,6 +100,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_UserWithEmailExists:           "user with such email exists",
 		Err400_MalformedJSON:                 "malformed JSON request",
 		Err400_InvalidRequestBody:            "invalid request body",
+		Err400_InvalidClientId:               "unexpected clientId",
 	},
 	// 401
 	http.StatusUnauthorized: {
@@ -118,6 +121,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err404_PlayerStatsNotFound: "player stats not Available",
 		Err404_UserOrPhoneNotFound: "user or phone number not found",
 		Err404_AccountNotFound:     "account already deleted or does not exist",
+		Err404_UserNotFound:        "user not found",
 	},
 	// 429
 	http.StatusTooManyRequests: {

@@ -7,6 +7,7 @@ fi
 
 cd $(dirname ${0})
 
+go mod download
 go run ./goose.go "$@"
 
 
