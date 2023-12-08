@@ -12,6 +12,7 @@ import (
 )
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
+var PublicUserFields = []string{"id", "full_name"}
 
 // @Summary		Register
 // @Description	Register a new user.
@@ -158,7 +159,7 @@ func UserGetById(c *gin.Context) {
 	}
 	c.JSON(
 		http.StatusOK,
-		misc.PickFields(user, UserFields...),
+		misc.PickFields(user, PublicUserFields...),
 	)
 }
 
@@ -221,6 +222,17 @@ func UserPatch(c *gin.Context) {
 	)
 }
 
+// @Summary		Refresh access/refresh topens
+// @Description	Login with user credentials to get token
+// @Tags			user,public
+// @Accept		json
+// @Produce		json
+// @Param			request	body		service.UserRefreshDTO	true	"User's refresh token"
+// @Success		200		{object}	TokenResponse
+// @Failure		400		{object}	ErrorResponse
+// @Failure		401		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/user/refresh [post]
 func UserRefresh(c *gin.Context) {
 	var userRefreshDTO service.UserRefreshDTO
 	if err := c.ShouldBindJSON(&userRefreshDTO); err != nil {
@@ -275,9 +287,16 @@ func UserRefresh(c *gin.Context) {
 		RefreshToken: generatedRefreshToken.String(),
 	}
 	c.JSON(http.StatusOK, responseData)
-
 }
 
+// @Summary		Get new `TokenRequest` for client Ably SDK
+// @Description	Returns user profile corresponding to provided ID
+// @Tags			realtime,private
+// @Produce		json
+// @Success		200	{object}	ably.TokenRequest
+// @Failure		400	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/rt/token [get]
 func AblyToken(c *gin.Context) {
 	user := getUserFromContext(c)
 	if c.Request.URL.Query().Has("clientId") && c.Request.URL.Query().Get("clientId") != user.ID {
