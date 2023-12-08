@@ -6,7 +6,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	c "github.com/quible-io/quible-api/lib/controller"
 	"gitlab.com/quible-backend/mail-service/service"
+)
+
+var (
+	WithSwagger = c.WithSwagger
+	WithHealth  = c.WithHealth
 )
 
 func SetupRoutes(router *gin.Engine, client *service.Client) {
@@ -26,5 +32,5 @@ func SetupRoutes(router *gin.Engine, client *service.Client) {
 		c.JSON(http.StatusOK, gin.H{"response": response})
 	})
 
-	// We could add more routes if we want
+	// We could add more routes and use the same structure as app-service/setup
 }

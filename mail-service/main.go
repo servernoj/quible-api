@@ -4,31 +4,32 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/lib/env"
+	"github.com/quible-io/quible-api/lib/store"
 	"gitlab.com/quible-backend/mail-service/controller"
 	"gitlab.com/quible-backend/mail-service/service"
 )
 
-const (
-	serverTokenEnv  = "POSTMARK_SERVER_TOKEN"
-	accountTokenEnv = "POSTMARK_ACCOUNT_TOKEN"
-	webPort         = "80"
-)
+const DefaultPort = 8083
 
 func main() {
-	// 从环境变量中读取 Postmark 令牌
-	serverToken := os.Getenv(serverTokenEnv)
-	if serverToken == "" {
-		log.Fatalf("Error: Missing environment variable %s\n", serverTokenEnv)
-	}
-	accountToken := os.Getenv(accountTokenEnv)
-	if accountToken == "" {
-		log.Fatalf("Error: Missing environment variable %s\n", accountTokenEnv)
-	}
+	// set the env
+	env.Setup()
 
-	// 创建 Postmark 客户端
+	// connect to the db
+	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
+		log.Fatalf("unable to setup DB connection: %s", err)
+	}
+	defer store.Close()
+
+	// create the client
+	serverToken := os.Getenv("ENV_SERVER_TOKEN")
+	accountToken := os.Getenv("ENV_ACCOUNT_TOKEN")
 	client := &service.Client{
 		HTTPClient:   &http.Client{Timeout: 10 * time.Second},
 		ServerToken:  serverToken,
@@ -36,15 +37,23 @@ func main() {
 		BaseURL:      "https://api.postmarkapp.com",
 	}
 
-	// 初始化 Gin
+	// start the gin router
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	router.Use(cors.Default())
 
-	// 设置路由
+	// set the controller
 	controller.SetupRoutes(router, client)
 
-	// 启动服务器
-	log.Printf("Starting mail service on port %s\n", webPort)
-	if err := router.Run(":" + webPort); err != nil {
-		log.Fatal("Unable to start server: ", err)
+	// we could start other controller.SetupOtherRoutes(router) latter
+
+	// start the service
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = strconv.Itoa(DefaultPort)
+	}
+	log.Printf("Starting mail service on port: %s\n", port)
+	if err := router.Run(":" + port); err != nil {
+		log.Fatalf("Unable to start server: %v", err)
 	}
 }
