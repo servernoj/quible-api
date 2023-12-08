@@ -13,7 +13,12 @@ RUN go mod download
 COPY . .
 RUN go mod tidy
 # -- compile Swagger spec
-RUN swag init --output . --outputTypes yaml --dir ./,../lib/swagger,./controller,../lib/models,../lib/controller --parseDependency
+RUN swag init \
+  --output . \
+  --outputTypes yaml \
+  --dir ./,../lib/swagger,./controller,../lib/models,../lib/controller \
+  --parseDependency \
+  --parseDepth 1
 # -- generate code tagged with //go:generate
 RUN go generate ./...
 # -- build the service

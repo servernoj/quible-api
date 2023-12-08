@@ -9,7 +9,12 @@ deps:
 docs: $(docs)
 $(docs): deps
 	go generate ./...
-	swag init --output . --outputTypes yaml --dir ./,../lib/swagger,./controller,../lib/models,../lib/controller --parseDependency
+	swag init \
+		--output . \
+		--outputTypes yaml \
+		--dir ./,../lib/swagger,./controller,../lib/models,../lib/controller \
+		--parseDependency \
+		--parseDepth 1
 
 build: docs	
 	go mod tidy

@@ -72,7 +72,7 @@ definitions:
       full_name:
         type: string
       id:
-        type: integer
+        type: string
       phone:
         type: string
       username:
