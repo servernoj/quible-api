@@ -6,6 +6,7 @@ x-environment: &env
   ENV_RSC_TOKEN: ${ENV_RSC_TOKEN}
   ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
   ENV_URL_APP_SERVICE: "http://app:${APP_PORT}"
+  ENV_URL_MAIL_SERVICE: "http://app:${MAIL_PORT}"
   IS_DOCKER: 1
 x-context: &context
   lib: ./lib
@@ -60,5 +61,19 @@ services:
       PORT: ${APP_PORT}
     ports:
       - "${APP_PORT}:${APP_PORT}"    
+    depends_on:
+      - auth
+  mail:
+    build: 
+      context: ./mail-service
+      dockerfile: ../Dockerfile
+      additional_contexts: 
+        <<: *context 
+    restart: always
+    environment:
+      <<: *env
+      PORT: ${MAIL_PORT}
+    ports:
+      - "${MAIL_PORT}:${MAIL_PORT}"    
     depends_on:
       - auth

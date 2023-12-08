@@ -38,6 +38,13 @@ func Setup() {
 					os.Getenv("APP_PORT"),
 				),
 			)
+			os.Setenv(
+				"ENV_URL_MAIL_SERVICE",
+				fmt.Sprintf(
+					"http://localhost:%s",
+					os.Getenv("MAIL_PORT"),
+				),
+			)
 		}
 	} else {
 		log.Println("running in docker...")
