@@ -10,22 +10,15 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/lib/env"
-	"github.com/quible-io/quible-api/lib/store"
 	"gitlab.com/quible-backend/mail-service/controller"
 	"gitlab.com/quible-backend/mail-service/service"
 )
 
-const DefaultPort = 8083
+const DefaultPort = 8003
 
 func main() {
 	// set the env
 	env.Setup()
-
-	// connect to the db
-	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
-		log.Fatalf("unable to setup DB connection: %s", err)
-	}
-	defer store.Close()
 
 	// create the client
 	serverToken := os.Getenv("ENV_SERVER_TOKEN")
