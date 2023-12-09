@@ -21,11 +21,6 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-type ImageData struct {
-  ContentType    string    `json:"contentType"`
-  BinaryContent  []byte    `json:"data"`
-}
-
 // User is an object representing the database table.
 type User struct {
 	ID             string    `boil:"id" json:"id" toml:"id" yaml:"id"`
@@ -37,7 +32,6 @@ type User struct {
 	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 	Refresh        string    `boil:"refresh" json:"refresh" toml:"refresh" yaml:"refresh"`
-	ImageData      []byte    `boil:"image_data" json:"-" toml:"image_data" yaml:"image_data"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/quible-io/quible-api/lib/models"
@@ -9,6 +10,11 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type ImageData struct {
+	ContentType   string `json:"contentType"`
+	BinaryContent []byte `json:"data"`
+}
 
 const passwordHashCost = 15
 
@@ -91,16 +97,37 @@ func (s *UserService) HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-func (s *UserService) UpdateUserProfileImage(userID string, imageData []byte) error {
+func (s *UserService) UpdateUserProfileImage(userID string, imageData *ImageData) error {
 	user, err := models.FindUserG(s.C, userID)
 	if err != nil {
 		return err // User not found or other error
 	}
 
-	// Update the ImageData field with the new image data
-	user.ImageData = imageData
+	marshaledData, err := json.Marshal(imageData)
+	if err != nil {
+		return err
+	}
 
-	// Update only the ImageData field in the database
+	user.ImageData = marshaledData
 	_, err = user.UpdateG(s.C, boil.Whitelist("image_data"))
 	return err
+}
+
+func (s *UserService) GetUserImage(userID string) (*ImageData, error) {
+	user, err := models.FindUserG(s.C, userID)
+	if err != nil {
+		return nil, err // User not found or other error
+	}
+
+	if len(user.ImageData) == 0 {
+		return nil, errors.New("image data not found")
+	}
+
+	var imageData ImageData
+	err = json.Unmarshal(user.ImageData, &imageData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &imageData, nil
 }

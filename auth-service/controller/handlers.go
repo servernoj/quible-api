@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/service"
 	"github.com/quible-io/quible-api/lib/misc"
-	"github.com/quible-io/quible-api/lib/models"
 )
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
@@ -255,6 +253,7 @@ func UserRefresh(c *gin.Context) {
 
 }
 
+// UserUploadImage handles the uploading of a user profile image.
 // @Summary      Upload Profile Image
 // @Description  Uploads a profile image for the current user.
 // @Tags         user,private
@@ -298,23 +297,13 @@ func UserUploadImage(c *gin.Context) {
 		return
 	}
 
-	// Prepare the image data as a JSON blob
-	imageInput := struct {
-		ContentType string `json:"contentType"`
-		Data        []byte `json:"data"`
-	}{
-		ContentType: file.Header.Get("Content-Type"),
-		Data:        fileBytes,
+	// Create an ImageData instance
+	imageData := &service.ImageData{
+		ContentType:   file.Header.Get("Content-Type"),
+		BinaryContent: fileBytes,
 	}
 
-	imageData, err := json.Marshal(imageInput)
-	if err != nil {
-		log.Printf("unable to marshal image data: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
-		return
-	}
-
-	// Save the image data to the user's record
+	// Save the image data to the user's record using UserService
 	userService := getUserServiceFromContext(c)
 	if err := userService.UpdateUserProfileImage(user.ID, imageData); err != nil {
 		log.Printf("unable to update user profile image: %q", err)
@@ -338,23 +327,10 @@ func UserGetImage(c *gin.Context) {
 	userId := c.Param("userId")
 
 	userService := getUserServiceFromContext(c)
-	user, err := userService.GetUserById(userId)
+	imageData, err := userService.GetUserImage(userId)
 	if err != nil {
-		log.Printf("user not found: %q", err)
+		log.Printf("unable to retrieve image data: %q", err)
 		SendError(c, http.StatusNotFound, Err404_UserOrPhoneNotFound)
-		return
-	}
-
-	if user.ImageData == nil || len(user.ImageData) == 0 {
-		SendError(c, http.StatusNotFound, Err404_AccountNotFound)
-		return
-	}
-
-	var imageData models.ImageData
-	err = json.Unmarshal(user.ImageData, &imageData)
-	if err != nil {
-		log.Printf("unable to unmarshal image data: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
 	}
 
