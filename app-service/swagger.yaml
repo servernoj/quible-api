@@ -415,11 +415,13 @@ definitions:
       two_points_made:
         type: integer
     type: object
-  RSC.TeamInfoItem:
+  RSC.TeamInfoItemExtended:
     properties:
       abbrv:
         type: string
       arena:
+        type: string
+      color:
         type: string
       conf:
         type: string
@@ -792,7 +794,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/RSC.TeamInfoItem'
+              $ref: '#/definitions/RSC.TeamInfoItemExtended'
             type: array
         "401":
           description: Unauthorized
