@@ -1,8 +1,12 @@
 package RSC
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/url"
+
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 func GetScheduleSeason[T ScheduleItem](query url.Values) ([]T, error) {
@@ -25,13 +29,40 @@ func GetDailySchedule[T ScheduleItem](query url.Values) ([]T, error) {
 	return client.RequestRunner(url)
 }
 
-func GetTeamInfo[T TeamInfoItem](query url.Values) ([]T, error) {
-	client := NewClient[T]()
+type TeamInfoItemExtended struct {
+	TeamInfoItem
+	Color string `json:"color"`
+}
+
+func GetTeamInfo(query url.Values) ([]TeamInfoItemExtended, error) {
+	client := NewClient[TeamInfoItemExtended]()
 	for queryKey := range query {
 		client.Query.Add(queryKey, query.Get(queryKey))
 	}
 	url := fmt.Sprintf("%s/team-info/%s?%s", client.URL, client.Sport, client.Query.Encode())
-	return client.RequestRunner(url)
+	teamInfoItems, err := client.RequestRunner(url)
+	if err != nil {
+		return []TeamInfoItemExtended{}, err
+	}
+	ctx := context.Background()
+	teams, err := models.Teams().AllG(ctx)
+	if err != nil {
+		log.Printf("unable to retrieve extra teams infor from DB: %v", err)
+		return []TeamInfoItemExtended{}, nil
+	}
+	teamsByRSCID := make(map[int]*models.Team, len(teams))
+	for _, team := range teams {
+		teamsByRSCID[team.RSCID] = team
+	}
+	for idx := range teamInfoItems {
+		teamInfoItem := &teamInfoItems[idx]
+		if team, ok := teamsByRSCID[teamInfoItem.TeamID]; ok {
+			teamInfoItem.Arena = team.Arena
+			teamInfoItem.Color = team.Color
+		}
+	}
+
+	return teamInfoItems, nil
 }
 
 func GetTeamStats[T TeamSeasonStatItem](query url.Values) ([]T, error) {
