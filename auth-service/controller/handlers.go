@@ -311,7 +311,7 @@ func UserUploadImage(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
+	c.Status(http.StatusAccepted)
 }
 
 // UserGetImage handles the retrieval of a user profile image.
@@ -327,12 +327,6 @@ func UserGetImage(c *gin.Context) {
 	userId := c.Param("userId")
 
 	userService := getUserServiceFromContext(c)
-	imageData, err := userService.GetUserImage(userId)
-	if err != nil {
-		log.Printf("unable to retrieve image data: %q", err)
-		SendError(c, http.StatusNotFound, Err404_UserOrPhoneNotFound)
-		return
-	}
-
+	imageData := userService.GetUserImage(userId)
 	c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 }

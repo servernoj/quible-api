@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/quible-io/quible-api/lib/models"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
@@ -103,31 +104,31 @@ func (s *UserService) UpdateUserProfileImage(userID string, imageData *ImageData
 		return err // User not found or other error
 	}
 
-	marshaledData, err := json.Marshal(imageData)
+	imageDataBytes, err := json.Marshal(imageData)
 	if err != nil {
 		return err
 	}
 
-	user.ImageData = marshaledData
-	_, err = user.UpdateG(s.C, boil.Whitelist("image_data"))
+	user.Image = null.BytesFrom(imageDataBytes)
+	_, err = user.UpdateG(s.C, boil.Whitelist("image"))
 	return err
 }
 
-func (s *UserService) GetUserImage(userID string) (*ImageData, error) {
+func (s *UserService) GetUserImage(userID string) *ImageData {
 	user, err := models.FindUserG(s.C, userID)
-	if err != nil {
-		return nil, err // User not found or other error
+	if err != nil || user == nil {
+		return nil
 	}
-
-	if len(user.ImageData) == 0 {
-		return nil, errors.New("image data not found")
+	imageDataBytesPtr := user.Image.Ptr()
+	if imageDataBytesPtr == nil {
+		return nil
 	}
 
 	var imageData ImageData
-	err = json.Unmarshal(user.ImageData, &imageData)
+	err = json.Unmarshal(*imageDataBytesPtr, &imageData)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	return &imageData, nil
+	return &imageData
 }
