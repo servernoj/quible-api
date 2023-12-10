@@ -29,6 +29,9 @@ func GetDailySchedule[T ScheduleItem](query url.Values) ([]T, error) {
 	return client.RequestRunner(url)
 }
 
+// Data coming from RSC API doesn't contain "team color" which has to be "injected" into response
+// of the RSC API for every team. Also, the data for `arena` returned by RSC API is outdated and
+// has to be re-defined from local DB (table `teams`)
 type TeamInfoItemExtended struct {
 	TeamInfoItem
 	Color string `json:"color"`
@@ -57,6 +60,9 @@ func GetTeamInfo(query url.Values) ([]TeamInfoItemExtended, error) {
 	for idx := range teamInfoItems {
 		teamInfoItem := &teamInfoItems[idx]
 		if team, ok := teamsByRSCID[teamInfoItem.TeamID]; ok {
+			// table `teams` in local DB contains up to date values for `arena` and `color`
+			// for every team record. Those are injected on-fly, every time when team info
+			// is requested from RSC API
 			teamInfoItem.Arena = team.Arena
 			teamInfoItem.Color = team.Color
 		}
