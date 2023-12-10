@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE teams (
-	id uuid NOT NULL DEFAULT gen_random_uuid(),
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
 	"name" text NOT NULL,
 	arena text NOT NULL,
 	color text NOT NULL,
