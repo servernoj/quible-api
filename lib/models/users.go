@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,15 +24,16 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID             string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Username       string    `boil:"username" json:"username" toml:"username" yaml:"username"`
-	Email          string    `boil:"email" json:"email" toml:"email" yaml:"email"`
-	HashedPassword string    `boil:"hashed_password" json:"hashed_password" toml:"hashed_password" yaml:"hashed_password"`
-	FullName       string    `boil:"full_name" json:"full_name" toml:"full_name" yaml:"full_name"`
-	Phone          string    `boil:"phone" json:"phone" toml:"phone" yaml:"phone"`
-	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	Refresh        string    `boil:"refresh" json:"refresh" toml:"refresh" yaml:"refresh"`
+	ID             string     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Username       string     `boil:"username" json:"username" toml:"username" yaml:"username"`
+	Email          string     `boil:"email" json:"email" toml:"email" yaml:"email"`
+	HashedPassword string     `boil:"hashed_password" json:"hashed_password" toml:"hashed_password" yaml:"hashed_password"`
+	FullName       string     `boil:"full_name" json:"full_name" toml:"full_name" yaml:"full_name"`
+	Phone          string     `boil:"phone" json:"phone" toml:"phone" yaml:"phone"`
+	Refresh        string     `boil:"refresh" json:"refresh" toml:"refresh" yaml:"refresh"`
+	CreatedAt      time.Time  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt      time.Time  `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	Image          null.Bytes `boil:"image" json:"image,omitempty" toml:"image" yaml:"image,omitempty"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -44,9 +46,10 @@ var UserColumns = struct {
 	HashedPassword string
 	FullName       string
 	Phone          string
+	Refresh        string
 	CreatedAt      string
 	UpdatedAt      string
-	Refresh        string
+	Image          string
 }{
 	ID:             "id",
 	Username:       "username",
@@ -54,9 +57,10 @@ var UserColumns = struct {
 	HashedPassword: "hashed_password",
 	FullName:       "full_name",
 	Phone:          "phone",
+	Refresh:        "refresh",
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
-	Refresh:        "refresh",
+	Image:          "image",
 }
 
 var UserTableColumns = struct {
@@ -66,9 +70,10 @@ var UserTableColumns = struct {
 	HashedPassword string
 	FullName       string
 	Phone          string
+	Refresh        string
 	CreatedAt      string
 	UpdatedAt      string
-	Refresh        string
+	Image          string
 }{
 	ID:             "users.id",
 	Username:       "users.username",
@@ -76,39 +81,13 @@ var UserTableColumns = struct {
 	HashedPassword: "users.hashed_password",
 	FullName:       "users.full_name",
 	Phone:          "users.phone",
+	Refresh:        "users.refresh",
 	CreatedAt:      "users.created_at",
 	UpdatedAt:      "users.updated_at",
-	Refresh:        "users.refresh",
+	Image:          "users.image",
 }
 
 // Generated where
-
-type whereHelperstring struct{ field string }
-
-func (w whereHelperstring) EQ(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperstring) NEQ(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperstring) LT(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperstring) LTE(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperstring) GT(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperstring) GTE(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperstring) LIKE(x string) qm.QueryMod   { return qm.Where(w.field+" LIKE ?", x) }
-func (w whereHelperstring) NLIKE(x string) qm.QueryMod  { return qm.Where(w.field+" NOT LIKE ?", x) }
-func (w whereHelperstring) ILIKE(x string) qm.QueryMod  { return qm.Where(w.field+" ILIKE ?", x) }
-func (w whereHelperstring) NILIKE(x string) qm.QueryMod { return qm.Where(w.field+" NOT ILIKE ?", x) }
-func (w whereHelperstring) IN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
 
 type whereHelpertime_Time struct{ field string }
 
@@ -131,6 +110,30 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelpernull_Bytes struct{ field string }
+
+func (w whereHelpernull_Bytes) EQ(x null.Bytes) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Bytes) NEQ(x null.Bytes) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Bytes) LT(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Bytes) LTE(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Bytes) GT(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Bytes) GTE(x null.Bytes) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_Bytes) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Bytes) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var UserWhere = struct {
 	ID             whereHelperstring
 	Username       whereHelperstring
@@ -138,9 +141,10 @@ var UserWhere = struct {
 	HashedPassword whereHelperstring
 	FullName       whereHelperstring
 	Phone          whereHelperstring
+	Refresh        whereHelperstring
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
-	Refresh        whereHelperstring
+	Image          whereHelpernull_Bytes
 }{
 	ID:             whereHelperstring{field: "\"users\".\"id\""},
 	Username:       whereHelperstring{field: "\"users\".\"username\""},
@@ -148,9 +152,10 @@ var UserWhere = struct {
 	HashedPassword: whereHelperstring{field: "\"users\".\"hashed_password\""},
 	FullName:       whereHelperstring{field: "\"users\".\"full_name\""},
 	Phone:          whereHelperstring{field: "\"users\".\"phone\""},
+	Refresh:        whereHelperstring{field: "\"users\".\"refresh\""},
 	CreatedAt:      whereHelpertime_Time{field: "\"users\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"users\".\"updated_at\""},
-	Refresh:        whereHelperstring{field: "\"users\".\"refresh\""},
+	Image:          whereHelpernull_Bytes{field: "\"users\".\"image\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -170,9 +175,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "username", "email", "hashed_password", "full_name", "phone", "created_at", "updated_at", "refresh"}
+	userAllColumns            = []string{"id", "username", "email", "hashed_password", "full_name", "phone", "refresh", "created_at", "updated_at", "image"}
 	userColumnsWithoutDefault = []string{"username", "email", "hashed_password", "full_name", "phone", "created_at", "updated_at"}
-	userColumnsWithDefault    = []string{"id", "refresh"}
+	userColumnsWithDefault    = []string{"id", "refresh", "image"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
