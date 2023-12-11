@@ -25,14 +25,12 @@ func main() {
 
 	// Start the Gin router
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.Use(cors.Default())
-
-	// Create a router group for the protected routes
-	protectedGroup := router.Group("/")
+	r := gin.Default()
+	r.Use(cors.Default())
+	g := r.Group("/api/v1")
 
 	// Set up the controller with the protected group and client
-	controller.Setup(protectedGroup, client, controller.WithSwagger(swaggerSpec),
+	controller.Setup(g, client, controller.WithSwagger(swaggerSpec),
 		controller.WithHealth() /*, other necessary options if any*/)
 
 	// Start the service on the specified port
@@ -41,7 +39,7 @@ func main() {
 		port = strconv.Itoa(DefaultPort)
 	}
 	log.Printf("Starting mail service on port: %s\n", port)
-	if err := router.Run(":" + port); err != nil {
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Unable to start server: %v", err)
 	}
 }
