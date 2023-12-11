@@ -13,24 +13,29 @@ import (
 
 const DefaultPort = 8003
 
+// swagger.yaml
+var swaggerSpec string
+
 func main() {
-	// set the env
+	// Set the environment variables
 	env.Setup()
 
-	// create the client
+	// Create the client
 	client := controller.NewClient()
 
-	// start the gin router
+	// Start the Gin router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	// set the controller
-	controller.SetupRoutes(router, client)
+	// Create a router group for the protected routes
+	protectedGroup := router.Group("/")
 
-	// we could start other controller.SetupOtherRoutes(router) latter
+	// Set up the controller with the protected group and client
+	controller.Setup(protectedGroup, client, controller.WithSwagger(swaggerSpec),
+		controller.WithHealth() /*, other necessary options if any*/)
 
-	// start the service
+	// Start the service on the specified port
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = strconv.Itoa(DefaultPort)
