@@ -2,16 +2,13 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/lib/env"
 	"gitlab.com/quible-backend/mail-service/controller"
-	"gitlab.com/quible-backend/mail-service/service"
 )
 
 const DefaultPort = 8003
@@ -21,14 +18,7 @@ func main() {
 	env.Setup()
 
 	// create the client
-	serverToken := os.Getenv("ENV_SERVER_TOKEN")
-	accountToken := os.Getenv("ENV_ACCOUNT_TOKEN")
-	client := &service.Client{
-		HTTPClient:   &http.Client{Timeout: 10 * time.Second},
-		ServerToken:  serverToken,
-		AccountToken: accountToken,
-		BaseURL:      "https://api.postmarkapp.com",
-	}
+	client := controller.NewClient()
 
 	// start the gin router
 	gin.SetMode(gin.ReleaseMode)
