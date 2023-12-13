@@ -2,13 +2,20 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/quible-io/quible-api/lib/models"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type ImageData struct {
+	ContentType   string `json:"contentType"`
+	BinaryContent []byte `json:"data"`
+}
 
 const passwordHashCost = 15
 
@@ -89,4 +96,39 @@ func (s *UserService) ValidatePassword(hashedPassword string, password string) e
 func (s *UserService) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), passwordHashCost)
 	return string(bytes), err
+}
+
+func (s *UserService) UpdateUserProfileImage(userID string, imageData *ImageData) error {
+	user, err := models.FindUserG(s.C, userID)
+	if err != nil {
+		return err // User not found or other error
+	}
+
+	imageDataBytes, err := json.Marshal(imageData)
+	if err != nil {
+		return err
+	}
+
+	user.Image = null.BytesFrom(imageDataBytes)
+	_, err = user.UpdateG(s.C, boil.Whitelist("image"))
+	return err
+}
+
+func (s *UserService) GetUserImage(userID string) *ImageData {
+	user, err := models.FindUserG(s.C, userID)
+	if err != nil || user == nil {
+		return nil
+	}
+	imageDataBytesPtr := user.Image.Ptr()
+	if imageDataBytesPtr == nil {
+		return nil
+	}
+
+	var imageData ImageData
+	err = json.Unmarshal(*imageDataBytesPtr, &imageData)
+	if err != nil {
+		return nil
+	}
+
+	return &imageData
 }
