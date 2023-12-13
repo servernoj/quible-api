@@ -260,7 +260,7 @@ func UserRefresh(c *gin.Context) {
 // @Accept       multipart/form-data
 // @Produce      json
 // @Param        image formData file true "Profile Image"
-// @Success      200  {object}  SimpleSuccessResponse
+// @Success      200
 // @Failure      400  {object}  ErrorResponse
 // @Failure      401  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
