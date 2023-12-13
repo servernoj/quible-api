@@ -50,7 +50,7 @@ To create/apply/undo/redo migrations use the shell script `cmd/run.sh migrate` a
 - `status` print the status of all migrations
 - `version` print the current version of the database:
 
-**Important:** the migration utility uses environment variable `ENV_DSN` to locate the DB instance and connect to it. This variable should either be "exported" explicitly or otherwise its value could be implied from `.env` file located in the repo's root. 
+**Important:** the migration utility uses environment variable `ENV_DSN` to locate the DB instance and connect to it. This variable should either be "exported" explicitly or **otherwise** its value will be implied from `.env` file located in the repo's root. 
 
 ## Special Docker service 
 
