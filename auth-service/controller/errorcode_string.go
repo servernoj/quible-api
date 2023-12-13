@@ -18,7 +18,8 @@ func _() {
 	_ = x[Err400_IsufficientPasswordComplexity-4001007]
 	_ = x[Err400_MalformedJSON-4001008]
 	_ = x[Err400_InvalidRequestBody-4001009]
-	_ = x[Err400_InvalidClientId-4001010]
+	_ = x[Err400_FileTooLarge-4001010]
+	_ = x[Err400_InvalidClientId-4001011]
 	_ = x[Err401_InvalidCredentials-4011001]
 	_ = x[Err401_AuthorizationHeaderMissing-4011002]
 	_ = x[Err401_AuthorizationHeaderInvalid-4011003]
@@ -43,7 +44,7 @@ func _() {
 
 const (
 	_ErrorCode_name_0 = "Err207_SomeDataUndeleted"
-	_ErrorCode_name_1 = "Err400_EmailNotRegisteredErr400_InvalidEmailFormatErr400_InvalidUsernameFormatErr400_InvalidPhoneFormatErr400_UserWithUsernameExistsErr400_UserWithEmailExistsErr400_IsufficientPasswordComplexityErr400_MalformedJSONErr400_InvalidRequestBodyErr400_InvalidClientId"
+	_ErrorCode_name_1 = "Err400_EmailNotRegisteredErr400_InvalidEmailFormatErr400_InvalidUsernameFormatErr400_InvalidPhoneFormatErr400_UserWithUsernameExistsErr400_UserWithEmailExistsErr400_IsufficientPasswordComplexityErr400_MalformedJSONErr400_InvalidRequestBodyErr400_FileTooLargeErr400_InvalidClientId"
 	_ErrorCode_name_2 = "Err401_InvalidCredentialsErr401_AuthorizationHeaderMissingErr401_AuthorizationHeaderInvalidErr401_AuthorizationExpiredErr401_InvalidRefreshTokenErr401_UserNotFound"
 	_ErrorCode_name_3 = "Err403_CannotToDeleteErr403_CannotEditPhone"
 	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFoundErr404_UserNotFound"
@@ -53,7 +54,7 @@ const (
 )
 
 var (
-	_ErrorCode_index_1 = [...]uint16{0, 25, 50, 78, 103, 132, 158, 194, 214, 239, 261}
+	_ErrorCode_index_1 = [...]uint16{0, 25, 50, 78, 103, 132, 158, 194, 214, 239, 258, 280}
 	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 144, 163}
 	_ErrorCode_index_3 = [...]uint8{0, 21, 43}
 	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74, 93}
@@ -65,7 +66,7 @@ func (i ErrorCode) String() string {
 	switch {
 	case i == 2071001:
 		return _ErrorCode_name_0
-	case 4001001 <= i && i <= 4001010:
+	case 4001001 <= i && i <= 4001011:
 		i -= 4001001
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	case 4011001 <= i && i <= 4011006:

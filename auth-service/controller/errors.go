@@ -46,6 +46,7 @@ const (
 	Err400_IsufficientPasswordComplexity
 	Err400_MalformedJSON
 	Err400_InvalidRequestBody
+	Err400_FileTooLarge
 	Err400_InvalidClientId
 )
 
@@ -100,6 +101,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_UserWithEmailExists:           "user with such email exists",
 		Err400_MalformedJSON:                 "malformed JSON request",
 		Err400_InvalidRequestBody:            "invalid request body",
+		Err400_FileTooLarge:                  "invalid file size",
 		Err400_InvalidClientId:               "unexpected clientId",
 	},
 	// 401

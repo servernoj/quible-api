@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"reflect"
@@ -311,4 +312,82 @@ func AblyToken(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, token)
+}
+
+// UserUploadImage handles the uploading of a user profile image.
+// @Summary      Upload Profile Image
+// @Description  Uploads a profile image for the current user.
+// @Tags         user,private
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        image formData file true "Profile Image"
+// @Success      200
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /user/image [put]
+func UserUploadImage(c *gin.Context) {
+	user := getUserFromContext(c)
+	file, err := c.FormFile("image")
+	if err != nil {
+		log.Printf("image upload error: %q", err)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+
+	// Restrict image size (example: 1MB)
+	if file.Size > 1*1024*1024 {
+		SendError(c, http.StatusBadRequest, Err400_FileTooLarge)
+		return
+	}
+
+	// Open the file
+	uploadedFile, err := file.Open()
+	if err != nil {
+		log.Printf("unable to open uploaded file: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	defer uploadedFile.Close()
+
+	// Read the file into a byte slice
+	fileBytes, err := io.ReadAll(uploadedFile)
+	if err != nil {
+		log.Printf("unable to read uploaded file: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
+	// Create an ImageData instance
+	imageData := &service.ImageData{
+		ContentType:   file.Header.Get("Content-Type"),
+		BinaryContent: fileBytes,
+	}
+
+	// Save the image data to the user's record using UserService
+	userService := getUserServiceFromContext(c)
+	if err := userService.UpdateUserProfileImage(user.ID, imageData); err != nil {
+		log.Printf("unable to update user profile image: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+
+	c.Status(http.StatusAccepted)
+}
+
+// UserGetImage handles the retrieval of a user profile image.
+// @Summary      Get Profile Image
+// @Description  Retrieves the profile image of a user.
+// @Tags         user,public
+// @Produce      image/*
+// @Param        userId path string true "User ID"
+// @Success      200  {file}  byte[]
+// @Failure      404  {object}  ErrorResponse
+// @Router       /user/{userId}/image [get]
+func UserGetImage(c *gin.Context) {
+	userId := c.Param("userId")
+
+	userService := getUserServiceFromContext(c)
+	imageData := userService.GetUserImage(userId)
+	c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 }
