@@ -139,18 +139,18 @@ func UserGet(c *gin.Context) {
 	)
 }
 
-// @Summary		Get user by ID
+// @Summary		Get public user profile by ID
 // @Description	Returns user profile corresponding to provided ID
 // @Tags			user,private
 // @Produce		json
-// @Param     id   path     string  true  "User ID"
+// @Param     userId   path   string  true  "User ID"
 // @Success		200	{object}	UserResponse
 // @Failure		401	{object}	ErrorResponse
 // @Failure		404	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
-// @Router		/user/:id [get]
+// @Router		/user/{userId} [get]
 func UserGetById(c *gin.Context) {
-	userId := c.Param("id")
+	userId := c.Param("userId")
 	userservice := getUserServiceFromContext(c)
 	user, err := userservice.GetUserById(userId)
 	if err != nil || user == nil {

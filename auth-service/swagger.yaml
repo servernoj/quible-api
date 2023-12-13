@@ -324,13 +324,13 @@ paths:
       tags:
       - user
       - public
-  /user/:id:
+  /user/{userId}:
     get:
       description: Returns user profile corresponding to provided ID
       parameters:
       - description: User ID
         in: path
-        name: id
+        name: userId
         required: true
         type: string
       produces:
@@ -352,7 +352,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
-      summary: Get user by ID
+      summary: Get public user profile by ID
       tags:
       - user
       - private
