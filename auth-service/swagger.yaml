@@ -58,6 +58,15 @@ definitions:
       message:
         type: string
     type: object
+  controller.PublicUserRecord:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+    type: object
   controller.TokenResponse:
     properties:
       access_token:
@@ -339,7 +348,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.UserResponse'
+            $ref: '#/definitions/controller.PublicUserRecord'
         "401":
           description: Unauthorized
           schema:

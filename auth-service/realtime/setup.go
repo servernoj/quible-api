@@ -24,7 +24,7 @@ func Setup() error {
 
 func GetToken(userId string) (*ably.TokenRequest, error) {
 	capabilities, _ := json.Marshal(&map[string][]string{
-		"chat:*": {"subscribe", "publish", "presence", "channel-metadata"},
+		"chat:*": {"*"},
 	})
 	tokenParams := &ably.TokenParams{
 		ClientID:   userId,

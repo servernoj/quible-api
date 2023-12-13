@@ -68,6 +68,7 @@ const (
 	Err404_UserOrPhoneNotFound
 	Err404_AccountNotFound
 	Err404_UserNotFound
+	Err404_UserHasNoImage
 )
 const (
 	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
@@ -124,6 +125,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err404_UserOrPhoneNotFound: "user or phone number not found",
 		Err404_AccountNotFound:     "account already deleted or does not exist",
 		Err404_UserNotFound:        "user not found",
+		Err404_UserHasNoImage:      "user has no image",
 	},
 	// 429
 	http.StatusTooManyRequests: {

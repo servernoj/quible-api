@@ -12,3 +12,8 @@ type UserResponse struct {
 	FullName string `json:"full_name"`
 	Phone    string `json:"phone"`
 }
+type PublicUserRecord struct {
+	ID       string  `json:"id"`
+	FullName string  `json:"full_name"`
+	Image    *string `json:"image"`
+}

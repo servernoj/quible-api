@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/base64"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -144,23 +146,37 @@ func UserGet(c *gin.Context) {
 // @Tags			user,private
 // @Produce		json
 // @Param     userId   path   string  true  "User ID"
-// @Success		200	{object}	UserResponse
+// @Success		200	{object}	PublicUserRecord
 // @Failure		401	{object}	ErrorResponse
 // @Failure		404	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
-// @Router		/user/{userId} [get]
+// @Router		/user/{userId}/profile [get]
 func UserGetById(c *gin.Context) {
 	userId := c.Param("userId")
-	userservice := getUserServiceFromContext(c)
-	user, err := userservice.GetUserById(userId)
+	userService := getUserServiceFromContext(c)
+	user, err := userService.GetUserById(userId)
 	if err != nil || user == nil {
 		log.Printf("user not found: %q", userId)
 		SendError(c, http.StatusNotFound, Err404_UserNotFound)
 		return
 	}
+	imageData := userService.GetUserImage(user)
+	var imageDataURL string
+	if imageData != nil {
+		imageDataURL = fmt.Sprintf(
+			"data:%s;base64,%s",
+			imageData.ContentType,
+			base64.StdEncoding.EncodeToString(imageData.BinaryContent),
+		)
+	}
+	result := misc.PickFields(user, PublicUserFields...)
+	result["image"] = nil
+	if len(imageDataURL) > 0 {
+		result["image"] = &imageDataURL
+	}
 	c.JSON(
 		http.StatusOK,
-		misc.PickFields(user, PublicUserFields...),
+		result,
 	)
 }
 
@@ -386,8 +402,16 @@ func UserUploadImage(c *gin.Context) {
 // @Router       /user/{userId}/image [get]
 func UserGetImage(c *gin.Context) {
 	userId := c.Param("userId")
-
 	userService := getUserServiceFromContext(c)
-	imageData := userService.GetUserImage(userId)
-	c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
+	user, err := userService.GetUserById(userId)
+	if err != nil || user == nil {
+		SendError(c, http.StatusNotFound, Err404_UserNotFound)
+		return
+	}
+	imageData := userService.GetUserImage(user)
+	if imageData == nil {
+		SendError(c, http.StatusNotFound, Err404_UserHasNoImage)
+	} else {
+		c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
+	}
 }
