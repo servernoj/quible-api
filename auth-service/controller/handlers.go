@@ -310,7 +310,7 @@ func UserRefresh(c *gin.Context) {
 // @Description	Returns user profile corresponding to provided ID
 // @Tags			realtime,private
 // @Produce		json
-// @Success		200	{object}	ably.TokenRequest
+// @Success		200	{object}	AblyTokenRequest
 // @Failure		400	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
 // @Router		/rt/token [get]

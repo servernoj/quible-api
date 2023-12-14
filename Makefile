@@ -12,9 +12,7 @@ $(docs): deps
 	swag init \
 		--output . \
 		--outputTypes yaml \
-		--dir ./,../lib/swagger,./controller,../lib/models,../lib/controller \
-		--parseDependency \
-		--parseDepth 1
+		--dir ./,../lib/swagger,./controller,../lib/models,../lib/controller
 
 build: docs	
 	go mod tidy

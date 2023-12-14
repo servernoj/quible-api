@@ -1,54 +1,20 @@
 basePath: /api/v1
 definitions:
-  ably.TokenRequest:
+  controller.AblyTokenRequest:
     properties:
       capability:
-        description: |-
-          Capability represents encoded channel access rights associated with this Ably Token.
-          The capabilities value is a JSON-encoded representation of the resource paths and associated operations.
-          Read more about capabilities in the [capabilities docs].
-          default '{"*":["*"]}' (RSA9f, TK2b)
-
-          [capabilities docs]: https://ably.com/docs/core-features/authentication/#capabilities-explained
         type: string
       clientId:
-        description: |-
-          ClientID is used for identifying this client when publishing messages or for presence purposes.
-          The clientId can be any non-empty string, except it cannot contain a *. This option is primarily intended
-          to be used in situations where the library is instantiated with a key.
-          Note that a clientId may also be implicit in a token used to instantiate the library.
-          An error is raised if a clientId specified here conflicts with the clientId implicit in the token.
-          Find out more about [identified clients] (TK2c).
-
-          [identified clients]: https://ably.com/docs/core-features/authentication#identified-clients
         type: string
       keyName:
-        description: |-
-          KeyName is the name of the key against which this request is made.
-          The key name is public, whereas the key secret is private (TE2).
         type: string
       mac:
-        description: MAC is the Message Authentication Code for this request.
         type: string
       nonce:
-        description: |-
-          Nonce is a cryptographically secure random string of at least 16 characters,
-          used to ensure the TokenRequest cannot be reused (TE2).
         type: string
       timestamp:
-        description: |-
-          Timestamp of the token request as milliseconds since the Unix epoch.
-          Timestamps, in conjunction with the nonce, are used to prevent requests from being replayed.
-          timestamp is a "one-time" value, and is valid in a request, but is not validly a member of
-          any default token params such as ClientOptions.defaultTokenParams (RSA9d, Tk2d).
         type: integer
       ttl:
-        description: |-
-          TTL is a requested time to live for the token in milliseconds. If the token request
-          is successful, the TTL of the returned token will be less than or equal
-          to this value depending on application settings and the attributes
-          of the issuing key.
-          The default is 60 minutes (RSA9e, TK2a).
         type: integer
     type: object
   controller.ErrorResponse:
@@ -234,7 +200,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/ably.TokenRequest'
+            $ref: '#/definitions/controller.AblyTokenRequest'
         "400":
           description: Bad Request
           schema:
@@ -333,7 +299,31 @@ paths:
       tags:
       - user
       - public
-  /user/{userId}:
+  /user/{userId}/image:
+    get:
+      description: Retrieves the profile image of a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - image/*
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get Profile Image
+      tags:
+      - user
+      - public
+  /user/{userId}/profile:
     get:
       description: Returns user profile corresponding to provided ID
       parameters:
@@ -365,30 +355,6 @@ paths:
       tags:
       - user
       - private
-  /user/{userId}/image:
-    get:
-      description: Retrieves the profile image of a user.
-      parameters:
-      - description: User ID
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - image/*
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: file
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/controller.ErrorResponse'
-      summary: Get Profile Image
-      tags:
-      - user
-      - public
   /user/image:
     put:
       consumes:
