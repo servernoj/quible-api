@@ -97,6 +97,19 @@ paths:
       summary: Swagger UI
       tags:
       - docs
+  /docs/errors:
+    get:
+      description: Renders the list of erros reported by the microservice
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Error Codes UI
+      tags:
+      - docs
   /docs/spec:
     get:
       description: Swagger spec in YAML format
@@ -231,4 +244,60 @@ paths:
       tags:
       - user
       - public
+  /user/{userId}/image:
+    get:
+      description: Retrieves the profile image of a user.
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - image/*
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get Profile Image
+      tags:
+      - user
+      - public
+  /user/image:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Uploads a profile image for the current user.
+      parameters:
+      - description: Profile Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Upload Profile Image
+      tags:
+      - user
+      - private
 swagger: "2.0"
