@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/quible-backend/mail-service/service"
 )
 
-func SendEmailHandler(c *gin.Context, client *service.Client) {
-	var email service.Email
+func SendEmailHandler(c *gin.Context) {
+	var email Email
+	client := NewClient()
 	if err := c.BindJSON(&email); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return

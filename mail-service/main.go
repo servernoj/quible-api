@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/quible-backend/mail-service/controller"
 	"github.com/quible-io/quible-api/lib/env"
-	"gitlab.com/quible-backend/mail-service/controller"
 )
 
 const DefaultPort = 8003
@@ -20,9 +20,6 @@ func main() {
 	// Set the environment variables
 	env.Setup()
 
-	// Create the client
-	client := controller.NewClient()
-
 	// Start the Gin router
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
@@ -30,7 +27,7 @@ func main() {
 	g := r.Group("/api/v1")
 
 	// Set up the controller with the protected group and client
-	controller.Setup(g, client, controller.WithSwagger(swaggerSpec),
+	controller.Setup(g, controller.WithSwagger(swaggerSpec),
 		controller.WithHealth() /*, other necessary options if any*/)
 
 	// Start the service on the specified port

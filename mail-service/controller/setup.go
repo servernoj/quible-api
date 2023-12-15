@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	a "github.com/quible-io/quible-api/app-service/controller"
 	c "github.com/quible-io/quible-api/lib/controller"
-	"gitlab.com/quible-backend/mail-service/service"
 )
 
 var (
@@ -21,9 +20,8 @@ func terminator(c *gin.Context, fmt string, args ...any) {
 	a.ErrorMap.SendError(c, http.StatusInternalServerError, a.Err500_UnknownError)
 }
 
-// setup.go
-
-func Setup(g *gin.RouterGroup, client *service.Client, options ...c.Option) {
+// setup service
+func Setup(g *gin.RouterGroup, options ...c.Option) {
 	// Apply additional options to the router
 	for _, option := range options {
 		option(g)
@@ -33,5 +31,5 @@ func Setup(g *gin.RouterGroup, client *service.Client, options ...c.Option) {
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
 
 	// Setup protected routes
-	protected.POST("/send-email", func(c *gin.Context) { SendEmailHandler(c, client) })
+	protected.POST("/send-email", SendEmailHandler)
 }
