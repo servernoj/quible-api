@@ -1,10 +1,36 @@
 basePath: /api/v1
 definitions:
+  controller.AblyTokenRequest:
+    properties:
+      capability:
+        type: string
+      clientId:
+        type: string
+      keyName:
+        type: string
+      mac:
+        type: string
+      nonce:
+        type: string
+      timestamp:
+        type: integer
+      ttl:
+        type: integer
+    type: object
   controller.ErrorResponse:
     properties:
       code:
         type: integer
       message:
+        type: string
+    type: object
+  controller.PublicUserRecord:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: string
+      image:
         type: string
     type: object
   controller.TokenResponse:
@@ -21,7 +47,7 @@ definitions:
       full_name:
         type: string
       id:
-        type: integer
+        type: string
       phone:
         type: string
       username:
@@ -47,6 +73,13 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  service.UserRefreshDTO:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
     type: object
   service.UserRegisterDTO:
     properties:
@@ -158,6 +191,28 @@ paths:
       tags:
       - user
       - public
+  /rt/token:
+    get:
+      description: Returns user profile corresponding to provided ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.AblyTokenRequest'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get new `TokenRequest` for client Ably SDK
+      tags:
+      - realtime
+      - private
   /user:
     get:
       description: Returns user profile associated with the token
@@ -268,6 +323,38 @@ paths:
       tags:
       - user
       - public
+  /user/{userId}/profile:
+    get:
+      description: Returns user profile corresponding to provided ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.PublicUserRecord'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get public user profile by ID
+      tags:
+      - user
+      - private
   /user/image:
     put:
       consumes:
@@ -300,4 +387,39 @@ paths:
       tags:
       - user
       - private
+  /user/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Login with user credentials to get token
+      parameters:
+      - description: User's refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserRefreshDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Refresh access/refresh topens
+      tags:
+      - user
+      - public
 swagger: "2.0"

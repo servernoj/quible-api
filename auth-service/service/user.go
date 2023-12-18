@@ -34,8 +34,8 @@ type UserService struct {
 	C context.Context
 }
 
-func (s *UserService) GetUserById(ID string) (*models.User, error) {
-	return models.FindUserG(s.C, ID)
+func (s *UserService) GetUserById(ID string, cols ...string) (*models.User, error) {
+	return models.FindUserG(s.C, ID, cols...)
 }
 
 func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
@@ -114,19 +114,13 @@ func (s *UserService) UpdateUserProfileImage(userID string, imageData *ImageData
 	return err
 }
 
-func (s *UserService) GetUserImage(userID string) *ImageData {
-	user, err := models.FindUserG(s.C, userID)
-	if err != nil || user == nil {
-		return nil
-	}
+func (s *UserService) GetUserImage(user *models.User) *ImageData {
 	imageDataBytesPtr := user.Image.Ptr()
+	var imageData ImageData
 	if imageDataBytesPtr == nil {
 		return nil
 	}
-
-	var imageData ImageData
-	err = json.Unmarshal(*imageDataBytesPtr, &imageData)
-	if err != nil {
+	if json.Unmarshal(*imageDataBytesPtr, &imageData) != nil {
 		return nil
 	}
 
