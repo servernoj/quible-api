@@ -1,7 +1,7 @@
 package RSC
 
 type ResponseItem interface {
-	ScheduleItem | TeamInfoItemExtended | TeamSeasonStatItem | PlayerInfoItem | PlayerSeasonStatItem | InjuryItem | LiveFeedItem
+	ScheduleItem | TeamInfoItemExtended | TeamSeasonStatItem | PlayerInfoItemExtended | PlayerSeasonStatItem | InjuryItem | LiveFeedItem
 }
 
 type Response[T ResponseItem] struct {

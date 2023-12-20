@@ -97,7 +97,7 @@ func TeamStats(c *gin.Context) {
 // @Tags			RSC,private
 // @Produce		json
 // @Param			team_id	query		int	false	"Team ID"
-// @Success		200	{array}		RSC.PlayerInfoItem
+// @Success		200	{array}		RSC.PlayerInfoItemExtended
 // @Failure		401	{object}	ErrorResponse
 // @Failure		424	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
