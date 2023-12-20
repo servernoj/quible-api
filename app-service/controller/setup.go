@@ -27,7 +27,6 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 
 	g.GET("docs/errors", ErrorMap.GetErrorCodes)
 	// -- Public API
-	g.GET("/jive", LiveFeed)
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
 	protected.GET("/schedule-season", ScheduleSeason)
