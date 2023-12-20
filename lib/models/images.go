@@ -24,47 +24,42 @@ import (
 
 // Image is an object representing the database table.
 type Image struct {
-	ID        string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	TeamID    string      `boil:"team_id" json:"team_id" toml:"team_id" yaml:"team_id"`
-	PlayerID  null.String `boil:"player_id" json:"player_id,omitempty" toml:"player_id" yaml:"player_id,omitempty"`
-	Image     null.Bytes  `boil:"image" json:"image,omitempty" toml:"image" yaml:"image,omitempty"`
-	CreatedAt time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID          string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ParentID    null.String `boil:"parent_id" json:"parent_id,omitempty" toml:"parent_id" yaml:"parent_id,omitempty"`
+	Slug        string      `boil:"slug" json:"slug" toml:"slug" yaml:"slug"`
+	DisplayName string      `boil:"display_name" json:"display_name" toml:"display_name" yaml:"display_name"`
+	ImageURL    string      `boil:"image_url" json:"image_url" toml:"image_url" yaml:"image_url"`
 
 	R *imageR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L imageL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ImageColumns = struct {
-	ID        string
-	TeamID    string
-	PlayerID  string
-	Image     string
-	CreatedAt string
-	UpdatedAt string
+	ID          string
+	ParentID    string
+	Slug        string
+	DisplayName string
+	ImageURL    string
 }{
-	ID:        "id",
-	TeamID:    "team_id",
-	PlayerID:  "player_id",
-	Image:     "image",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:          "id",
+	ParentID:    "parent_id",
+	Slug:        "slug",
+	DisplayName: "display_name",
+	ImageURL:    "image_url",
 }
 
 var ImageTableColumns = struct {
-	ID        string
-	TeamID    string
-	PlayerID  string
-	Image     string
-	CreatedAt string
-	UpdatedAt string
+	ID          string
+	ParentID    string
+	Slug        string
+	DisplayName string
+	ImageURL    string
 }{
-	ID:        "images.id",
-	TeamID:    "images.team_id",
-	PlayerID:  "images.player_id",
-	Image:     "images.image",
-	CreatedAt: "images.created_at",
-	UpdatedAt: "images.updated_at",
+	ID:          "images.id",
+	ParentID:    "images.parent_id",
+	Slug:        "images.slug",
+	DisplayName: "images.display_name",
+	ImageURL:    "images.image_url",
 }
 
 // Generated where
@@ -146,73 +141,33 @@ func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
 func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
-type whereHelpernull_Bytes struct{ field string }
-
-func (w whereHelpernull_Bytes) EQ(x null.Bytes) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Bytes) NEQ(x null.Bytes) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Bytes) LT(x null.Bytes) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Bytes) LTE(x null.Bytes) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Bytes) GT(x null.Bytes) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Bytes) GTE(x null.Bytes) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-func (w whereHelpernull_Bytes) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Bytes) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-
-type whereHelpertime_Time struct{ field string }
-
-func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var ImageWhere = struct {
-	ID        whereHelperstring
-	TeamID    whereHelperstring
-	PlayerID  whereHelpernull_String
-	Image     whereHelpernull_Bytes
-	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
+	ID          whereHelperstring
+	ParentID    whereHelpernull_String
+	Slug        whereHelperstring
+	DisplayName whereHelperstring
+	ImageURL    whereHelperstring
 }{
-	ID:        whereHelperstring{field: "\"images\".\"id\""},
-	TeamID:    whereHelperstring{field: "\"images\".\"team_id\""},
-	PlayerID:  whereHelpernull_String{field: "\"images\".\"player_id\""},
-	Image:     whereHelpernull_Bytes{field: "\"images\".\"image\""},
-	CreatedAt: whereHelpertime_Time{field: "\"images\".\"created_at\""},
-	UpdatedAt: whereHelpertime_Time{field: "\"images\".\"updated_at\""},
+	ID:          whereHelperstring{field: "\"images\".\"id\""},
+	ParentID:    whereHelpernull_String{field: "\"images\".\"parent_id\""},
+	Slug:        whereHelperstring{field: "\"images\".\"slug\""},
+	DisplayName: whereHelperstring{field: "\"images\".\"display_name\""},
+	ImageURL:    whereHelperstring{field: "\"images\".\"image_url\""},
 }
 
 // ImageRels is where relationship names are stored.
 var ImageRels = struct {
-}{}
+	Parent       string
+	ParentImages string
+}{
+	Parent:       "Parent",
+	ParentImages: "ParentImages",
+}
 
 // imageR is where relationships are stored.
 type imageR struct {
+	Parent       *Image     `boil:"Parent" json:"Parent" toml:"Parent" yaml:"Parent"`
+	ParentImages ImageSlice `boil:"ParentImages" json:"ParentImages" toml:"ParentImages" yaml:"ParentImages"`
 }
 
 // NewStruct creates a new relationship struct
@@ -220,13 +175,27 @@ func (*imageR) NewStruct() *imageR {
 	return &imageR{}
 }
 
+func (r *imageR) GetParent() *Image {
+	if r == nil {
+		return nil
+	}
+	return r.Parent
+}
+
+func (r *imageR) GetParentImages() ImageSlice {
+	if r == nil {
+		return nil
+	}
+	return r.ParentImages
+}
+
 // imageL is where Load methods for each relationship are stored.
 type imageL struct{}
 
 var (
-	imageAllColumns            = []string{"id", "team_id", "player_id", "image", "created_at", "updated_at"}
-	imageColumnsWithoutDefault = []string{"team_id"}
-	imageColumnsWithDefault    = []string{"id", "player_id", "image", "created_at", "updated_at"}
+	imageAllColumns            = []string{"id", "parent_id", "slug", "display_name", "image_url"}
+	imageColumnsWithoutDefault = []string{"id", "slug", "display_name", "image_url"}
+	imageColumnsWithDefault    = []string{"parent_id"}
 	imagePrimaryKeyColumns     = []string{"id"}
 	imageGeneratedColumns      = []string{}
 )
@@ -529,6 +498,520 @@ func (q imageQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 	return count > 0, nil
 }
 
+// Parent pointed to by the foreign key.
+func (o *Image) Parent(mods ...qm.QueryMod) imageQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.ParentID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Images(queryMods...)
+}
+
+// ParentImages retrieves all the image's Images with an executor via parent_id column.
+func (o *Image) ParentImages(mods ...qm.QueryMod) imageQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"images\".\"parent_id\"=?", o.ID),
+	)
+
+	return Images(queryMods...)
+}
+
+// LoadParent allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (imageL) LoadParent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeImage interface{}, mods queries.Applicator) error {
+	var slice []*Image
+	var object *Image
+
+	if singular {
+		var ok bool
+		object, ok = maybeImage.(*Image)
+		if !ok {
+			object = new(Image)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeImage)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeImage))
+			}
+		}
+	} else {
+		s, ok := maybeImage.(*[]*Image)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeImage)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeImage))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &imageR{}
+		}
+		if !queries.IsNil(object.ParentID) {
+			args = append(args, object.ParentID)
+		}
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &imageR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ParentID) {
+					continue Outer
+				}
+			}
+
+			if !queries.IsNil(obj.ParentID) {
+				args = append(args, obj.ParentID)
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`images`),
+		qm.WhereIn(`images.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Image")
+	}
+
+	var resultSlice []*Image
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Image")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for images")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for images")
+	}
+
+	if len(imageAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Parent = foreign
+		if foreign.R == nil {
+			foreign.R = &imageR{}
+		}
+		foreign.R.ParentImages = append(foreign.R.ParentImages, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.ParentID, foreign.ID) {
+				local.R.Parent = foreign
+				if foreign.R == nil {
+					foreign.R = &imageR{}
+				}
+				foreign.R.ParentImages = append(foreign.R.ParentImages, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadParentImages allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (imageL) LoadParentImages(ctx context.Context, e boil.ContextExecutor, singular bool, maybeImage interface{}, mods queries.Applicator) error {
+	var slice []*Image
+	var object *Image
+
+	if singular {
+		var ok bool
+		object, ok = maybeImage.(*Image)
+		if !ok {
+			object = new(Image)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeImage)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeImage))
+			}
+		}
+	} else {
+		s, ok := maybeImage.(*[]*Image)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeImage)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeImage))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &imageR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &imageR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`images`),
+		qm.WhereIn(`images.parent_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load images")
+	}
+
+	var resultSlice []*Image
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice images")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on images")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for images")
+	}
+
+	if len(imageAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.ParentImages = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &imageR{}
+			}
+			foreign.R.Parent = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.ParentID) {
+				local.R.ParentImages = append(local.R.ParentImages, foreign)
+				if foreign.R == nil {
+					foreign.R = &imageR{}
+				}
+				foreign.R.Parent = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetParentG of the image to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentImages.
+// Uses the global database handle.
+func (o *Image) SetParentG(ctx context.Context, insert bool, related *Image) error {
+	return o.SetParent(ctx, boil.GetContextDB(), insert, related)
+}
+
+// SetParent of the image to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentImages.
+func (o *Image) SetParent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Image) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"images\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"parent_id"}),
+		strmangle.WhereClause("\"", "\"", 2, imagePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.ParentID, related.ID)
+	if o.R == nil {
+		o.R = &imageR{
+			Parent: related,
+		}
+	} else {
+		o.R.Parent = related
+	}
+
+	if related.R == nil {
+		related.R = &imageR{
+			ParentImages: ImageSlice{o},
+		}
+	} else {
+		related.R.ParentImages = append(related.R.ParentImages, o)
+	}
+
+	return nil
+}
+
+// RemoveParentG relationship.
+// Sets o.R.Parent to nil.
+// Removes o from all passed in related items' relationships struct.
+// Uses the global database handle.
+func (o *Image) RemoveParentG(ctx context.Context, related *Image) error {
+	return o.RemoveParent(ctx, boil.GetContextDB(), related)
+}
+
+// RemoveParent relationship.
+// Sets o.R.Parent to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Image) RemoveParent(ctx context.Context, exec boil.ContextExecutor, related *Image) error {
+	var err error
+
+	queries.SetScanner(&o.ParentID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("parent_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.Parent = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.ParentImages {
+		if queries.Equal(o.ParentID, ri.ParentID) {
+			continue
+		}
+
+		ln := len(related.R.ParentImages)
+		if ln > 1 && i < ln-1 {
+			related.R.ParentImages[i] = related.R.ParentImages[ln-1]
+		}
+		related.R.ParentImages = related.R.ParentImages[:ln-1]
+		break
+	}
+	return nil
+}
+
+// AddParentImagesG adds the given related objects to the existing relationships
+// of the image, optionally inserting them as new records.
+// Appends related to o.R.ParentImages.
+// Sets related.R.Parent appropriately.
+// Uses the global database handle.
+func (o *Image) AddParentImagesG(ctx context.Context, insert bool, related ...*Image) error {
+	return o.AddParentImages(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// AddParentImages adds the given related objects to the existing relationships
+// of the image, optionally inserting them as new records.
+// Appends related to o.R.ParentImages.
+// Sets related.R.Parent appropriately.
+func (o *Image) AddParentImages(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Image) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.ParentID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"images\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"parent_id"}),
+				strmangle.WhereClause("\"", "\"", 2, imagePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.ParentID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &imageR{
+			ParentImages: related,
+		}
+	} else {
+		o.R.ParentImages = append(o.R.ParentImages, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &imageR{
+				Parent: o,
+			}
+		} else {
+			rel.R.Parent = o
+		}
+	}
+	return nil
+}
+
+// SetParentImagesG removes all previously related items of the
+// image replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Parent's ParentImages accordingly.
+// Replaces o.R.ParentImages with related.
+// Sets related.R.Parent's ParentImages accordingly.
+// Uses the global database handle.
+func (o *Image) SetParentImagesG(ctx context.Context, insert bool, related ...*Image) error {
+	return o.SetParentImages(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// SetParentImages removes all previously related items of the
+// image replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Parent's ParentImages accordingly.
+// Replaces o.R.ParentImages with related.
+// Sets related.R.Parent's ParentImages accordingly.
+func (o *Image) SetParentImages(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Image) error {
+	query := "update \"images\" set \"parent_id\" = null where \"parent_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.ParentImages {
+			queries.SetScanner(&rel.ParentID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Parent = nil
+		}
+		o.R.ParentImages = nil
+	}
+
+	return o.AddParentImages(ctx, exec, insert, related...)
+}
+
+// RemoveParentImagesG relationships from objects passed in.
+// Removes related items from R.ParentImages (uses pointer comparison, removal does not keep order)
+// Sets related.R.Parent.
+// Uses the global database handle.
+func (o *Image) RemoveParentImagesG(ctx context.Context, related ...*Image) error {
+	return o.RemoveParentImages(ctx, boil.GetContextDB(), related...)
+}
+
+// RemoveParentImages relationships from objects passed in.
+// Removes related items from R.ParentImages (uses pointer comparison, removal does not keep order)
+// Sets related.R.Parent.
+func (o *Image) RemoveParentImages(ctx context.Context, exec boil.ContextExecutor, related ...*Image) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.ParentID, nil)
+		if rel.R != nil {
+			rel.R.Parent = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("parent_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.ParentImages {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.ParentImages)
+			if ln > 1 && i < ln-1 {
+				o.R.ParentImages[i] = o.R.ParentImages[ln-1]
+			}
+			o.R.ParentImages = o.R.ParentImages[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
 // Images retrieves all the records using an executor.
 func Images(mods ...qm.QueryMod) imageQuery {
 	mods = append(mods, qm.From("\"images\""))
@@ -588,16 +1071,6 @@ func (o *Image) Insert(ctx context.Context, exec boil.ContextExecutor, columns b
 	}
 
 	var err error
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if o.CreatedAt.IsZero() {
-			o.CreatedAt = currTime
-		}
-		if o.UpdatedAt.IsZero() {
-			o.UpdatedAt = currTime
-		}
-	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -679,12 +1152,6 @@ func (o *Image) UpdateG(ctx context.Context, columns boil.Columns) (int64, error
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *Image) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		o.UpdatedAt = currTime
-	}
-
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -829,14 +1296,6 @@ func (o *Image) UpsertG(ctx context.Context, updateOnConflict bool, conflictColu
 func (o *Image) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
 		return errors.New("models: no images provided for upsert")
-	}
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if o.CreatedAt.IsZero() {
-			o.CreatedAt = currTime
-		}
-		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
