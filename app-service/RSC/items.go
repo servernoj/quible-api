@@ -24,6 +24,11 @@ type TeamInfoItem struct {
 	Conf     string `json:"conf"`
 	Location string `json:"location"`
 }
+type TeamInfoItemExtended struct {
+	TeamInfoItem
+	Color string  `json:"color"`
+	Logo  *string `json:"logo"`
+}
 
 type BaseStatsItem struct {
 	Fouls                int `json:"fouls"`
@@ -78,6 +83,10 @@ type PlayerInfoItem struct {
 	Weight           *int            `json:"weight"`
 	Age              string          `json:"age"`
 	College          *string         `json:"college"`
+}
+type PlayerInfoItemExtended struct {
+	PlayerInfoItem
+	Headshot *string `json:"headshot"`
 }
 
 type PlayerSeasonStatItem struct {

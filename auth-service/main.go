@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/quible-io/quible-api/auth-service/controller"
+	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
@@ -45,10 +46,20 @@ func Server() {
 		log.Fatalf("unable to setup DB connection: %s", err)
 	}
 	defer store.Close()
+	// -- Ably realtime
+	if err := realtime.Setup(); err != nil {
+		log.Fatalf("unable to setup Ably SDK: %s", err)
+	}
 	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	r.Use(cors.Default())
+	// CORS
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "authorization")
+	r.Use(cors.New(corsConfig))
+	// API group
 	g := r.Group("/api/v1")
 	controller.Setup(
 		g,

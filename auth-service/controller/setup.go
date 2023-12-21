@@ -29,7 +29,8 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	//-- Protected API
 	protected := g.Group("", authMiddleware)
 	protected.GET("/user", UserGet)
+	protected.GET("/user/:userId/profile", UserGetById)
 	protected.PATCH("/user", UserPatch)
+	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
-
 }

@@ -24,99 +24,65 @@ import (
 
 // Team is an object representing the database table.
 type Team struct {
-	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name      string    `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Arena     string    `boil:"arena" json:"arena" toml:"arena" yaml:"arena"`
-	Color     string    `boil:"color" json:"color" toml:"color" yaml:"color"`
-	RSCID     int       `boil:"rsc_id" json:"rsc_id" toml:"rsc_id" yaml:"rsc_id"`
-	CreatedAt null.Time `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt null.Time `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	ID          string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name        string      `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Arena       string      `boil:"arena" json:"arena" toml:"arena" yaml:"arena"`
+	Color       string      `boil:"color" json:"color" toml:"color" yaml:"color"`
+	RSCID       int         `boil:"rsc_id" json:"rsc_id" toml:"rsc_id" yaml:"rsc_id"`
+	DisplayName null.String `boil:"display_name" json:"display_name,omitempty" toml:"display_name" yaml:"display_name,omitempty"`
 
 	R *teamR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L teamL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var TeamColumns = struct {
-	ID        string
-	Name      string
-	Arena     string
-	Color     string
-	RSCID     string
-	CreatedAt string
-	UpdatedAt string
+	ID          string
+	Name        string
+	Arena       string
+	Color       string
+	RSCID       string
+	DisplayName string
 }{
-	ID:        "id",
-	Name:      "name",
-	Arena:     "arena",
-	Color:     "color",
-	RSCID:     "rsc_id",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:          "id",
+	Name:        "name",
+	Arena:       "arena",
+	Color:       "color",
+	RSCID:       "rsc_id",
+	DisplayName: "display_name",
 }
 
 var TeamTableColumns = struct {
-	ID        string
-	Name      string
-	Arena     string
-	Color     string
-	RSCID     string
-	CreatedAt string
-	UpdatedAt string
+	ID          string
+	Name        string
+	Arena       string
+	Color       string
+	RSCID       string
+	DisplayName string
 }{
-	ID:        "teams.id",
-	Name:      "teams.name",
-	Arena:     "teams.arena",
-	Color:     "teams.color",
-	RSCID:     "teams.rsc_id",
-	CreatedAt: "teams.created_at",
-	UpdatedAt: "teams.updated_at",
+	ID:          "teams.id",
+	Name:        "teams.name",
+	Arena:       "teams.arena",
+	Color:       "teams.color",
+	RSCID:       "teams.rsc_id",
+	DisplayName: "teams.display_name",
 }
 
 // Generated where
 
-type whereHelperstring struct{ field string }
-
-func (w whereHelperstring) EQ(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperstring) NEQ(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperstring) LT(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperstring) LTE(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperstring) GT(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperstring) GTE(x string) qm.QueryMod    { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperstring) LIKE(x string) qm.QueryMod   { return qm.Where(w.field+" LIKE ?", x) }
-func (w whereHelperstring) NLIKE(x string) qm.QueryMod  { return qm.Where(w.field+" NOT LIKE ?", x) }
-func (w whereHelperstring) ILIKE(x string) qm.QueryMod  { return qm.Where(w.field+" ILIKE ?", x) }
-func (w whereHelperstring) NILIKE(x string) qm.QueryMod { return qm.Where(w.field+" NOT ILIKE ?", x) }
-func (w whereHelperstring) IN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
 var TeamWhere = struct {
-	ID        whereHelperstring
-	Name      whereHelperstring
-	Arena     whereHelperstring
-	Color     whereHelperstring
-	RSCID     whereHelperint
-	CreatedAt whereHelpernull_Time
-	UpdatedAt whereHelpernull_Time
+	ID          whereHelperstring
+	Name        whereHelperstring
+	Arena       whereHelperstring
+	Color       whereHelperstring
+	RSCID       whereHelperint
+	DisplayName whereHelpernull_String
 }{
-	ID:        whereHelperstring{field: "\"teams\".\"id\""},
-	Name:      whereHelperstring{field: "\"teams\".\"name\""},
-	Arena:     whereHelperstring{field: "\"teams\".\"arena\""},
-	Color:     whereHelperstring{field: "\"teams\".\"color\""},
-	RSCID:     whereHelperint{field: "\"teams\".\"rsc_id\""},
-	CreatedAt: whereHelpernull_Time{field: "\"teams\".\"created_at\""},
-	UpdatedAt: whereHelpernull_Time{field: "\"teams\".\"updated_at\""},
+	ID:          whereHelperstring{field: "\"teams\".\"id\""},
+	Name:        whereHelperstring{field: "\"teams\".\"name\""},
+	Arena:       whereHelperstring{field: "\"teams\".\"arena\""},
+	Color:       whereHelperstring{field: "\"teams\".\"color\""},
+	RSCID:       whereHelperint{field: "\"teams\".\"rsc_id\""},
+	DisplayName: whereHelpernull_String{field: "\"teams\".\"display_name\""},
 }
 
 // TeamRels is where relationship names are stored.
@@ -136,9 +102,9 @@ func (*teamR) NewStruct() *teamR {
 type teamL struct{}
 
 var (
-	teamAllColumns            = []string{"id", "name", "arena", "color", "rsc_id", "created_at", "updated_at"}
+	teamAllColumns            = []string{"id", "name", "arena", "color", "rsc_id", "display_name"}
 	teamColumnsWithoutDefault = []string{"name", "arena", "color", "rsc_id"}
-	teamColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	teamColumnsWithDefault    = []string{"id", "display_name"}
 	teamPrimaryKeyColumns     = []string{"id"}
 	teamGeneratedColumns      = []string{}
 )
@@ -500,16 +466,6 @@ func (o *Team) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	}
 
 	var err error
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
-		}
-		if queries.MustTime(o.UpdatedAt).IsZero() {
-			queries.SetScanner(&o.UpdatedAt, currTime)
-		}
-	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -591,12 +547,6 @@ func (o *Team) UpdateG(ctx context.Context, columns boil.Columns) (int64, error)
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *Team) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		queries.SetScanner(&o.UpdatedAt, currTime)
-	}
-
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -741,14 +691,6 @@ func (o *Team) UpsertG(ctx context.Context, updateOnConflict bool, conflictColum
 func (o *Team) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
 		return errors.New("models: no teams provided for upsert")
-	}
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
-		}
-		queries.SetScanner(&o.UpdatedAt, currTime)
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {

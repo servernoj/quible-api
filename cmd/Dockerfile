@@ -4,4 +4,4 @@ WORKDIR /cmd
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-CMD ["./migrate.sh", "up"]
+CMD ["./run.sh", "migrate", "up"]
