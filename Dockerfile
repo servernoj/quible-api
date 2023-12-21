@@ -3,8 +3,6 @@ RUN go install github.com/swaggo/swag/v2/cmd/swag@latest
 RUN go install golang.org/x/tools/cmd/stringer@latest
 # -- setup the lib
 WORKDIR /monorepo/lib
-COPY --from=lib go.mod ./
-RUN go mod download
 COPY --from=lib . .
 # -- setup the service
 WORKDIR /monorepo/service
