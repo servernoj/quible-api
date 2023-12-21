@@ -17,6 +17,7 @@ Create `.env` file based on content from `.env.sample` and edit it to define val
 
 - `ENV_JWT_SECRET` passphrase for JWT signing/verification
 - `ENV_RSC_TOKEN` API key for RSC API (sport data retrieval)
+- `ENV_ABLY_KEY` API key for Ably service
 - `POSTGRES_USER` DB user to be setup and used for connecting microservices to DB
 - `POSTGRES_PASSWORD` password of the DB user (arbitrary good password)
 - `POSTGRES_DB` DB name (arbitrary good name)
