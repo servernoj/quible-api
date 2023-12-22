@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type Mailer struct {
+type Client struct {
 	http.Client
 	Context      context.Context
 	ServerToken  string
@@ -20,8 +20,8 @@ type Mailer struct {
 	BaseURL      string
 }
 
-func NewMailer(ctx context.Context) *Mailer {
-	return &Mailer{
+func NewClient(ctx context.Context) *Client {
+	return &Client{
 		Client:       http.Client{Timeout: 10 * time.Second},
 		ServerToken:  os.Getenv("ENV_POSTMARK_SERVER_TOKEN"),
 		AccountToken: os.Getenv("ENV_POSTMARK_ACCOUNT_TOKEN"),
@@ -30,9 +30,9 @@ func NewMailer(ctx context.Context) *Mailer {
 	}
 }
 
-func (mailer *Mailer) SendEmail(email EmailDTO) (*PostmarkResponse, error) {
+func (client *Client) SendEmail(email EmailDTO) (*PostmarkResponse, error) {
 	return doRequest(
-		mailer,
+		client,
 		RequestParams[EmailDTO]{
 			Method:  http.MethodPost,
 			Path:    "email",
@@ -41,7 +41,7 @@ func (mailer *Mailer) SendEmail(email EmailDTO) (*PostmarkResponse, error) {
 	)
 }
 
-func doRequest[T PostmarkPayload](mailer *Mailer, params RequestParams[T]) (*PostmarkResponse, error) {
+func doRequest[T PostmarkPayload](client *Client, params RequestParams[T]) (*PostmarkResponse, error) {
 
 	var requestBody io.Reader
 	if params.Payload != nil {
@@ -53,9 +53,9 @@ func doRequest[T PostmarkPayload](mailer *Mailer, params RequestParams[T]) (*Pos
 	}
 
 	req, err := http.NewRequestWithContext(
-		mailer.Context,
+		client.Context,
 		params.Method,
-		fmt.Sprintf("%s/%s", mailer.BaseURL, params.Path),
+		fmt.Sprintf("%s/%s", client.BaseURL, params.Path),
 		requestBody,
 	)
 	if err != nil {
@@ -64,10 +64,10 @@ func doRequest[T PostmarkPayload](mailer *Mailer, params RequestParams[T]) (*Pos
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Postmark-Server-Token", mailer.ServerToken)
+	req.Header.Add("X-Postmark-Server-Token", client.ServerToken)
 	// req.Header.Add("X-Postmark-Account-Token", client.AccountToken)
 
-	res, err := mailer.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("unable to execute request to %q: %w", req.URL, err)
 	}

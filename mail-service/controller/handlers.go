@@ -10,7 +10,7 @@ import (
 func SendEmailHandler(c *gin.Context) {
 
 	type DTO = postmark.EmailDTO
-	var NewMailer = postmark.NewMailer
+	var NewClient = postmark.NewClient
 
 	var email DTO
 	if err := c.ShouldBindJSON(&email); err != nil {
@@ -18,7 +18,7 @@ func SendEmailHandler(c *gin.Context) {
 		return
 	}
 
-	response, err := NewMailer(c.Request.Context()).SendEmail(email)
+	response, err := NewClient(c.Request.Context()).SendEmail(email)
 
 	if err != nil {
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PostmarkSendEmail)
