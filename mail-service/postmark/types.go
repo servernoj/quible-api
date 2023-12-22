@@ -9,7 +9,7 @@ type PostmarkResponse struct {
 	Message     string `json:"Message"`
 }
 
-func (r *PostmarkResponse) String() string {
+func (r PostmarkResponse) Error() string {
 	return r.Message
 }
 

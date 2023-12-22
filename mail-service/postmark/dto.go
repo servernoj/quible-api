@@ -25,7 +25,7 @@ type EmailDTO struct {
 	// TextBody: Plain text email message. REQUIRED, If no HTMLBody specified
 	TextBody string `json:"TextBody" binding:"required_without=HTMLBody"`
 	// ReplyTo: Reply To override email address. Defaults to the Reply To set in the sender signature.
-	ReplyTo string `json:"reply_to" binding:"email,omitempty"`
+	ReplyTo string `json:"reply_to" binding:"omitempty,email"`
 	// Attachments: List of attachments
 	Attachments []AttachmentDTO `json:"attachments" binding:"dive,required"`
 }

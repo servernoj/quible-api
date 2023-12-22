@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -76,7 +75,7 @@ func doRequest[T PostmarkPayload](client *Client, params RequestParams[T]) (*Pos
 	}
 
 	if res.StatusCode >= http.StatusBadRequest {
-		return nil, fmt.Errorf("api error: %w", errors.New(ParsedResponse.String()))
+		return nil, ParsedResponse
 	}
 
 	return &ParsedResponse, nil

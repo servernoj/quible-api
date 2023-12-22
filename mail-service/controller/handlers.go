@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +15,7 @@ func SendEmailHandler(c *gin.Context) {
 
 	var email DTO
 	if err := c.ShouldBindJSON(&email); err != nil {
+		log.Printf("request parsing error %s:", err)
 		ErrorMap.SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
@@ -21,6 +23,7 @@ func SendEmailHandler(c *gin.Context) {
 	response, err := NewClient(c.Request.Context()).SendEmail(email)
 
 	if err != nil {
+		log.Printf("email sender error: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PostmarkSendEmail)
 		return
 	}

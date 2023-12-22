@@ -29,5 +29,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	// -- Public API
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
-	protected.POST("/send-email", SendEmailHandler)
+	protected.POST("/send", SendEmailHandler)
 }
