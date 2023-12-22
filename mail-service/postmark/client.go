@@ -14,19 +14,17 @@ import (
 
 type Client struct {
 	http.Client
-	Context      context.Context
-	ServerToken  string
-	AccountToken string
-	BaseURL      string
+	apiKey  string
+	BaseURL string
+	Context context.Context
 }
 
 func NewClient(ctx context.Context) *Client {
 	return &Client{
-		Client:       http.Client{Timeout: 10 * time.Second},
-		ServerToken:  os.Getenv("ENV_POSTMARK_SERVER_TOKEN"),
-		AccountToken: os.Getenv("ENV_POSTMARK_ACCOUNT_TOKEN"),
-		BaseURL:      "https://api.postmarkapp.com",
-		Context:      ctx,
+		Client:  http.Client{Timeout: 10 * time.Second},
+		apiKey:  os.Getenv("ENV_POSTMARK_API_KEY"),
+		BaseURL: "https://api.postmarkapp.com",
+		Context: ctx,
 	}
 }
 
@@ -64,8 +62,7 @@ func doRequest[T PostmarkPayload](client *Client, params RequestParams[T]) (*Pos
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Postmark-Server-Token", client.ServerToken)
-	// req.Header.Add("X-Postmark-Account-Token", client.AccountToken)
+	req.Header.Add("X-Postmark-Server-Token", client.apiKey)
 
 	res, err := client.Do(req)
 	if err != nil {
