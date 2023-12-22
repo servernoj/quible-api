@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"log"
 	"os"
 	"strconv"
@@ -13,7 +14,7 @@ import (
 
 const DefaultPort = 8003
 
-// swagger.yaml
+//go:embed swagger.yaml
 var swaggerSpec string
 
 func main() {

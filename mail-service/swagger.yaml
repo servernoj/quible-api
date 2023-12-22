@@ -1,0 +1,53 @@
+info:
+  contact: {}
+paths:
+  /docs:
+    get:
+      description: Render Swagger UI page
+      parameters:
+      - default: swagger
+        description: UI template
+        enum:
+        - swagger
+        - rapidoc
+        - redoc
+        in: query
+        name: ui
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Swagger UI
+      tags:
+      - docs
+  /docs/errors:
+    get:
+      description: Renders the list of erros reported by the microservice
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Error Codes UI
+      tags:
+      - docs
+  /docs/spec:
+    get:
+      description: Swagger spec in YAML format
+      produces:
+      - application/yaml
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Swagger spec
+      tags:
+      - docs
+swagger: "2.0"
