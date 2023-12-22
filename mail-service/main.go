@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/quible-backend/mail-service/controller"
 	"github.com/quible-io/quible-api/lib/env"
+	"github.com/quible-io/quible-api/mail-service/controller"
 )
 
 const DefaultPort = 8003
@@ -17,26 +17,26 @@ const DefaultPort = 8003
 var swaggerSpec string
 
 func main() {
-	// Set the environment variables
-	env.Setup()
+	Server()
+}
 
-	// Start the Gin router
+func Server() {
+	// -- Environment vars from .env file
+	env.Setup()
+	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.Use(cors.Default())
 	g := r.Group("/api/v1")
-
-	// Set up the controller with the protected group and client
-	controller.Setup(g, controller.WithSwagger(swaggerSpec),
-		controller.WithHealth() /*, other necessary options if any*/)
-
-	// Start the service on the specified port
+	controller.Setup(
+		g,
+		controller.WithSwagger(swaggerSpec),
+		controller.WithHealth(),
+	)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = strconv.Itoa(DefaultPort)
 	}
-	log.Printf("Starting mail service on port: %s\n", port)
-	if err := r.Run(":" + port); err != nil {
-		log.Fatalf("Unable to start server: %v", err)
-	}
+	log.Printf("starting server on port: %s\n", port)
+	log.Fatalf("%v", r.Run(":"+port))
 }

@@ -1,25 +1,29 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/mail-service/postmark"
 )
 
 func SendEmailHandler(c *gin.Context) {
-	var email Email
-	client := NewClient()
-	if err := c.BindJSON(&email); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+
+	type DTO = postmark.EmailDTO
+	var NewMailer = postmark.NewMailer
+
+	var email DTO
+	if err := c.ShouldBindJSON(&email); err != nil {
+		ErrorMap.SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
 
-	response, err := client.SendEmail(c.Request.Context(), email)
+	response, err := NewMailer(c.Request.Context()).SendEmail(email)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error sending email: %v", err)})
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PostmarkSendEmail)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"response": response})
+	c.JSON(http.StatusOK, *response)
 }

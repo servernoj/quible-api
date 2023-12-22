@@ -43,7 +43,7 @@ func UserRegister(c *gin.Context) {
 		} else {
 			errorCode = Err400_MalformedJSON
 		}
-		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
+		log.Printf("unmet request body constraints: %q", errorFields.GetAllFields())
 		SendError(c, http.StatusBadRequest, errorCode)
 		return
 	}
@@ -206,7 +206,7 @@ func UserPatch(c *gin.Context) {
 		} else {
 			errorCode = Err400_MalformedJSON
 		}
-		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
+		log.Printf("unmet request body constraints: %q", errorFields.GetAllFields())
 		SendError(c, http.StatusBadRequest, errorCode)
 		return
 	}
@@ -239,7 +239,7 @@ func UserPatch(c *gin.Context) {
 	)
 }
 
-// @Summary		Refresh access/refresh topens
+// @Summary		Refresh access/refresh tokens
 // @Description	Login with user credentials to get token
 // @Tags			user,public
 // @Accept		json
@@ -254,7 +254,7 @@ func UserRefresh(c *gin.Context) {
 	var userRefreshDTO service.UserRefreshDTO
 	if err := c.ShouldBindJSON(&userRefreshDTO); err != nil {
 		errorFields := misc.ParseValidationError(err)
-		log.Printf("unmet request body contraints: %q", errorFields.GetAllFields())
+		log.Printf("unmet request body constraints: %q", errorFields.GetAllFields())
 		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
