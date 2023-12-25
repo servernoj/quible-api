@@ -4,5 +4,5 @@ tmp/
 .*.sw*
 
 # binary
-./auth-service
+./mail-service
 
