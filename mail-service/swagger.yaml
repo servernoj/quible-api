@@ -1,3 +1,83 @@
+definitions:
+  controller.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  postmark.AttachmentDTO:
+    properties:
+      content:
+        description: 'Content: Base64 encoded attachment data'
+        type: string
+      content_type:
+        description: 'ContentType: attachment MIME type'
+        type: string
+      name:
+        description: 'Name: attachment name'
+        type: string
+    required:
+    - content
+    - content_type
+    - name
+    type: object
+  postmark.EmailDTO:
+    properties:
+      HtmlBody:
+        description: 'HTMLBody: HTML email message. REQUIRED, If no TextBody specified'
+        type: string
+      TextBody:
+        description: 'TextBody: Plain text email message. REQUIRED, If no HTMLBody
+          specified'
+        type: string
+      attachments:
+        description: 'Attachments: List of attachments'
+        items:
+          $ref: '#/definitions/postmark.AttachmentDTO'
+        type: array
+      bcc:
+        description: Bcc recipient email address. Multiple addresses are comma separated.
+          Max 50.
+        type: string
+      cc:
+        description: Cc recipient email address. Multiple addresses are comma separated.
+          Max 50.
+        type: string
+      from:
+        description: 'From: REQUIRED The sender email address. Must have a registered
+          and confirmed Sender Signature.'
+        type: string
+      reply_to:
+        description: 'ReplyTo: Reply To override email address. Defaults to the Reply
+          To set in the sender signature.'
+        type: string
+      subject:
+        description: 'Subject: Email subject'
+        type: string
+      to:
+        description: 'To: REQUIRED Recipient email address. Multiple addresses are
+          comma separated. Max 50.'
+        type: string
+    required:
+    - attachments
+    - from
+    - subject
+    - to
+    type: object
+  postmark.PostmarkResponse:
+    properties:
+      ErrorCode:
+        type: integer
+      Message:
+        type: string
+      MessageID:
+        type: string
+      SubmittedAt:
+        type: string
+      To:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -50,4 +130,42 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+  /send:
+    post:
+      consumes:
+      - application/json
+      description: Use 3rd party (Postmark) mail delivery service to send an email
+      parameters:
+      - description: Email delivery request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/postmark.EmailDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/postmark.PostmarkResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Send single email
+      tags:
+      - private
 swagger: "2.0"

@@ -14,8 +14,6 @@ RUN swag init \
   --output . \
   --outputTypes yaml \
   --dir ./,../lib/swagger,./controller,../lib/models,../lib/controller
-# -- generate code tagged with //go:generate
-RUN go generate ./...
 # -- build the service
 RUN go build -o serviceStarter . 
 CMD ["./serviceStarter"]

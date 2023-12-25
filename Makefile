@@ -8,7 +8,6 @@ deps:
 
 docs: $(docs)
 $(docs): deps
-	go generate ./...
 	swag init \
 		--output . \
 		--outputTypes yaml \
@@ -19,6 +18,7 @@ build: docs
 	go build .
 
 run: docs	
+	go mod download
 	go run .
 
 
