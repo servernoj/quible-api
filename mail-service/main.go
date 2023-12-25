@@ -12,6 +12,12 @@ import (
 	"github.com/quible-io/quible-api/mail-service/controller"
 )
 
+//	@title			Quible mail-service
+//	@description	Send emails on behalf of Quible app
+//	@version		0.1
+//	@host			www.quible.io
+//	@BasePath		/api/v1
+
 const DefaultPort = 8003
 
 //go:embed swagger.yaml

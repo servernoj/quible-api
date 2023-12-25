@@ -1,0 +1,12 @@
+extends layout.pug
+include mixins/grid.pug
+
+block filter
+  :go:func(name) ActivationRender
+
+block content
+  +two-1-3
+    +two-1-3-1
+      .one
+    +two-1-3-2
+      .two
