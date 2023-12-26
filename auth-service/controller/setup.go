@@ -34,5 +34,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
 
-	protected.GET("/activation", Activation)
+	protected.GET("/activate", Activate)
 }

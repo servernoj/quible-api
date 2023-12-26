@@ -44,15 +44,6 @@ func Setup() {
 					),
 				)
 			}
-			if os.Getenv("ENV_URL_MAIL_SERVICE") == "" {
-				os.Setenv(
-					"ENV_URL_MAIL_SERVICE",
-					fmt.Sprintf(
-						"http://localhost:%s",
-						os.Getenv("MAIL_PORT"),
-					),
-				)
-			}
 		}
 	} else {
 		log.Println("running in docker...")
