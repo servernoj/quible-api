@@ -28,6 +28,7 @@ const (
 	Err401_Shift = ErrStatusGain*http.StatusUnauthorized + ErrServiceId
 	Err403_Shift = ErrStatusGain*http.StatusForbidden + ErrServiceId
 	Err404_Shift = ErrStatusGain*http.StatusNotFound + ErrServiceId
+	Err424_Shift = ErrStatusGain*http.StatusFailedDependency + ErrServiceId
 	Err429_Shift = ErrStatusGain*http.StatusTooManyRequests + ErrServiceId
 	Err500_Shift = ErrStatusGain*http.StatusInternalServerError + ErrServiceId
 	Err503_Shift = ErrStatusGain*http.StatusServiceUnavailable + ErrServiceId
@@ -69,6 +70,9 @@ const (
 	Err404_AccountNotFound
 	Err404_UserNotFound
 	Err404_UserHasNoImage
+)
+const (
+	Err424_UnknownError ErrorCode = Err424_Shift + iota + 1
 )
 const (
 	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
@@ -126,6 +130,10 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err404_AccountNotFound:     "account already deleted or does not exist",
 		Err404_UserNotFound:        "user not found",
 		Err404_UserHasNoImage:      "user has no image",
+	},
+	// 424
+	http.StatusFailedDependency: {
+		Err424_UnknownError: "unknown error",
 	},
 	// 429
 	http.StatusTooManyRequests: {

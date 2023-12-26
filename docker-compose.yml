@@ -77,5 +77,3 @@ services:
       PORT: ${MAIL_PORT}
     ports:
       - "${MAIL_PORT}:${MAIL_PORT}"    
-    depends_on:
-      - auth

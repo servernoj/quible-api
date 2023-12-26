@@ -418,7 +418,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
-      summary: Refresh access/refresh topens
+      summary: Refresh access/refresh tokens
       tags:
       - user
       - public

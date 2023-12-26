@@ -1,14 +1,18 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/auth-service/email"
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/service"
 	"github.com/quible-io/quible-api/lib/misc"
@@ -414,4 +418,39 @@ func UserGetImage(c *gin.Context) {
 	} else {
 		c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 	}
+}
+
+func Activation(c *gin.Context) {
+	var html bytes.Buffer
+	email.ActivationRender(&html)
+	requestBody := map[string]any{
+		"from":     "contact@quible.tech",
+		"to":       "simonbaev@gmail.com",
+		"subject":  "User activation",
+		"HtmlBody": html.String(),
+	}
+	bodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Printf("unable to marshal request body: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+	}
+	res, err := http.DefaultClient.Post(
+		fmt.Sprintf(
+			"%s/api/v1/send",
+			os.Getenv("ENV_URL_MAIL_SERVICE"),
+		),
+		gin.MIMEJSON,
+		bytes.NewReader(bodyBytes),
+	)
+	if err != nil {
+		log.Printf("unable to send email: %q", err)
+		SendError(c, http.StatusFailedDependency, Err424_UnknownError)
+	}
+	defer res.Body.Close()
+	var body map[string]any
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+		log.Printf("unable to decode response from mail-service: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+	}
+	c.JSON(http.StatusOK, body)
 }
