@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/mail-service/postmark"
+	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/email/postmark"
 )
 
 // @Summary		Send single email
@@ -22,23 +23,20 @@ import (
 // @Router		/send [post]
 func SendEmailHandler(c *gin.Context) {
 
-	type DTO = postmark.EmailDTO
-	var NewClient = postmark.NewClient
+	type EmailDTO = postmark.EmailDTO
 
-	var email DTO
-	if err := c.ShouldBindJSON(&email); err != nil {
+	var emailDTO EmailDTO
+	if err := c.ShouldBindJSON(&emailDTO); err != nil {
 		log.Printf("request parsing error %s:", err)
 		ErrorMap.SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
 
-	response, err := NewClient(c.Request.Context()).SendEmail(email)
-
-	if err != nil {
+	if err := email.Send(c.Request.Context(), emailDTO); err != nil {
 		log.Printf("email sender error: %q", err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PostmarkSendEmail)
 		return
 	}
 
-	c.JSON(http.StatusOK, *response)
+	c.Status(http.StatusOK)
 }
