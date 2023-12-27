@@ -1,11 +1,11 @@
-extends ../../../../lib/email/templates/layout
+extends ../../../../assets/acorn/layout.pug
 
 block filter
-  :go:func(name) ActivationRender
+  :go:func Activation(first string, second int)
 
 block content
-  +two-1-3
-    +two-1-3-1
-      .one One
-    +two-1-3-2
-      .two Two
+  +Row
+    +C1-of-3
+      .one hello, #{first}
+    +C2-of-3
+      .one #{second + 5}

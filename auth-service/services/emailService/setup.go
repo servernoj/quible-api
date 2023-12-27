@@ -1,3 +1,3 @@
 package emailService
 
-//go:generate jade -pkg=emailService -writer templates/activation.pug
+//go:generate jade -pkg=emailService -stdlib -stdbuf templates/activation.pug

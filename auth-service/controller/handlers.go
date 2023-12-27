@@ -422,7 +422,7 @@ func UserGetImage(c *gin.Context) {
 
 func Activate(c *gin.Context) {
 	var html bytes.Buffer
-	emailService.ActivationRender(&html)
+	emailService.Activation("world", 2024, &html)
 	if err := email.Send(c.Request.Context(), postmark.EmailDTO{
 		From:     "contact@quible.tech",
 		To:       "simonbaev@gmail.com",
