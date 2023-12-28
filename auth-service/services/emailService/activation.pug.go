@@ -235,11 +235,11 @@ const (
     }
   }</style></head><body style="margin:0;padding:0;width:100%;word-break:break-word;-webkit-font-smoothing:antialiased;"><div style="display:none;font-size:0;line-height:0;"></div><table lang="en" bgcolor="#EEEEEE" cellpadding="16" cellspacing="0" role="presentation" width="100%"><tr><td align="center"><table class="container" bgcolor="#FFFFFF" cellpadding="0" cellspacing="0" role="presentation" width="600"><tr><td align="left">`
 	activation__1  = `</td></tr></table></td></tr></table></body></html>`
-	activation__2  = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td bgcolor="`
-	activation__3  = `" style="`
+	activation__2  = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="`
+	activation__3  = `"><tr><td style="`
 	activation__4  = `">`
 	activation__5  = `</td></tr></table>`
-	activation__6  = `hello`
+	activation__6  = `<span>hello</span>`
 	activation__7  = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding: 0 24px;"><table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr class="full-width-sm">`
 	activation__8  = `</tr></table></td></tr></table>`
 	activation__9  = `<td class="col" width="184">`
@@ -256,18 +256,19 @@ func Activation(first string, number float64, buffer *bytes.Buffer) {
 
 	{
 		var (
-			bg = "#0099E5"
-			fg = "#FFFFFF"
+			border = "2px solid #0099E5"
+			fg     = "#0099E5"
 		)
 		var block []byte
 		{
 			buffer := new(bytes.Buffer)
 			buffer.WriteString(activation__6)
+
 			block = buffer.Bytes()
 		}
 
 		buffer.WriteString(activation__2)
-		buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+		buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "border: "+border+";")))
 		buffer.WriteString(activation__3)
 		buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "color: "+fg+"; padding: 16px 32px;")))
 		buffer.WriteString(activation__4)

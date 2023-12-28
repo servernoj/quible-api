@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/email/postmark"
 	"github.com/quible-io/quible-api/lib/swagger"
@@ -22,7 +21,7 @@ func WithHealth() Option {
 	}
 }
 
-func WithEmailTester() Option {
+func WithEmailTester(Handlers map[string]any) Option {
 	return func(g *gin.RouterGroup) {
 		g.POST("/email-tester", func(c *gin.Context) {
 			type TestEmailDTO struct {
@@ -37,15 +36,15 @@ func WithEmailTester() Option {
 				c.String(http.StatusBadRequest, "%v", err)
 				return
 			}
-			if _, ok := emailService.Handlers[testEmailDTO.Handler]; !ok {
+			if _, ok := Handlers[testEmailDTO.Handler]; !ok {
 				keys := []string{}
-				for key := range emailService.Handlers {
+				for key := range Handlers {
 					keys = append(keys, key)
 				}
 				c.String(http.StatusBadRequest, "invalid handler, supposed to be one of %q", keys)
 				return
 			}
-			fn := reflect.ValueOf(emailService.Handlers[testEmailDTO.Handler])
+			fn := reflect.ValueOf(Handlers[testEmailDTO.Handler])
 			// -- args
 			args := make([]reflect.Value, len(testEmailDTO.Args))
 			for idx, param := range testEmailDTO.Args {
