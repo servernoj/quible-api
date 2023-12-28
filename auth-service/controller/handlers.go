@@ -22,7 +22,7 @@ var PublicUserFields = []string{"id", "full_name"}
 // @Tags			user,public
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserRegisterDTO	true	"User registration information"
+// @Param			request	body		userService.UserRegisterDTO	true	"User registration information"
 // @Success		201		{object}	UserResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
@@ -73,7 +73,7 @@ func UserRegister(c *gin.Context) {
 // @Tags			user,public
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserLoginDTO	true	"User login credentials"
+// @Param			request	body		userService.UserLoginDTO	true	"User login credentials"
 // @Success		200		{object}	TokenResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
@@ -185,7 +185,7 @@ func UserGetById(c *gin.Context) {
 // @Tags			user,private
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserPatchDTO	true	"Partial user object to be used for update"
+// @Param			request	body		userService.UserPatchDTO	true	"Partial user object to be used for update"
 // @Success		200		{object}	UserResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
@@ -244,7 +244,7 @@ func UserPatch(c *gin.Context) {
 // @Tags			user,public
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserRefreshDTO	true	"User's refresh token"
+// @Param			request	body		userService.UserRefreshDTO	true	"User's refresh token"
 // @Success		200		{object}	TokenResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse

@@ -12,7 +12,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/quible-io/quible-api/auth-service/controller"
 	"github.com/quible-io/quible-api/auth-service/realtime"
-	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
@@ -66,7 +65,6 @@ func Server() {
 		g,
 		controller.WithSwagger(swaggerSpec),
 		controller.WithHealth(),
-		controller.WithEmailTester(emailService.Handlers),
 	)
 	port := os.Getenv("PORT")
 	if port == "" {

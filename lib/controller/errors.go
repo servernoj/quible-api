@@ -37,7 +37,7 @@ func (errorMap ErrorMap[T]) SendError(c *gin.Context, status int, code T) {
 }
 
 // @Summary		Error Codes UI
-// @Description	Renders the list of erros reported by the microservice
+// @Description	Renders the list of errors reported by the microservice
 // @Tags			docs
 // @Produce		text/html
 // @Success		200	{string} string

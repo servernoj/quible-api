@@ -53,7 +53,7 @@ definitions:
       username:
         type: string
     type: object
-  service.UserLoginDTO:
+  userService.UserLoginDTO:
     properties:
       email:
         type: string
@@ -63,7 +63,7 @@ definitions:
     - email
     - password
     type: object
-  service.UserPatchDTO:
+  userService.UserPatchDTO:
     properties:
       email:
         type: string
@@ -74,14 +74,14 @@ definitions:
       username:
         type: string
     type: object
-  service.UserRefreshDTO:
+  userService.UserRefreshDTO:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
     type: object
-  service.UserRegisterDTO:
+  userService.UserRegisterDTO:
     properties:
       email:
         type: string
@@ -132,7 +132,7 @@ paths:
       - docs
   /docs/errors:
     get:
-      description: Renders the list of erros reported by the microservice
+      description: Renders the list of errors reported by the microservice
       produces:
       - text/html
       responses:
@@ -167,7 +167,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/service.UserLoginDTO'
+          $ref: '#/definitions/userService.UserLoginDTO'
       produces:
       - application/json
       responses:
@@ -245,7 +245,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/service.UserPatchDTO'
+          $ref: '#/definitions/userService.UserPatchDTO'
       produces:
       - application/json
       responses:
@@ -279,7 +279,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/service.UserRegisterDTO'
+          $ref: '#/definitions/userService.UserRegisterDTO'
       produces:
       - application/json
       responses:
@@ -398,7 +398,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/service.UserRefreshDTO'
+          $ref: '#/definitions/userService.UserRefreshDTO'
       produces:
       - application/json
       responses:
