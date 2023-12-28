@@ -1,11 +1,13 @@
 extends ../../../../assets/acorn/layout.pug
 
 block filter
-  :go:func Activation(first string, second int)
+  :go:func Activation(first string, number float64)
 
 block content
+  +alert-bg 
+    | hello
   +Row
     +C1-of-3
-      .one hello, #{first}
+      .one string #{first}
     +C2-of-3
-      .one #{second + 5}
+      .one number #{number}

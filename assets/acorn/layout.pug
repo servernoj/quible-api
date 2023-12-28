@@ -1,4 +1,5 @@
 include mixins/grid.pug
+include mixins/components.pug
 
 block filter
 
@@ -9,24 +10,10 @@ html(lang="en", xmlns:v="urn:schemas-microsoft-com:vml", xmlns:o="urn:schemas-mi
     meta(http-equiv="x-ua-compatible", content="ie=edge")
     meta(name="viewport", content="width=device-width, initial-scale=1")
     meta(name="x-apple-disable-message-reformatting")
-    //
-      [if mso]>
-      <xml>
-      <o:OfficeDocumentSettings>
-      <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-      </xml>
-      <style>
-      table {border-collapse: collapse;}
-      .spacer,.divider {mso-line-height-rule: exactly;}
-      td,th,div,p,a {font-size: 16px; line-height: 25px;}
-      td,th,div,p,a,h1,h2,h3,h4,h5,h6 {font-family:"Segoe UI",Helvetica,Arial,sans-serif;}
-      </style>
-      <![endif]
     include style.pug
   body(style="margin:0;padding:0;width:100%;word-break:break-word;-webkit-font-smoothing:antialiased;")
-    div(lang="en", style="display:none;")
-      block header
+    div(style="display:none;font-size:0;line-height:0;")
+      block preheader
     table(lang="en", bgcolor="#EEEEEE", cellpadding="16", cellspacing="0", role="presentation", width="100%")
       tr
         td(align="center")

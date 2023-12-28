@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -11,10 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
-	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
-	"github.com/quible-io/quible-api/lib/email"
-	"github.com/quible-io/quible-api/lib/email/postmark"
 	"github.com/quible-io/quible-api/lib/misc"
 )
 
@@ -418,19 +414,4 @@ func UserGetImage(c *gin.Context) {
 	} else {
 		c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 	}
-}
-
-func Activate(c *gin.Context) {
-	var html bytes.Buffer
-	emailService.Activation("world", 2024, &html)
-	if err := email.Send(c.Request.Context(), postmark.EmailDTO{
-		From:     "contact@quible.tech",
-		To:       "simonbaev@gmail.com",
-		Subject:  "User activation Test",
-		HTMLBody: html.String(),
-	}); err != nil {
-		log.Printf("unable to send activation email: %q", err)
-		SendError(c, http.StatusFailedDependency, Err424_UnknownError)
-	}
-	c.Status(http.StatusAccepted)
 }

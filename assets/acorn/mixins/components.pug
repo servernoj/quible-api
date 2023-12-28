@@ -1,0 +1,13 @@
+mixin alert-bg(bg='#0099E5', fg='#FFFFFF')
+  table(cellpadding='0' cellspacing='0' role='presentation' width='100%')
+    tr
+      td(bgcolor=bg style='color: ' + fg + '; padding: 16px 32px;')
+        block
+
+mixin alert-outlined(border='2px solid #0099E5', fg='#0099E5')
+  table(cellpadding='0' cellspacing='0' role='presentation' width='100%' style='border: ' + border + ';')
+    tr
+      td(style='color: ' + fg + '; padding: 16px 32px;')
+        block
+
+

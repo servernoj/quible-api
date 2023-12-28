@@ -65,6 +65,7 @@ func Server() {
 		g,
 		controller.WithSwagger(swaggerSpec),
 		controller.WithHealth(),
+		controller.WithEmailTester(),
 	)
 	port := os.Getenv("PORT")
 	if port == "" {

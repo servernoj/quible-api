@@ -14,6 +14,9 @@ var WithHealth = c.WithHealth
 // Add "swagger" endpoint at /docs
 var WithSwagger = c.WithSwagger
 
+// Add "email tester" endpoint at /email-tester
+var WithEmailTester = c.WithEmailTester
+
 // Setup the controller and all handlers
 func Setup(g *gin.RouterGroup, options ...c.Option) {
 	for _, option := range options {
@@ -34,5 +37,4 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
 
-	protected.GET("/activate", Activate)
 }
