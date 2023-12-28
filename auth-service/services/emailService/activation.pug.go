@@ -248,6 +248,14 @@ const (
 	activation__12 = `</div>`
 	activation__13 = `<td class="col" width="368">`
 	activation__15 = `<div class="one">number `
+	activation__19 = `<td class="col" width="100%">`
+	activation__21 = `<p></p>Just a paragraph with `
+	activation__22 = ` and `
+	activation__23 = ` the end`
+	activation__24 = `<span style="`
+	activation__26 = `</span>`
+	activation__27 = `<span>filled label</span>`
+	activation__31 = `<span>outlined label</span>`
 )
 
 func Activation(first string, number float64, buffer *bytes.Buffer) {
@@ -303,11 +311,80 @@ func Activation(first string, number float64, buffer *bytes.Buffer) {
 					buffer.WriteString(activation__15)
 					buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", number)))
 					buffer.WriteString(activation__12)
-
 					block = buffer.Bytes()
 				}
 
 				buffer.WriteString(activation__13)
+				buffer.Write(block)
+				buffer.WriteString(activation__10)
+			}
+
+			block = buffer.Bytes()
+		}
+
+		buffer.WriteString(activation__7)
+
+		buffer.Write(block)
+		buffer.WriteString(activation__8)
+
+	}
+
+	{
+		var block []byte
+		{
+			buffer := new(bytes.Buffer)
+			{
+				var block []byte
+				{
+					buffer := new(bytes.Buffer)
+					buffer.WriteString(activation__21)
+
+					{
+						var (
+							bg = "#2C3E51"
+							fg = "#FFFFFF"
+						)
+						var block []byte
+						{
+							buffer := new(bytes.Buffer)
+							buffer.WriteString(activation__27)
+
+							block = buffer.Bytes()
+						}
+
+						buffer.WriteString(activation__24)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "border-width: 2px 4px; mso-border-width-alt: 4px; border-style: solid; border-color: #2C3E51; background-color: "+bg+"; border-radius: 3px; color: "+fg+"; font-size: 75%; line-height: 100%; mso-line-height-rule: exactly;")))
+						buffer.WriteString(activation__4)
+						buffer.Write(block)
+						buffer.WriteString(activation__26)
+					}
+
+					buffer.WriteString(activation__22)
+					{
+						var (
+							border = "2px solid #0099E5"
+							fg     = "#0099E5"
+						)
+						var block []byte
+						{
+							buffer := new(bytes.Buffer)
+							buffer.WriteString(activation__31)
+
+							block = buffer.Bytes()
+						}
+
+						buffer.WriteString(activation__24)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "padding: 1px 4px; mso-padding-alt: 4px; border: "+border+"; border-radius: 3px; color: "+fg+"; font-size: 75%; line-height: 100%; mso-line-height-rule: exactly;")))
+						buffer.WriteString(activation__4)
+						buffer.Write(block)
+						buffer.WriteString(activation__26)
+					}
+
+					buffer.WriteString(activation__23)
+					block = buffer.Bytes()
+				}
+
+				buffer.WriteString(activation__19)
 				buffer.Write(block)
 				buffer.WriteString(activation__10)
 			}

@@ -10,4 +10,12 @@ mixin alert-outlined(border='2px solid #0099E5', fg='#0099E5')
       td(style='color: ' + fg + '; padding: 16px 32px;')
         block
 
+mixin label-filled(bg='#2C3E51', fg='#FFFFFF')
+  span(style='border-width: 2px 4px; mso-border-width-alt: 4px; border-style: solid; border-color: #2C3E51; background-color: ' + bg + '; border-radius: 3px; color: ' + fg + '; font-size: 75%; line-height: 100%; mso-line-height-rule: exactly;')
+    block
+
+mixin label-outlined(border='2px solid #0099E5', fg='#0099E5')
+  span(style='padding: 1px 4px; mso-padding-alt: 4px; border: ' + border + '; border-radius: 3px; color: ' + fg + '; font-size: 75%; line-height: 100%; mso-line-height-rule: exactly;')
+    block
+
 

@@ -11,3 +11,13 @@ block content
       .one string #{first}
     +C2-of-3
       .one number #{number}
+  +Row
+    +C1-of-1
+      p
+      | Just a paragraph with 
+      +label-filled()
+        span filled label
+      |  and 
+      +label-outlined()
+        span outlined label
+      |  the end
