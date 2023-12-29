@@ -37,5 +37,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.PATCH("/user", UserPatch)
 	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
-	WithEmailTester(emailService.Handlers)(g)
+	WithEmailTester(emailService.Handlers)(protected)
 }
