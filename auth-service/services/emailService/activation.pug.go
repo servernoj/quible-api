@@ -233,169 +233,270 @@ const (
       padding-top: 24px!important; 
       padding-bottom: 24px!important;
     }
-  }</style></head><body style="margin:0;padding:0;width:100%;word-break:break-word;-webkit-font-smoothing:antialiased;"><div style="display:none;font-size:0;line-height:0;"></div><table lang="en" bgcolor="#EEEEEE" cellpadding="16" cellspacing="0" role="presentation" width="100%"><tr><td align="center"><table class="container" bgcolor="#FFFFFF" cellpadding="0" cellspacing="0" role="presentation" width="600"><tr><td align="left">`
-	activation__1  = `</td></tr></table></td></tr></table></body></html>`
-	activation__2  = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="`
-	activation__3  = `"><tr><td style="`
-	activation__4  = `">`
-	activation__5  = `</td></tr></table>`
-	activation__6  = `<span>hello</span>`
-	activation__7  = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding: 0 24px;"><table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr class="full-width-sm">`
-	activation__8  = `</tr></table></td></tr></table>`
-	activation__9  = `<td class="col" width="184">`
-	activation__10 = `</td>`
-	activation__11 = `<div class="one">string `
-	activation__12 = `</div>`
-	activation__13 = `<td class="col" width="368">`
-	activation__15 = `<div class="one">number `
-	activation__19 = `<td class="col" width="100%">`
-	activation__21 = `<p></p>Just a paragraph with `
-	activation__22 = ` and `
-	activation__23 = ` the end`
-	activation__24 = `<span style="`
-	activation__26 = `</span>`
-	activation__27 = `<span>filled label</span>`
-	activation__31 = `<span>outlined label</span>`
+  }</style></head><body style="margin:0;padding:0;width:100%;word-break:break-word;-webkit-font-smoothing:antialiased;"><div style="display:none;font-size:0;line-height:0;"></div>`
+	activation__1  = `</body></html>`
+	activation__2  = `<table lang="en" bgcolor="`
+	activation__3  = `" cellpadding="16" cellspacing="0" role="presentation" width="100%"><tr><td align="center">`
+	activation__4  = `</td></tr></table>`
+	activation__5  = `<table class="container" bgcolor="`
+	activation__6  = `" cellpadding="0" cellspacing="0" role="presentation" width="600"><tr><td align="left">`
+	activation__8  = `<p>one</p><p>two</p>`
+	activation__9  = `<p>three</p>`
+	activation__10 = `<p>four</p>`
+	activation__11 = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td class="spacer" height="`
+	activation__12 = `">`
+	activation__13 = `<span>&nbsp;</span></td></tr></table>`
+	activation__14 = `<div class="spacer" style="`
+	activation__16 = `<span>&nbsp;</span></div>`
+	activation__17 = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td bgcolor="`
+	activation__18 = `" style="`
+	activation__21 = `hello world`
+	activation__22 = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td class="divider" style="padding: 24px 16px;"><div style="`
+	activation__24 = `<span>&nbsp;</span></div></td></tr></table>`
+	activation__25 = `<table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding: 0 24px;"><table cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr class="full-width-sm">`
+	activation__26 = `</tr></table></td></tr></table>`
+	activation__27 = `<td class="col" width="276">`
+	activation__28 = `</td>`
+	activation__32 = `<table cellpadding="0" cellspacing="0" role="presentation"><tr><th bgcolor="`
+	activation__33 = `" style="border-radius: 3px; mso-padding-alt: 6px 42px 12px;"><a href="`
+	activation__36 = `</a></th></tr></table>`
+	activation__37 = `Google`
+	activation__43 = `<table cellpadding="0" cellspacing="0" role="presentation"><tr><th style="`
+	activation__44 = `"><a href="`
 )
 
-func Activation(first string, number float64, buffer *bytes.Buffer) {
+func Activation(buffer *bytes.Buffer) {
 
 	buffer.WriteString(activation__0)
 
 	{
 		var (
-			border = "2px solid #0099E5"
-			fg     = "#0099E5"
+			bg = "#EEE"
 		)
 		var block []byte
 		{
 			buffer := new(bytes.Buffer)
-			buffer.WriteString(activation__6)
-
-			block = buffer.Bytes()
-		}
-
-		buffer.WriteString(activation__2)
-		buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "border: "+border+";")))
-		buffer.WriteString(activation__3)
-		buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "color: "+fg+"; padding: 16px 32px;")))
-		buffer.WriteString(activation__4)
-		buffer.Write(block)
-		buffer.WriteString(activation__5)
-
-	}
-
-	{
-		var block []byte
-		{
-			buffer := new(bytes.Buffer)
 			{
+				var (
+					bg = "#FFF"
+				)
 				var block []byte
 				{
 					buffer := new(bytes.Buffer)
-					buffer.WriteString(activation__11)
-					buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", first)))
-					buffer.WriteString(activation__12)
-					block = buffer.Bytes()
-				}
-
-				buffer.WriteString(activation__9)
-				buffer.Write(block)
-				buffer.WriteString(activation__10)
-			}
-
-			{
-				var block []byte
-				{
-					buffer := new(bytes.Buffer)
-					buffer.WriteString(activation__15)
-					buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", number)))
-					buffer.WriteString(activation__12)
-					block = buffer.Bytes()
-				}
-
-				buffer.WriteString(activation__13)
-				buffer.Write(block)
-				buffer.WriteString(activation__10)
-			}
-
-			block = buffer.Bytes()
-		}
-
-		buffer.WriteString(activation__7)
-
-		buffer.Write(block)
-		buffer.WriteString(activation__8)
-
-	}
-
-	{
-		var block []byte
-		{
-			buffer := new(bytes.Buffer)
-			{
-				var block []byte
-				{
-					buffer := new(bytes.Buffer)
-					buffer.WriteString(activation__21)
+					buffer.WriteString(activation__8)
 
 					{
 						var (
-							bg = "#2C3E51"
+							height = 16
+						)
+						var block []byte
+						buffer.WriteString(activation__11)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", height)))
+						buffer.WriteString(activation__12)
+						buffer.Write(block)
+						buffer.WriteString(activation__13)
+
+					}
+
+					buffer.WriteString(activation__9)
+
+					{
+						var (
+							height = "16px"
+						)
+						var block []byte
+						buffer.WriteString(activation__14)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "line-height: "+height+";")))
+						buffer.WriteString(activation__12)
+						buffer.Write(block)
+						buffer.WriteString(activation__16)
+
+					}
+
+					buffer.WriteString(activation__10)
+
+					{
+						var (
+							bg = "#0099E5"
 							fg = "#FFFFFF"
 						)
 						var block []byte
 						{
 							buffer := new(bytes.Buffer)
-							buffer.WriteString(activation__27)
-
+							buffer.WriteString(activation__21)
 							block = buffer.Bytes()
 						}
 
-						buffer.WriteString(activation__24)
-						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "border-width: 2px 4px; mso-border-width-alt: 4px; border-style: solid; border-color: #2C3E51; background-color: "+bg+"; border-radius: 3px; color: "+fg+"; font-size: 75%; line-height: 100%; mso-line-height-rule: exactly;")))
-						buffer.WriteString(activation__4)
+						buffer.WriteString(activation__17)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+						buffer.WriteString(activation__18)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "color: "+fg+"; padding: 16px 32px;")))
+						buffer.WriteString(activation__12)
 						buffer.Write(block)
-						buffer.WriteString(activation__26)
+						buffer.WriteString(activation__4)
+
 					}
 
-					buffer.WriteString(activation__22)
 					{
 						var (
-							border = "2px solid #0099E5"
-							fg     = "#0099E5"
+							fg = "black"
 						)
+						var block []byte
+						buffer.WriteString(activation__22)
+						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "background: "+fg+"; height: 1px; line-height: 1px;")))
+						buffer.WriteString(activation__12)
+						buffer.Write(block)
+						buffer.WriteString(activation__24)
+
+					}
+
+					{
 						var block []byte
 						{
 							buffer := new(bytes.Buffer)
-							buffer.WriteString(activation__31)
+							{
+								var block []byte
+								{
+									buffer := new(bytes.Buffer)
+									{
+										var (
+											bg = "#FFF"
+										)
+										var block []byte
+										{
+											buffer := new(bytes.Buffer)
+											{
+												var (
+													url = "https://google.com"
+													bg  = "#2C3E51"
+													fg  = "#FFFFFF"
+												)
+												var block []byte
+												{
+													buffer := new(bytes.Buffer)
+													buffer.WriteString(activation__37)
+													block = buffer.Bytes()
+												}
+
+												buffer.WriteString(activation__32)
+												buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+												buffer.WriteString(activation__33)
+												buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", url)))
+												buffer.WriteString(activation__18)
+												buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "color: "+fg+"; display: inline-block; font-size: 13px; line-height: 100%; padding: 12px 42px; text-decoration: none;")))
+												buffer.WriteString(activation__12)
+												buffer.Write(block)
+												buffer.WriteString(activation__36)
+
+											}
+
+											block = buffer.Bytes()
+										}
+
+										buffer.WriteString(activation__2)
+										buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+										buffer.WriteString(activation__3)
+
+										buffer.Write(block)
+										buffer.WriteString(activation__4)
+
+									}
+
+									block = buffer.Bytes()
+								}
+
+								buffer.WriteString(activation__27)
+								buffer.Write(block)
+								buffer.WriteString(activation__28)
+							}
+
+							{
+								var block []byte
+								{
+									buffer := new(bytes.Buffer)
+									{
+										var (
+											bg = "#FFF"
+										)
+										var block []byte
+										{
+											buffer := new(bytes.Buffer)
+											{
+												var (
+													url    = "https://google.com"
+													border = "2px solid #2C3E51"
+													fg     = "#2C3E51"
+												)
+												var block []byte
+												{
+													buffer := new(bytes.Buffer)
+													buffer.WriteString(activation__37)
+													block = buffer.Bytes()
+												}
+
+												buffer.WriteString(activation__43)
+												buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "border: "+border+"; border-radius: 3px; mso-padding-alt: 6px 42px 12px;")))
+												buffer.WriteString(activation__44)
+												buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", url)))
+												buffer.WriteString(activation__18)
+												buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "color: "+fg+"; display: inline-block; font-size: 13px; line-height: 100%; padding: 12px 42px; text-decoration: none;")))
+												buffer.WriteString(activation__12)
+												buffer.Write(block)
+												buffer.WriteString(activation__36)
+
+											}
+
+											block = buffer.Bytes()
+										}
+
+										buffer.WriteString(activation__2)
+										buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+										buffer.WriteString(activation__3)
+
+										buffer.Write(block)
+										buffer.WriteString(activation__4)
+
+									}
+
+									block = buffer.Bytes()
+								}
+
+								buffer.WriteString(activation__27)
+								buffer.Write(block)
+								buffer.WriteString(activation__28)
+							}
 
 							block = buffer.Bytes()
 						}
 
-						buffer.WriteString(activation__24)
-						buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", "padding: 1px 4px; mso-padding-alt: 4px; border: "+border+"; border-radius: 3px; color: "+fg+"; font-size: 75%; line-height: 100%; mso-line-height-rule: exactly;")))
-						buffer.WriteString(activation__4)
+						buffer.WriteString(activation__25)
+
 						buffer.Write(block)
 						buffer.WriteString(activation__26)
+
 					}
 
-					buffer.WriteString(activation__23)
 					block = buffer.Bytes()
 				}
 
-				buffer.WriteString(activation__19)
+				buffer.WriteString(activation__5)
+				buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+				buffer.WriteString(activation__6)
+
 				buffer.Write(block)
-				buffer.WriteString(activation__10)
+				buffer.WriteString(activation__4)
+
 			}
 
 			block = buffer.Bytes()
 		}
 
-		buffer.WriteString(activation__7)
+		buffer.WriteString(activation__2)
+		buffer.WriteString(html.EscapeString(fmt.Sprintf("%v", bg)))
+		buffer.WriteString(activation__3)
 
 		buffer.Write(block)
-		buffer.WriteString(activation__8)
+		buffer.WriteString(activation__4)
 
 	}
 

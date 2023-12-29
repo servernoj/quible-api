@@ -53,6 +53,10 @@ func WithEmailTester(Handlers map[string]any) Option {
 			return
 		}
 		// -- args
+		if len(testEmailDTO.Args) != fn.Type().NumIn()-1 {
+			c.String(http.StatusBadRequest, "invalid length of args array, expected %d", fn.Type().NumIn()-1)
+			return
+		}
 		args := make([]reflect.Value, len(testEmailDTO.Args))
 		for idx, param := range testEmailDTO.Args {
 			if fn.Type().In(idx) != reflect.TypeOf(param) {
@@ -70,10 +74,6 @@ func WithEmailTester(Handlers map[string]any) Option {
 		}
 		args = append(args, reflect.ValueOf(&html))
 
-		if fn.Type().NumIn() != len(args) {
-			c.String(http.StatusBadRequest, "invalid length of args array")
-			return
-		}
 		fn.Call(args)
 
 		if c.Request.URL.Query().Has("debug") {

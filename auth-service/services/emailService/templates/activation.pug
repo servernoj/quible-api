@@ -1,23 +1,27 @@
 extends ../../../../assets/acorn/layout.pug
 
 block filter
-  :go:func Activation(first string, number float64)
+  :go:func Activation()
 
 block content
-  +alert-outlined
-    span hello
-  +Row
-    +C1-of-3
-      .one string #{first}
-    +C2-of-3
-      .one number #{number}
-  +Row
-    +C1-of-1
-      p
-      | Just a paragraph with 
-      +label-filled()
-        span filled label
-      |  and 
-      +label-outlined()
-        span outlined label
-      |  the end
+  p one
+  p two
+  +spacer
+  p three
+  +spacer2
+  p four
+    
+  +alert-bg
+    | hello world
+
+  +divider('black')
+
+  +row
+    +c1-of-2
+      +wrapper
+        +button-bg('https://google.com') Google
+    +c1-of-2
+      +wrapper
+        +button-outlined('https://google.com') Google
+      
+
