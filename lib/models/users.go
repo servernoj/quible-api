@@ -34,6 +34,7 @@ type User struct {
 	CreatedAt      time.Time  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time  `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 	Image          null.Bytes `boil:"image" json:"image,omitempty" toml:"image" yaml:"image,omitempty"`
+	ActivatedAt    null.Time  `boil:"activated_at" json:"activated_at,omitempty" toml:"activated_at" yaml:"activated_at,omitempty"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -50,6 +51,7 @@ var UserColumns = struct {
 	CreatedAt      string
 	UpdatedAt      string
 	Image          string
+	ActivatedAt    string
 }{
 	ID:             "id",
 	Username:       "username",
@@ -61,6 +63,7 @@ var UserColumns = struct {
 	CreatedAt:      "created_at",
 	UpdatedAt:      "updated_at",
 	Image:          "image",
+	ActivatedAt:    "activated_at",
 }
 
 var UserTableColumns = struct {
@@ -74,6 +77,7 @@ var UserTableColumns = struct {
 	CreatedAt      string
 	UpdatedAt      string
 	Image          string
+	ActivatedAt    string
 }{
 	ID:             "users.id",
 	Username:       "users.username",
@@ -85,6 +89,7 @@ var UserTableColumns = struct {
 	CreatedAt:      "users.created_at",
 	UpdatedAt:      "users.updated_at",
 	Image:          "users.image",
+	ActivatedAt:    "users.activated_at",
 }
 
 // Generated where
@@ -145,6 +150,7 @@ var UserWhere = struct {
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
 	Image          whereHelpernull_Bytes
+	ActivatedAt    whereHelpernull_Time
 }{
 	ID:             whereHelperstring{field: "\"users\".\"id\""},
 	Username:       whereHelperstring{field: "\"users\".\"username\""},
@@ -156,6 +162,7 @@ var UserWhere = struct {
 	CreatedAt:      whereHelpertime_Time{field: "\"users\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"users\".\"updated_at\""},
 	Image:          whereHelpernull_Bytes{field: "\"users\".\"image\""},
+	ActivatedAt:    whereHelpernull_Time{field: "\"users\".\"activated_at\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -175,9 +182,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "username", "email", "hashed_password", "full_name", "phone", "refresh", "created_at", "updated_at", "image"}
+	userAllColumns            = []string{"id", "username", "email", "hashed_password", "full_name", "phone", "refresh", "created_at", "updated_at", "image", "activated_at"}
 	userColumnsWithoutDefault = []string{"username", "email", "hashed_password", "full_name", "phone", "created_at", "updated_at"}
-	userColumnsWithDefault    = []string{"id", "refresh", "image"}
+	userColumnsWithDefault    = []string{"id", "refresh", "image", "activated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
