@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
-	"github.com/quible-io/quible-api/auth-service/service"
+	"github.com/quible-io/quible-api/auth-service/services/userService"
 	"github.com/quible-io/quible-api/lib/misc"
 )
 
@@ -22,14 +22,14 @@ var PublicUserFields = []string{"id", "full_name"}
 // @Tags			user,public
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserRegisterDTO	true	"User registration information"
+// @Param			request	body		userService.UserRegisterDTO	true	"User registration information"
 // @Success		201		{object}	UserResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
 // @Router		/user [post]
 func UserRegister(c *gin.Context) {
-	userService := getUserServiceFromContext(c)
-	var userRegisterDTO service.UserRegisterDTO
+	us := getUserServiceFromContext(c)
+	var userRegisterDTO userService.UserRegisterDTO
 	var errorCode ErrorCode
 	if err := c.ShouldBindJSON(&userRegisterDTO); err != nil {
 		errorCode = Err400_InvalidRequestBody
@@ -48,15 +48,15 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	if foundUser, _ := userService.GetUserByEmail(userRegisterDTO.Email); foundUser != nil {
+	if foundUser, _ := us.GetUserByEmail(userRegisterDTO.Email); foundUser != nil {
 		SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
 		return
 	}
-	if foundUser, _ := userService.GetUserByUsername(userRegisterDTO.Username); foundUser != nil {
+	if foundUser, _ := us.GetUserByUsername(userRegisterDTO.Username); foundUser != nil {
 		SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
 		return
 	}
-	createdUser, err := userService.CreateUser(&userRegisterDTO)
+	createdUser, err := us.CreateUser(&userRegisterDTO)
 	if err != nil {
 		log.Printf("unable to register user: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
@@ -73,28 +73,28 @@ func UserRegister(c *gin.Context) {
 // @Tags			user,public
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserLoginDTO	true	"User login credentials"
+// @Param			request	body		userService.UserLoginDTO	true	"User login credentials"
 // @Success		200		{object}	TokenResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
 // @Router		/login [post]
 func UserLogin(c *gin.Context) {
-	userService := getUserServiceFromContext(c)
+	us := getUserServiceFromContext(c)
 
-	var userLoginDTO service.UserLoginDTO
+	var userLoginDTO userService.UserLoginDTO
 	if err := c.ShouldBindJSON(&userLoginDTO); err != nil {
 		log.Printf("invalid request body: %q", err)
 		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
-	foundUser, _ := userService.GetUserByEmail(userLoginDTO.Email)
+	foundUser, _ := us.GetUserByEmail(userLoginDTO.Email)
 	if foundUser == nil {
 		log.Printf("user with given email not found: %q", userLoginDTO.Email)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
-	if err := userService.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
+	if err := us.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
 		log.Printf("invalid password: %+v", userLoginDTO)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
@@ -112,7 +112,7 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 	foundUser.Refresh = generatedRefreshToken.ID
-	if err := userService.Update(foundUser); err != nil {
+	if err := us.Update(foundUser); err != nil {
 		log.Printf("unable to associate refresh token with user: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
@@ -153,14 +153,14 @@ func UserGet(c *gin.Context) {
 // @Router		/user/{userId}/profile [get]
 func UserGetById(c *gin.Context) {
 	userId := c.Param("userId")
-	userService := getUserServiceFromContext(c)
-	user, err := userService.GetUserById(userId)
+	us := getUserServiceFromContext(c)
+	user, err := us.GetUserById(userId)
 	if err != nil || user == nil {
 		log.Printf("user not found: %q", userId)
 		SendError(c, http.StatusNotFound, Err404_UserNotFound)
 		return
 	}
-	imageData := userService.GetUserImage(user)
+	imageData := us.GetUserImage(user)
 	var imageDataURL string
 	if imageData != nil {
 		imageDataURL = fmt.Sprintf(
@@ -185,14 +185,14 @@ func UserGetById(c *gin.Context) {
 // @Tags			user,private
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserPatchDTO	true	"Partial user object to be used for update"
+// @Param			request	body		userService.UserPatchDTO	true	"Partial user object to be used for update"
 // @Success		200		{object}	UserResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
 // @Router		/user [patch]
 func UserPatch(c *gin.Context) {
-	var userPatchDTO service.UserPatchDTO
+	var userPatchDTO userService.UserPatchDTO
 	var errorCode ErrorCode
 	if err := c.ShouldBindJSON(&userPatchDTO); err != nil {
 		errorCode = Err400_InvalidRequestBody
@@ -227,8 +227,8 @@ func UserPatch(c *gin.Context) {
 			}
 		}
 	}
-	userService := getUserServiceFromContext(c)
-	if err := userService.Update(user); err != nil {
+	us := getUserServiceFromContext(c)
+	if err := us.Update(user); err != nil {
 		log.Printf("unable to update user: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
@@ -244,14 +244,14 @@ func UserPatch(c *gin.Context) {
 // @Tags			user,public
 // @Accept		json
 // @Produce		json
-// @Param			request	body		service.UserRefreshDTO	true	"User's refresh token"
+// @Param			request	body		userService.UserRefreshDTO	true	"User's refresh token"
 // @Success		200		{object}	TokenResponse
 // @Failure		400		{object}	ErrorResponse
 // @Failure		401		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
 // @Router		/user/refresh [post]
 func UserRefresh(c *gin.Context) {
-	var userRefreshDTO service.UserRefreshDTO
+	var userRefreshDTO userService.UserRefreshDTO
 	if err := c.ShouldBindJSON(&userRefreshDTO); err != nil {
 		errorFields := misc.ParseValidationError(err)
 		log.Printf("unmet request body constraints: %q", errorFields.GetAllFields())
@@ -267,8 +267,8 @@ func UserRefresh(c *gin.Context) {
 	}
 
 	userId := claims["userId"].(string)
-	userService := getUserServiceFromContext(c)
-	user, err := userService.GetUserById(userId)
+	us := getUserServiceFromContext(c)
+	user, err := us.GetUserById(userId)
 	if err != nil {
 		log.Printf("unable to retrieve user by id from the refresh token: %q", userId)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
@@ -294,7 +294,7 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 	user.Refresh = generatedRefreshToken.ID
-	if err := userService.Update(user); err != nil {
+	if err := us.Update(user); err != nil {
 		log.Printf("unable to associate refresh token with user: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
@@ -375,14 +375,14 @@ func UserUploadImage(c *gin.Context) {
 	}
 
 	// Create an ImageData instance
-	imageData := &service.ImageData{
+	imageData := &userService.ImageData{
 		ContentType:   file.Header.Get("Content-Type"),
 		BinaryContent: fileBytes,
 	}
 
 	// Save the image data to the user's record using UserService
-	userService := getUserServiceFromContext(c)
-	if err := userService.UpdateUserProfileImage(user.ID, imageData); err != nil {
+	us := getUserServiceFromContext(c)
+	if err := us.UpdateUserProfileImage(user.ID, imageData); err != nil {
 		log.Printf("unable to update user profile image: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
@@ -402,13 +402,13 @@ func UserUploadImage(c *gin.Context) {
 // @Router       /user/{userId}/image [get]
 func UserGetImage(c *gin.Context) {
 	userId := c.Param("userId")
-	userService := getUserServiceFromContext(c)
-	user, err := userService.GetUserById(userId)
+	us := getUserServiceFromContext(c)
+	user, err := us.GetUserById(userId)
 	if err != nil || user == nil {
 		SendError(c, http.StatusNotFound, Err404_UserNotFound)
 		return
 	}
-	imageData := userService.GetUserImage(user)
+	imageData := us.GetUserImage(user)
 	if imageData == nil {
 		SendError(c, http.StatusNotFound, Err404_UserHasNoImage)
 	} else {

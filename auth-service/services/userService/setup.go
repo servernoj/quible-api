@@ -1,4 +1,4 @@
-package service
+package userService
 
 import (
 	"context"
@@ -18,17 +18,6 @@ type ImageData struct {
 }
 
 const passwordHashCost = 15
-
-type UserInterface interface {
-	GetUserById(id int) (*models.User, error)
-	GetUserByEmail(email string) (*models.User, error)
-	GetUserByUsername(username string) (*models.User, error)
-	CreateUser(user models.User) (int, error)
-	Update(user models.User) error
-	Delete(id int) error
-	ValidatePassword(hashedPassword string, password string) error
-	HashPassword(password string) (string, error)
-}
 
 type UserService struct {
 	C context.Context

@@ -5,6 +5,5 @@ use (
 	./cmd
 	./app-service
 	./auth-service
-	./mail-service
 )
 

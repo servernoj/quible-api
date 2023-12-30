@@ -1,4 +1,4 @@
-package service
+package userService
 
 type UserRegisterDTO struct {
 	Username string `json:"username" binding:"required"`

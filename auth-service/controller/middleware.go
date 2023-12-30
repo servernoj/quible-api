@@ -7,20 +7,20 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/auth-service/service"
+	"github.com/quible-io/quible-api/auth-service/services/userService"
 	"github.com/quible-io/quible-api/lib/models"
 )
 
-func getUserServiceFromContext(c *gin.Context) *service.UserService {
+func getUserServiceFromContext(c *gin.Context) *userService.UserService {
 	serviceCandidate, ok := c.Get(serviceContextKey)
 	if !ok {
 		return nil
 	}
-	userService, ok := serviceCandidate.(*service.UserService)
+	us, ok := serviceCandidate.(*userService.UserService)
 	if !ok {
 		return nil
 	}
-	return userService
+	return us
 }
 
 func getUserFromContext(c *gin.Context) *models.User {
@@ -39,8 +39,8 @@ func getUserFromContext(c *gin.Context) *models.User {
 
 func authMiddleware(c *gin.Context) {
 	authToken := strings.TrimSpace(c.GetHeader("Authorization"))
-	userService := getUserServiceFromContext(c)
-	if userService == nil {
+	us := getUserServiceFromContext(c)
+	if us == nil {
 		log.Printf("unable to retrieve user service")
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
@@ -74,7 +74,7 @@ func authMiddleware(c *gin.Context) {
 		return
 	}
 	userId := tokenClaims["userId"].(string)
-	user, err := userService.GetUserById(userId)
+	user, err := us.GetUserById(userId)
 	if err != nil || user == nil {
 		log.Printf("user with id = %q not found", userId)
 		SendError(c, http.StatusUnauthorized, Err401_UserNotFound)
@@ -86,10 +86,10 @@ func authMiddleware(c *gin.Context) {
 
 // Inject user service object for all requests to use
 func injectUserService(c *gin.Context) {
-	userService := service.UserService{
-		// TODO: possibly need to send a dettached context instead of the original one
+	us := userService.UserService{
+		// TODO: possibly need to send a detached context instead of the original one
 		C: c.Request.Context(),
 	}
-	c.Set(serviceContextKey, &userService)
+	c.Set(serviceContextKey, &us)
 	c.Next()
 }

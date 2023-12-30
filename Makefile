@@ -19,6 +19,6 @@ build: docs
 
 run: docs	
 	go mod download
-	go run .
+	go run .	
 
 

@@ -1,0 +1,126 @@
+mixin alert-bg(bg='#0099E5', fg='#FFFFFF')
+  table(cellpadding='0', cellspacing='0', role='presentation', width='100%')
+    tr
+      td( 
+        bgcolor=bg,
+        style='color: ' + fg + ';',
+        style='padding: 16px 32px;',
+      )
+        block
+
+mixin alert-outlined(border='2px solid #0099E5', fg='#0099E5')
+  table(
+    cellspacing='0',
+    role='presentation',
+    width='100%',
+    style='border: ' + border,
+  )
+    tr
+      td(
+        style='color: ' + fg + ';',
+        style='padding: 16px 32px;'
+      )
+        block
+
+mixin label-bg(bg='#2C3E51', fg='#FFFFFF')  
+  span(
+    style='color: ' + fg + ';',
+    style='background-color: ' + bg + ';',
+    style='border-width: 2px 4px;',
+    style='mso-border-width-alt: 4px;',
+    style='border-style: solid;',
+    style='border-color: #2C3E51;',
+    style='border-radius: 3px;',
+    style='font-size: 75%;',
+    style='line-height: 100%;',
+    style='mso-line-height-rule: exactly;',
+  )
+    block
+
+mixin label-outlined(border='2px solid #0099E5', fg='#0099E5')
+  span(
+    style='color: ' + fg + ';',
+    style='border: ' + border + ';',
+    style='padding: 1px 4px;',
+    style='mso-padding-alt: 4px;',
+    style='border-radius: 3px;',
+    style='font-size: 75%;',
+    style='line-height: 100%;',
+    style='mso-line-height-rule: exactly;',
+  )
+    block
+
+mixin button-bg(url, bg='#2C3E51', fg='#FFFFFF')
+  table(cellpadding='0', cellspacing='0', role='presentation')
+    tr
+      th(
+        bgcolor=bg,
+        style='border-radius: 3px;',
+        style='mso-padding-alt: 6px 42px 12px;',
+      )
+        a(
+          href=url,
+          style='color: ' + fg + ';',
+          style='display: inline-block;',
+          style='font-size: 13px;',
+          style='line-height: 100%;',
+          style='padding: 12px 42px;',
+          style='text-decoration: none;',
+        )
+          block
+
+mixin button-outlined(url, border='2px solid #2C3E51', fg='#2C3E51')
+  table(cellpadding='0', cellspacing='0', role='presentation')
+    tr
+      th(
+        style='border: ' + border + ';', 
+        style='border-radius: 3px;',
+        style='mso-padding-alt: 6px 42px 12px;',
+      )
+        a(
+          href=url,
+          style='color: ' + fg + ';',
+          style='display: inline-block;',
+          style='font-size: 13px;',
+          style='line-height: 100%;',
+          style='padding: 12px 42px;',
+          style='text-decoration: none;',
+        )
+          block
+
+mixin divider(fg='#2C3E51')
+  table(cellpadding='0', cellspacing='0', role='presentation', width='100%')
+    tr
+      td.divider(style='padding: 24px 16px;')
+        div(
+          style='background: ' + fg + ';',
+          style='height: 1px;',
+          style='line-height: 1px;',
+        )
+          block
+            span &nbsp;
+
+mixin spacer(height=16)
+  table(cellpadding='0', cellspacing='0', role='presentation', width='100%')
+    tr
+      td.spacer(
+        height=height,
+      )
+        block
+          span &nbsp;
+
+mixin spacer2(height='16px')
+  //- a.k.a. "universal" spacer, will be eliminated on mobile
+  div(
+    class='spacer',
+    style='line-height: ' + height + ';',
+  )
+    block
+      span &nbsp;
+
+
+
+
+
+          
+

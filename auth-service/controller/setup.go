@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	c "github.com/quible-io/quible-api/lib/controller"
 )
 
@@ -13,6 +14,9 @@ var WithHealth = c.WithHealth
 
 // Add "swagger" endpoint at /docs
 var WithSwagger = c.WithSwagger
+
+// Add "email tester" endpoint at /email-tester
+var WithEmailTester = c.WithEmailTester
 
 // Setup the controller and all handlers
 func Setup(g *gin.RouterGroup, options ...c.Option) {
@@ -33,4 +37,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.PATCH("/user", UserPatch)
 	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
+	WithEmailTester(emailService.Handlers)(protected)
 }

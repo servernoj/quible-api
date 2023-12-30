@@ -1,0 +1,82 @@
+mixin row(padding='0 24px')
+  table(cellpadding='0' cellspacing='0' role='presentation' width='100%')
+    tr
+      td(
+        style='padding: ' + padding + ';',
+      )
+        table(cellpadding='0' cellspacing='0' role='presentation' width='100%')
+          tr.full-width-sm
+            block
+mixin c1-of-4(isCol=true)
+  td(
+    class=isCol ? 'col' : ''
+    width='138'
+  )
+    block
+mixin c2-of-4(isCol=true)
+  td(
+    class=isCol ? 'col' : ''
+    width='276'
+  )
+    block    
+mixin c3-of-4(isCol=true)
+  td(
+    class=isCol ? 'col' : ''
+    width='414'
+  )
+    block
+mixin c4-of-4
+  td.col(width='100%')
+    block
+mixin c1-of-3(isCol=true)
+  td(
+    class=isCol ? 'col' : ''
+    width='184'
+  )
+    block
+mixin c2-of-3(isCol=true)
+  td(
+    class=isCol ? 'col' : ''
+    width='368'
+  )
+    block    
+mixin c3-of-3
+  td.col(width='100%')
+    block    
+mixin c1-of-2(isCol=true)
+  td(
+    class=isCol ? 'col' : ''
+    width='276'
+  )
+    block  
+mixin c2-of-2
+  td.col(width='100%')
+    block    
+mixin c1-of-1
+  td.col(width='100%')
+    block  
+
+mixin wrapper(bg='#FFF')
+  table(
+    lang="en", 
+    bgcolor=bg, 
+    cellpadding="16", 
+    cellspacing="0", 
+    role="presentation", 
+    width="100%"
+  )
+    tr
+      td(align="center")
+        block
+
+mixin container(bg='#FFF')
+  table.container(
+    bgcolor=bg, 
+    cellpadding="0", 
+    cellspacing="0", 
+    role="presentation", 
+    width="600"
+  )
+    tr
+      td(align="left")
+        block
