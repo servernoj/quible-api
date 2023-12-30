@@ -12,6 +12,8 @@ import (
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
 	"github.com/quible-io/quible-api/lib/misc"
+	"github.com/quible-io/quible-api/lib/models"
+	"golang.org/x/sync/errgroup"
 )
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
@@ -94,23 +96,47 @@ func UserLogin(c *gin.Context) {
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
+	if foundUser.ActivatedAt.Ptr() == nil {
+		log.Printf("not activated user is attempted to login: %q", userLoginDTO.Email)
+		SendError(c, http.StatusUnauthorized, Err401_UserNotActivated)
+		return
+	}
 	if err := us.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
 		log.Printf("invalid password: %+v", userLoginDTO)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
-	generatedAccessToken, err := generateToken(foundUser, false)
-	if err != nil {
-		log.Printf("unable to generate access token: %q", err)
+
+	type TokenJob struct {
+		user      *models.User
+		isRefresh bool
+		result    *GeneratedToken
+	}
+	var generatedAccessToken, generatedRefreshToken GeneratedToken
+	jobs := map[string]TokenJob{
+		"access":  {foundUser, false, &generatedAccessToken},
+		"refresh": {foundUser, true, &generatedRefreshToken},
+	}
+	g := new(errgroup.Group)
+	for name, job := range jobs {
+		job, name := job, name
+		g.Go(
+			func() error {
+				generatedToken, err := generateToken(job.user, job.isRefresh)
+				if err != nil {
+					log.Printf("unable to generate %s token: %q", name, err)
+					return err
+				}
+				*job.result = generatedToken
+				return nil
+			},
+		)
+	}
+	if err := g.Wait(); err != nil {
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
 		return
 	}
-	generatedRefreshToken, err := generateToken(foundUser, true)
-	if err != nil {
-		log.Printf("unable to generate refresh token: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
-		return
-	}
+
 	foundUser.Refresh = generatedRefreshToken.ID
 	if err := us.Update(foundUser); err != nil {
 		log.Printf("unable to associate refresh token with user: %q", err)

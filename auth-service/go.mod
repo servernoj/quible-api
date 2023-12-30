@@ -16,6 +16,7 @@ require (
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler/v4 v4.15.0
 	golang.org/x/crypto v0.16.0
+	golang.org/x/sync v0.1.0
 )
 
 require (
@@ -52,7 +53,6 @@ require (
 	github.com/volatiletech/strmangle v0.0.5 // indirect
 	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect

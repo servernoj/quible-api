@@ -58,6 +58,7 @@ const (
 	Err401_AuthorizationExpired
 	Err401_InvalidRefreshToken
 	Err401_UserNotFound
+	Err401_UserNotActivated
 )
 
 const (
@@ -117,6 +118,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err401_AuthorizationExpired:       "session expired",
 		Err401_InvalidRefreshToken:        "invalid refresh token",
 		Err401_UserNotFound:               "no user found",
+		Err401_UserNotActivated:           "user is not activated",
 	},
 	// 403
 	http.StatusForbidden: {
