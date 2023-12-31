@@ -50,15 +50,6 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	// if foundUser, _ = us.GetUserByEmail(userRegisterDTO.Email); foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
-	// 	SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
-	// 	return
-	// }
-	// if foundUser, _ = us.GetUserByUsername(userRegisterDTO.Username); foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
-	//	SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
-	// 	return
-	// }
-
 	foundUser, _ := us.GetUserByUsernameOrEmail(&userRegisterDTO)
 	if foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
 		SendError(c, http.StatusBadRequest, Err400_UserWithEmailOrUsernameExists)

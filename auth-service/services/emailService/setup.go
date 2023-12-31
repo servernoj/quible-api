@@ -8,9 +8,11 @@ package emailService
 // `go generate` command and will result in creation of Go sources with defined handlers/inflators.
 
 //go:generate jade -pkg=emailService -stdlib -stdbuf templates/demo.pug
+//go:generate jade -pkg=emailService -stdlib -stdbuf templates/userActivation.pug
 
 var Handlers = map[string]any{
-	"Demo": Demo,
+	"Demo":           Demo,
+	"UserActivation": UserActivation,
 }
 
 func ternary(condition bool, iftrue, iffalse any) any {
