@@ -67,18 +67,7 @@ func UserRegister(c *gin.Context) {
 
 	var user *models.User
 	if foundUser != nil {
-		inflatedUser, err := us.InflateUser(&userRegisterDTO)
-		if err != nil {
-			log.Printf("unable to convert registration data into user object: %q", err)
-			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
-			return
-		}
-		foundUser.Email = inflatedUser.Email
-		foundUser.Username = inflatedUser.Username
-		foundUser.FullName = inflatedUser.FullName
-		foundUser.Phone = inflatedUser.Phone
-		foundUser.HashedPassword = inflatedUser.HashedPassword
-		if err := us.Update(foundUser); err != nil {
+		if err := us.UpdateWith(foundUser, &userRegisterDTO); err != nil {
 			log.Printf("unable to update existing user with registration data: %q", err)
 			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
 			return

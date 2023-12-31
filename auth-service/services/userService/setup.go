@@ -42,7 +42,7 @@ func (s *UserService) GetUserByUsernameOrEmail(dto *UserRegisterDTO) (*models.Us
 	).OneG(s.C)
 }
 
-func (s *UserService) InflateUser(dto *UserRegisterDTO) (*models.User, error) {
+func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 	hashedPassword, err := s.HashPassword(dto.Password)
 	if err != nil {
 		return nil, ErrHashPassword
@@ -54,11 +54,6 @@ func (s *UserService) InflateUser(dto *UserRegisterDTO) (*models.User, error) {
 		Phone:          dto.Phone,
 		HashedPassword: hashedPassword,
 	}
-	return user, nil
-}
-
-func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
-	user, err := s.InflateUser(dto)
 
 	if err != nil {
 		return nil, err
@@ -72,11 +67,28 @@ func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 }
 
 func (s *UserService) Update(user *models.User) error {
-	userInDB, _ := models.FindUserG(s.C, user.ID)
-	if userInDB == nil {
+	if userExists, err := models.UserExistsG(s.C, user.ID); err != nil || !userExists {
 		return ErrUserNotFound
 	}
 	_, err := user.UpdateG(s.C, boil.Infer())
+	return err
+}
+
+func (s *UserService) UpdateWith(user *models.User, dto *UserRegisterDTO) error {
+	if userExists, err := models.UserExistsG(s.C, user.ID); err != nil || !userExists {
+		return ErrUserNotFound
+	}
+	hashedPassword, err := s.HashPassword(dto.Password)
+	if err != nil {
+		return ErrHashPassword
+	}
+	user.Email = dto.Email
+	user.Username = dto.Username
+	user.FullName = dto.FullName
+	user.Phone = dto.Phone
+	user.HashedPassword = hashedPassword
+
+	_, err = user.UpdateG(s.C, boil.Infer())
 	return err
 }
 
