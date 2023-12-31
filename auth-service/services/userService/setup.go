@@ -35,7 +35,14 @@ func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
 	return models.Users(qm.Where("username = $1", username)).OneG(s.C)
 }
 
-func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
+func (s *UserService) GetUserByUsernameOrEmail(dto *UserRegisterDTO) (*models.User, error) {
+	return models.Users(
+		qm.Or2(models.UserWhere.Email.EQ(dto.Email)),
+		qm.Or2(models.UserWhere.Username.EQ(dto.Username)),
+	).OneG(s.C)
+}
+
+func (s *UserService) InflateUser(dto *UserRegisterDTO) (*models.User, error) {
 	hashedPassword, err := s.HashPassword(dto.Password)
 	if err != nil {
 		return nil, ErrHashPassword
@@ -47,7 +54,17 @@ func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 		Phone:          dto.Phone,
 		HashedPassword: hashedPassword,
 	}
-	err = user.InsertG(s.C, boil.Blacklist("id", "image", "is_oauth"))
+	return user, nil
+}
+
+func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
+	user, err := s.InflateUser(dto)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.InsertG(s.C, boil.Blacklist("id", "image"))
 	if err != nil {
 		return nil, err
 	}

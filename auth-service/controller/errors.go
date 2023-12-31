@@ -49,6 +49,7 @@ const (
 	Err400_InvalidRequestBody
 	Err400_FileTooLarge
 	Err400_InvalidClientId
+	Err400_UserWithEmailOrUsernameExists
 )
 
 const (
@@ -109,6 +110,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_InvalidRequestBody:            "invalid request body",
 		Err400_FileTooLarge:                  "invalid file size",
 		Err400_InvalidClientId:               "unexpected clientId",
+		Err400_UserWithEmailOrUsernameExists: "activated user with such username or email exists",
 	},
 	// 401
 	http.StatusUnauthorized: {

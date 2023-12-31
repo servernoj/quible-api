@@ -50,23 +50,52 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	if foundUser, _ := us.GetUserByEmail(userRegisterDTO.Email); foundUser != nil {
-		SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
+	// if foundUser, _ = us.GetUserByEmail(userRegisterDTO.Email); foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
+	// 	SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
+	// 	return
+	// }
+	// if foundUser, _ = us.GetUserByUsername(userRegisterDTO.Username); foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
+	//	SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
+	// 	return
+	// }
+
+	foundUser, _ := us.GetUserByUsernameOrEmail(&userRegisterDTO)
+	if foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
+		SendError(c, http.StatusBadRequest, Err400_UserWithEmailOrUsernameExists)
 		return
 	}
-	if foundUser, _ := us.GetUserByUsername(userRegisterDTO.Username); foundUser != nil {
-		SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
-		return
-	}
-	createdUser, err := us.CreateUser(&userRegisterDTO)
-	if err != nil {
-		log.Printf("unable to register user: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
-		return
+
+	var user *models.User
+	if foundUser != nil {
+		inflatedUser, err := us.InflateUser(&userRegisterDTO)
+		if err != nil {
+			log.Printf("unable to convert registration data into user object: %q", err)
+			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
+			return
+		}
+		foundUser.Email = inflatedUser.Email
+		foundUser.Username = inflatedUser.Username
+		foundUser.FullName = inflatedUser.FullName
+		foundUser.Phone = inflatedUser.Phone
+		foundUser.HashedPassword = inflatedUser.HashedPassword
+		if err := us.Update(foundUser); err != nil {
+			log.Printf("unable to update existing user with registration data: %q", err)
+			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
+			return
+		}
+		user = foundUser
+	} else {
+		createdUser, err := us.CreateUser(&userRegisterDTO)
+		if err != nil {
+			log.Printf("unable to register user: %q", err)
+			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
+			return
+		}
+		user = createdUser
 	}
 	c.JSON(
 		http.StatusCreated,
-		misc.PickFields(createdUser, UserFields...),
+		misc.PickFields(user, UserFields...),
 	)
 }
 
