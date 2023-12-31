@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -53,6 +54,7 @@ func Server() {
 	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.Use(location.Default())
 	// CORS
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true

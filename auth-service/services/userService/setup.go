@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/null/v8"
@@ -71,6 +72,17 @@ func (s *UserService) Update(user *models.User) error {
 		return ErrUserNotFound
 	}
 	_, err := user.UpdateG(s.C, boil.Infer())
+	return err
+}
+
+func (s *UserService) ActivateUser(userId string) error {
+	var err error
+	var user *models.User
+	if user, err = models.FindUserG(s.C, userId); err != nil || user == nil {
+		return ErrUserNotFound
+	}
+	user.ActivatedAt = null.TimeFrom(time.Now())
+	_, err = user.UpdateG(s.C, boil.Infer())
 	return err
 }
 

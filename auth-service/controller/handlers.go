@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
@@ -79,8 +80,18 @@ func UserRegister(c *gin.Context) {
 	g := new(errgroup.Group)
 	g.Go(
 		func() error {
+			token, _ := generateToken(user, false)
 			var html bytes.Buffer
-			emailService.UserActivation(user.FullName, "https://google.com", &html)
+			emailService.UserActivation(
+				user.FullName,
+				fmt.Sprintf(
+					"%s%s/activate?token=%s",
+					location.Get(c).String(),
+					c.Request.URL.String(),
+					token.String(),
+				),
+				&html,
+			)
 			return email.Send(c.Request.Context(), email.EmailDTO{
 				From:     "no-reply@quible.tech",
 				To:       user.Email,
@@ -99,6 +110,24 @@ func UserRegister(c *gin.Context) {
 		http.StatusCreated,
 		misc.PickFields(user, UserFields...),
 	)
+}
+
+func UserActivate(c *gin.Context) {
+	us := getUserServiceFromContext(c)
+	token := c.Request.URL.Query().Get("token")
+	tokenClaims, err := verifyJWT(token, false)
+	if err != nil {
+		log.Printf("unable to verify token: %q", err)
+		c.String(http.StatusExpectationFailed, "Unable to verify the request")
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	if err := us.ActivateUser(userId); err != nil {
+		log.Printf("unable to activate user: %q", err)
+		c.String(http.StatusInternalServerError, "Unable to activate user account")
+		return
+	}
+	c.String(http.StatusOK, "Account has been successfully activated")
 }
 
 // @Summary		Login

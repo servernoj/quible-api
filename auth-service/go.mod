@@ -7,6 +7,7 @@ replace github.com/quible-io/quible-api/lib => ../lib
 require (
 	github.com/ably/ably-go v1.2.14
 	github.com/gin-contrib/cors v1.5.0
+	github.com/gin-contrib/location v0.0.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
