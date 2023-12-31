@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -10,7 +11,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
+	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
+	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"golang.org/x/sync/errgroup"
@@ -49,13 +52,12 @@ func UserRegister(c *gin.Context) {
 		SendError(c, http.StatusBadRequest, errorCode)
 		return
 	}
-
 	foundUser, _ := us.GetUserByUsernameOrEmail(&userRegisterDTO)
 	if foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
 		SendError(c, http.StatusBadRequest, Err400_UserWithEmailOrUsernameExists)
 		return
 	}
-
+	// branch on whether the user exists or not
 	var user *models.User
 	if foundUser != nil {
 		if err := us.UpdateWith(foundUser, &userRegisterDTO); err != nil {
@@ -73,6 +75,26 @@ func UserRegister(c *gin.Context) {
 		}
 		user = createdUser
 	}
+	// send activation email
+	g := new(errgroup.Group)
+	g.Go(
+		func() error {
+			var html bytes.Buffer
+			emailService.UserActivation(user.FullName, "https://google.com", &html)
+			return email.Send(c.Request.Context(), email.EmailDTO{
+				From:     "no-reply@quible.tech",
+				To:       user.Email,
+				Subject:  "Activate your Quible account",
+				HTMLBody: html.String(),
+			})
+		},
+	)
+	if err := g.Wait(); err != nil {
+		log.Printf("unable to send activation email: %q", err)
+		SendError(c, http.StatusFailedDependency, Err424_UnableToSendEmail)
+		return
+	}
+	// response with user profile as data
 	c.JSON(
 		http.StatusCreated,
 		misc.PickFields(user, UserFields...),

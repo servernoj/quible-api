@@ -8,7 +8,9 @@ import (
 	"github.com/quible-io/quible-api/lib/email/postmark"
 )
 
-func Send(ctx context.Context, email postmark.EmailDTO) error {
+type EmailDTO = postmark.EmailDTO
+
+func Send(ctx context.Context, email EmailDTO) error {
 
 	var NewClient = postmark.NewClient
 

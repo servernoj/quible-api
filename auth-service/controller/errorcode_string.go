@@ -36,6 +36,7 @@ func _() {
 	_ = x[Err404_UserNotFound-4041004]
 	_ = x[Err404_UserHasNoImage-4041005]
 	_ = x[Err424_UnknownError-4241001]
+	_ = x[Err424_UnableToSendEmail-4241002]
 	_ = x[Err429_EditRequestTimedOut-4291001]
 	_ = x[Err500_UnknownError-5001001]
 	_ = x[Err500_UnableToDelete-5001002]
@@ -52,7 +53,7 @@ const (
 	_ErrorCode_name_2 = "Err401_InvalidCredentialsErr401_AuthorizationHeaderMissingErr401_AuthorizationHeaderInvalidErr401_AuthorizationExpiredErr401_InvalidRefreshTokenErr401_UserNotFoundErr401_UserNotActivated"
 	_ErrorCode_name_3 = "Err403_CannotToDeleteErr403_CannotEditPhone"
 	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFoundErr404_UserNotFoundErr404_UserHasNoImage"
-	_ErrorCode_name_5 = "Err424_UnknownError"
+	_ErrorCode_name_5 = "Err424_UnknownErrorErr424_UnableToSendEmail"
 	_ErrorCode_name_6 = "Err429_EditRequestTimedOut"
 	_ErrorCode_name_7 = "Err500_UnknownErrorErr500_UnableToDeleteErr500_UnableToEditPhoneErr500_UnableToRegisterErr500_UnableToGenerateToken"
 	_ErrorCode_name_8 = "Err503_DataBaseOnDeleteErr503_DataBaseOnPhoneEdit"
@@ -63,6 +64,7 @@ var (
 	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 144, 163, 186}
 	_ErrorCode_index_3 = [...]uint8{0, 21, 43}
 	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74, 93, 114}
+	_ErrorCode_index_5 = [...]uint8{0, 19, 43}
 	_ErrorCode_index_7 = [...]uint8{0, 19, 40, 64, 87, 115}
 	_ErrorCode_index_8 = [...]uint8{0, 23, 49}
 )
@@ -83,8 +85,9 @@ func (i ErrorCode) String() string {
 	case 4041001 <= i && i <= 4041005:
 		i -= 4041001
 		return _ErrorCode_name_4[_ErrorCode_index_4[i]:_ErrorCode_index_4[i+1]]
-	case i == 4241001:
-		return _ErrorCode_name_5
+	case 4241001 <= i && i <= 4241002:
+		i -= 4241001
+		return _ErrorCode_name_5[_ErrorCode_index_5[i]:_ErrorCode_index_5[i+1]]
 	case i == 4291001:
 		return _ErrorCode_name_6
 	case 5001001 <= i && i <= 5001005:

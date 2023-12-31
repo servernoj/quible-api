@@ -75,6 +75,7 @@ const (
 )
 const (
 	Err424_UnknownError ErrorCode = Err424_Shift + iota + 1
+	Err424_UnableToSendEmail
 )
 const (
 	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
@@ -137,7 +138,8 @@ var errorMap = c.ErrorMap[ErrorCode]{
 	},
 	// 424
 	http.StatusFailedDependency: {
-		Err424_UnknownError: "unknown error",
+		Err424_UnknownError:      "unknown error",
+		Err424_UnableToSendEmail: "unable to send email",
 	},
 	// 429
 	http.StatusTooManyRequests: {
