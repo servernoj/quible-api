@@ -7,9 +7,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 
-	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
@@ -81,12 +81,21 @@ func UserRegister(c *gin.Context) {
 	g.Go(
 		func() error {
 			token, _ := generateToken(user, Activate)
+			var host string
+			switch os.Getenv("ENV_DEPLOYMENT") {
+			case "dev":
+				host = "https://auth.dev.quible.io"
+			case "prod":
+				host = "https://auth.prod.quible.io"
+			default:
+				host = os.Getenv("ENV_URL_AUTH_SERVICE")
+			}
 			var html bytes.Buffer
 			emailService.UserActivation(
 				user.FullName,
 				fmt.Sprintf(
 					"%s%s/activate?token=%s",
-					location.Get(c).String(),
+					host,
 					c.Request.URL.String(),
 					token.String(),
 				),
