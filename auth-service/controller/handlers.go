@@ -80,7 +80,7 @@ func UserRegister(c *gin.Context) {
 	g := new(errgroup.Group)
 	g.Go(
 		func() error {
-			token, _ := generateToken(user, false)
+			token, _ := generateToken(user, Activate)
 			var html bytes.Buffer
 			emailService.UserActivation(
 				user.FullName,
@@ -115,7 +115,7 @@ func UserRegister(c *gin.Context) {
 func UserActivate(c *gin.Context) {
 	us := getUserServiceFromContext(c)
 	token := c.Request.URL.Query().Get("token")
-	tokenClaims, err := verifyJWT(token, false)
+	tokenClaims, err := verifyJWT(token, Activate)
 	if err != nil {
 		log.Printf("unable to verify token: %q", err)
 		c.String(http.StatusExpectationFailed, "Unable to verify the request")
@@ -168,21 +168,21 @@ func UserLogin(c *gin.Context) {
 	}
 
 	type TokenJob struct {
-		user      *models.User
-		isRefresh bool
-		result    *GeneratedToken
+		user   *models.User
+		action TokenAction
+		result *GeneratedToken
 	}
 	var generatedAccessToken, generatedRefreshToken GeneratedToken
 	jobs := map[string]TokenJob{
-		"access":  {foundUser, false, &generatedAccessToken},
-		"refresh": {foundUser, true, &generatedRefreshToken},
+		"access":  {foundUser, Access, &generatedAccessToken},
+		"refresh": {foundUser, Refresh, &generatedRefreshToken},
 	}
 	g := new(errgroup.Group)
 	for name, job := range jobs {
 		job, name := job, name
 		g.Go(
 			func() error {
-				generatedToken, err := generateToken(job.user, job.isRefresh)
+				generatedToken, err := generateToken(job.user, job.action)
 				if err != nil {
 					log.Printf("unable to generate %s token: %q", name, err)
 					return err
@@ -345,7 +345,7 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 
-	claims, err := verifyJWT(userRefreshDTO.RefreshToken, true)
+	claims, err := verifyJWT(userRefreshDTO.RefreshToken, Refresh)
 	if err != nil {
 		log.Printf("invalid refresh token: %q", err)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
@@ -367,13 +367,13 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 
-	generatedAccessToken, err := generateToken(user, false)
+	generatedAccessToken, err := generateToken(user, Access)
 	if err != nil {
 		log.Printf("unable to generate access token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
 		return
 	}
-	generatedRefreshToken, err := generateToken(user, true)
+	generatedRefreshToken, err := generateToken(user, Refresh)
 	if err != nil {
 		log.Printf("unable to generate refresh token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
