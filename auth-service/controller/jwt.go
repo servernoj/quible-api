@@ -25,7 +25,6 @@ const (
 type MyClaims struct {
 	jwt.StandardClaims
 	UserId string      `json:"userId"`
-	Email  string      `json:"email"`
 	Action TokenAction `json:"action"`
 }
 
@@ -45,17 +44,27 @@ func generateToken(user *models.User, action TokenAction) (GeneratedToken, error
 	if action == Refresh {
 		tokenLifespan = REFRESH_TOKEN_DURATION
 	}
-	standardClaims := jwt.StandardClaims{
-		Id:        tokenId,
-		Issuer:    APPLICATION_NAME,
-		ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+	// standardClaims := jwt.StandardClaims{
+	// 	Id:        tokenId,
+	// 	Issuer:    APPLICATION_NAME,
+	// 	ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+	// }
+	// claims := MyClaims{
+	// 	StandardClaims: standardClaims,
+	// 	UserId:         user.ID,
+	// 	Email:          user.Email,
+	// 	Action:         action,
+	// }
+	var claims MyClaims = MyClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+		},
+		UserId: user.ID,
+		Action: action,
 	}
-
-	claims := MyClaims{
-		StandardClaims: standardClaims,
-		UserId:         user.ID,
-		Email:          user.Email,
-		Action:         action,
+	if action == Access || action == Refresh {
+		claims.StandardClaims.Id = tokenId
+		claims.StandardClaims.Issuer = APPLICATION_NAME
 	}
 
 	token := jwt.NewWithClaims(
@@ -94,8 +103,10 @@ func verifyJWT(tokenString string, action TokenAction) (jwt.MapClaims, error) {
 			if _, ok := mapClaims["userId"].(string); !ok {
 				return "", ErrTokenMissingUserId
 			}
-			if _, ok := mapClaims["jti"].(string); !ok {
-				return "", ErrTokenMissingTokenId
+			if action == Access || action == Refresh {
+				if _, ok := mapClaims["jti"].(string); !ok {
+					return "", ErrTokenMissingTokenId
+				}
 			}
 			return []byte(os.Getenv("ENV_JWT_SECRET")), nil
 		},

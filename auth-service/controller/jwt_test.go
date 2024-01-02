@@ -48,7 +48,6 @@ func TestGenerateToken(t *testing.T) {
 			// Claims Verification
 			if claims, ok := parsedToken.Claims.(*MyClaims); ok && parsedToken.Valid {
 				assert.Equal(t, claims.UserId, tc.user.ID)
-				assert.Equal(t, claims.Email, tc.user.Email)
 			} else {
 				t.Fatal("Failed to parse token claims or token is not valid")
 			}
