@@ -17,9 +17,10 @@ var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 type TokenAction string
 
 const (
-	Access   TokenAction = "Access"
-	Refresh  TokenAction = "Refresh"
-	Activate TokenAction = "Activate"
+	Access        TokenAction = "Access"
+	Refresh       TokenAction = "Refresh"
+	Activate      TokenAction = "Activate"
+	PasswordReset TokenAction = "PasswordReset"
 )
 
 type MyClaims struct {

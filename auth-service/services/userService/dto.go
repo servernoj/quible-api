@@ -22,3 +22,12 @@ type UserLoginDTO struct {
 type UserRefreshDTO struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
+
+type UserRequestNewPasswordDTO struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type UserResetPasswordDTO struct {
+	Password        string `form:"password" binding:"required,min=6,eqfield=ConfirmPassword"`
+	ConfirmPassword string `form:"confirm-password"`
+}

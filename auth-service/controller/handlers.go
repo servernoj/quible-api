@@ -11,6 +11,7 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
@@ -94,9 +95,8 @@ func UserRegister(c *gin.Context) {
 			emailService.UserActivation(
 				user.FullName,
 				fmt.Sprintf(
-					"%s%s/activate?token=%s",
+					"%s/api/v1/user/activate?token=%s",
 					host,
-					c.Request.URL.String(),
 					token.String(),
 				),
 				&html,
@@ -516,4 +516,129 @@ func UserGetImage(c *gin.Context) {
 	} else {
 		c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 	}
+}
+
+func UserRequestNewPassword(c *gin.Context) {
+	var userRequestNewPasswordDTO userService.UserRequestNewPasswordDTO
+	if err := c.ShouldBindJSON(&userRequestNewPasswordDTO); err != nil {
+		errorFields := misc.ParseValidationError(err)
+		log.Printf("unmet request body constraints: %q", errorFields.GetAllFields())
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+	us := getUserServiceFromContext(c)
+	user, err := us.GetUserByEmail(userRequestNewPasswordDTO.Email)
+	if err != nil || user == nil {
+		log.Printf("unable to locate user")
+		SendError(c, http.StatusBadRequest, Err400_EmailNotRegistered)
+		return
+	}
+	// send password reset email
+	token, _ := generateToken(user, PasswordReset)
+	var host string
+	switch os.Getenv("ENV_DEPLOYMENT") {
+	case "dev":
+		host = "https://auth.dev.quible.io"
+	case "prod":
+		host = "https://auth.prod.quible.io"
+	default:
+		host = os.Getenv("ENV_URL_AUTH_SERVICE")
+	}
+	var html bytes.Buffer
+	emailService.UserActivation(
+		user.FullName,
+		fmt.Sprintf(
+			"%s/api/v1/password-reset?token=%s",
+			host,
+			token.String(),
+		),
+		&html,
+	)
+	if err := email.Send(c.Request.Context(), email.EmailDTO{
+		From:     "no-reply@quible.tech",
+		To:       user.Email,
+		Subject:  "Password reset",
+		HTMLBody: html.String(),
+	}); err != nil {
+		log.Printf("unable to send password reset email: %q", err)
+		SendError(c, http.StatusFailedDependency, Err424_UnableToSendEmail)
+		return
+	}
+	c.String(http.StatusAccepted, "Password reset request accepted")
+}
+
+func UserPasswordResetForm(c *gin.Context) {
+	us := getUserServiceFromContext(c)
+	token := c.Request.URL.Query().Get("token")
+	tokenClaims, err := verifyJWT(token, PasswordReset)
+	if err != nil {
+		log.Printf("unable to verify token: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Unable to verify the request (possibly invalid link)",
+			},
+		)
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	user, err := us.GetUserById(userId)
+	if err != nil || user == nil {
+		log.Printf("unable to locate requested user: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Account not found",
+			},
+		)
+		return
+	}
+	c.HTML(http.StatusOK, "password.html", gin.H{
+		"error": nil,
+	})
+}
+
+func UserPasswordResetAction(c *gin.Context) {
+	us := getUserServiceFromContext(c)
+	token := c.Request.URL.Query().Get("token")
+	tokenClaims, err := verifyJWT(token, PasswordReset)
+	if err != nil {
+		log.Printf("unable to verify token: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Unable to verify the request (possibly invalid link)",
+			},
+		)
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	user, err := us.GetUserById(userId)
+	if err != nil || user == nil {
+		log.Printf("unable to locate requested user: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Account not found",
+			},
+		)
+		return
+	}
+	var userResetPasswordDTO userService.UserResetPasswordDTO
+	if err := c.ShouldBindWith(&userResetPasswordDTO, binding.FormPost); err != nil {
+		log.Printf("password validation failed: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Password(s) don't match or have insufficient complexity",
+			},
+		)
+		return
+	}
+	c.String(http.StatusOK, "Password has been successfully reset")
 }
