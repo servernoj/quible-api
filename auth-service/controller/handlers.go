@@ -121,6 +121,13 @@ func UserRegister(c *gin.Context) {
 	)
 }
 
+// @Summary		Activate new user
+// @Description	Handles click from activation email
+// @Tags			user,public
+// @Produce		text/plain
+// @Param			token	query		string	false	"JWT token generated during registration"
+// @Success		200	{string}	string
+// @Router		/user/activate [get]
 func UserActivate(c *gin.Context) {
 	us := getUserServiceFromContext(c)
 	token := c.Request.URL.Query().Get("token")
