@@ -27,6 +27,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 
 	g.GET("docs/errors", ErrorMap.GetErrorCodes)
 	// -- Public API
+	g.POST("/live-push", LivePush)
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
 	protected.GET("/schedule-season", ScheduleSeason)
@@ -37,4 +38,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/player-stats", PlayerStats)
 	protected.GET("/injuries", Injuries)
 	protected.GET("/live", LiveFeed)
+
 }
