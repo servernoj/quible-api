@@ -545,7 +545,7 @@ func UserRequestNewPassword(c *gin.Context) {
 		host = os.Getenv("ENV_URL_AUTH_SERVICE")
 	}
 	var html bytes.Buffer
-	emailService.UserActivation(
+	emailService.PasswordReset(
 		user.FullName,
 		fmt.Sprintf(
 			"%s/api/v1/password-reset?token=%s",
@@ -577,7 +577,7 @@ func UserPasswordResetForm(c *gin.Context) {
 			http.StatusExpectationFailed,
 			"password.html",
 			gin.H{
-				"error": "Unable to verify the request (possibly invalid link)",
+				"error": "Invalid request",
 			},
 		)
 		return
@@ -610,7 +610,7 @@ func UserPasswordResetAction(c *gin.Context) {
 			http.StatusExpectationFailed,
 			"password.html",
 			gin.H{
-				"error": "Unable to verify the request (possibly invalid link)",
+				"error": "Invalid request",
 			},
 		)
 		return
@@ -637,6 +637,16 @@ func UserPasswordResetAction(c *gin.Context) {
 			gin.H{
 				"error": "Password(s) don't match or have insufficient complexity",
 			},
+		)
+		return
+	}
+	// All checks passed
+	user.HashedPassword, _ = us.HashPassword(userResetPasswordDTO.Password)
+	if err := us.Update(user); err != nil {
+		log.Printf("unable to update user with the new password: %q", err)
+		c.String(
+			http.StatusInternalServerError,
+			"Unable to apply store new password",
 		)
 		return
 	}
