@@ -125,7 +125,7 @@ func UserRegister(c *gin.Context) {
 // @Description	Handles click from activation email
 // @Tags			user,public
 // @Produce		text/plain
-// @Param			token	query		string	false	"JWT token generated during registration"
+// @Param			token	query		string	true	"JWT generated during registration"
 // @Success		200	{string}	string
 // @Router		/user/activate [get]
 func UserActivate(c *gin.Context) {
@@ -518,6 +518,17 @@ func UserGetImage(c *gin.Context) {
 	}
 }
 
+// @Summary		Request new password (password forgotten flow)
+// @Description	Allows users to recover their forgotten password by submitting associated email address
+// @Tags			user,public,password
+// @Accept		json
+// @Produce		json
+// @Param			request	body		userService.UserRequestNewPasswordDTO	true	"User's email address"
+// @Success		202		{string}	string
+// @Failure		400		{object}	ErrorResponse
+// @Failure		424		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/user/request-new-password [post]
 func UserRequestNewPassword(c *gin.Context) {
 	var userRequestNewPasswordDTO userService.UserRequestNewPasswordDTO
 	if err := c.ShouldBindJSON(&userRequestNewPasswordDTO); err != nil {
@@ -567,6 +578,14 @@ func UserRequestNewPassword(c *gin.Context) {
 	c.String(http.StatusAccepted, "Password reset request accepted")
 }
 
+// @Summary		Render password reset form
+// @Description	Render password reset form in response to click on a link from email
+// @Tags			user,password
+// @Produce		text/html
+// @Param			token	query		string	true	"JWT generated while handling password reset request"
+// @Success		200	{string}	string
+// @Success		417	{string}	string
+// @Router		/password-reset [get]
 func UserPasswordResetForm(c *gin.Context) {
 	us := getUserServiceFromContext(c)
 	token := c.Request.URL.Query().Get("token")
@@ -600,6 +619,18 @@ func UserPasswordResetForm(c *gin.Context) {
 	})
 }
 
+// @Summary		Accepts new password from the rendered web form
+// @Description	Validates token provided in query and performs validation of password field, if successful -- updates the password for user identified from JWT
+// @Tags			user,password
+// @Accept		application/x-www-form-urlencoded
+// @Produce		text/html
+// @Param			request	body		userService.UserResetPasswordDTO	true	"Password and its confirmation"
+// @Param			token	query		string	true	"JWT generated while handling password reset request"
+// @Success		200		{string}	string
+// @Failure		400		{object}	ErrorResponse
+// @Failure		417		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/password-reset [post]
 func UserPasswordResetAction(c *gin.Context) {
 	us := getUserServiceFromContext(c)
 	token := c.Request.URL.Query().Get("token")
