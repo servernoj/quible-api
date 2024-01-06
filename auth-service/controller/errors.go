@@ -17,7 +17,7 @@ var (
 	ErrTokenExpired              = errors.New("token expired")
 	ErrTokenInvalidClaims        = errors.New("unable to process token claims")
 	ErrTokenInvalidSigningMethod = errors.New("invalid signing method")
-	ErrTokenInvalidType          = errors.New("invalid token type (access|refresh)")
+	ErrTokenInvalidType          = errors.New("invalid token type")
 	ErrTokenMissingUserId        = errors.New("unable to extract userId from token")
 	ErrTokenMissingTokenId       = errors.New("unable to extract tokenId from token")
 )
@@ -49,6 +49,7 @@ const (
 	Err400_InvalidRequestBody
 	Err400_FileTooLarge
 	Err400_InvalidClientId
+	Err400_UserWithEmailOrUsernameExists
 )
 
 const (
@@ -58,6 +59,7 @@ const (
 	Err401_AuthorizationExpired
 	Err401_InvalidRefreshToken
 	Err401_UserNotFound
+	Err401_UserNotActivated
 )
 
 const (
@@ -73,6 +75,7 @@ const (
 )
 const (
 	Err424_UnknownError ErrorCode = Err424_Shift + iota + 1
+	Err424_UnableToSendEmail
 )
 const (
 	Err429_EditRequestTimedOut ErrorCode = Err429_Shift + iota + 1
@@ -108,6 +111,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_InvalidRequestBody:            "invalid request body",
 		Err400_FileTooLarge:                  "invalid file size",
 		Err400_InvalidClientId:               "unexpected clientId",
+		Err400_UserWithEmailOrUsernameExists: "activated user with such username or email exists",
 	},
 	// 401
 	http.StatusUnauthorized: {
@@ -117,6 +121,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err401_AuthorizationExpired:       "session expired",
 		Err401_InvalidRefreshToken:        "invalid refresh token",
 		Err401_UserNotFound:               "no user found",
+		Err401_UserNotActivated:           "user is not activated",
 	},
 	// 403
 	http.StatusForbidden: {
@@ -133,7 +138,8 @@ var errorMap = c.ErrorMap[ErrorCode]{
 	},
 	// 424
 	http.StatusFailedDependency: {
-		Err424_UnknownError: "unknown error",
+		Err424_UnknownError:      "unknown error",
+		Err424_UnableToSendEmail: "unable to send email",
 	},
 	// 429
 	http.StatusTooManyRequests: {

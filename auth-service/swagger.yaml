@@ -100,6 +100,23 @@ definitions:
     - phone
     - username
     type: object
+  userService.UserRequestNewPasswordDTO:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  userService.UserResetPasswordDTO:
+    properties:
+      confirm-password:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - password
+    type: object
 host: www.quible.io
 info:
   contact: {}
@@ -191,6 +208,71 @@ paths:
       tags:
       - user
       - public
+  /password-reset:
+    get:
+      description: Render password reset form in response to click on a link from
+        email
+      parameters:
+      - description: JWT generated while handling password reset request
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "417":
+          description: Expectation Failed
+          schema:
+            type: string
+      summary: Render password reset form
+      tags:
+      - user
+      - password
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Validates token provided in query and performs validation of password
+        field, if successful -- updates the password for user identified from JWT
+      parameters:
+      - description: Password and its confirmation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userService.UserResetPasswordDTO'
+      - description: JWT generated while handling password reset request
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "417":
+          description: Expectation Failed
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Accepts new password from the rendered web form
+      tags:
+      - user
+      - password
   /rt/token:
     get:
       description: Returns user profile corresponding to provided ID
@@ -355,6 +437,26 @@ paths:
       tags:
       - user
       - private
+  /user/activate:
+    get:
+      description: Handles click from activation email
+      parameters:
+      - description: JWT generated during registration
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Activate new user
+      tags:
+      - user
+      - public
   /user/image:
     put:
       consumes:
@@ -422,4 +524,41 @@ paths:
       tags:
       - user
       - public
+  /user/request-new-password:
+    post:
+      consumes:
+      - application/json
+      description: Allows users to recover their forgotten password by submitting
+        associated email address
+      parameters:
+      - description: User's email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userService.UserRequestNewPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Request new password (password forgotten flow)
+      tags:
+      - user
+      - public
+      - password
 swagger: "2.0"

@@ -62,7 +62,7 @@ func authMiddleware(c *gin.Context) {
 		return
 	}
 	token := headerParts[1]
-	tokenClaims, err := verifyJWT(token, false)
+	tokenClaims, err := verifyJWT(token, Access)
 	if err != nil {
 		errorCode := Err401_AuthorizationHeaderInvalid
 		// -- TODO: errors.Is(err,ErrTokenExpired) should work but it doesn't

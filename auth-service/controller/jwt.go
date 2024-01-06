@@ -14,11 +14,19 @@ var ACCESS_TOKEN_DURATION = 8 * time.Hour
 var REFRESH_TOKEN_DURATION = 5 * 24 * time.Hour
 var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 
+type TokenAction string
+
+const (
+	Access        TokenAction = "Access"
+	Refresh       TokenAction = "Refresh"
+	Activate      TokenAction = "Activate"
+	PasswordReset TokenAction = "PasswordReset"
+)
+
 type MyClaims struct {
 	jwt.StandardClaims
-	UserId    string `json:"userId"`
-	Email     string `json:"email"`
-	IsRefresh bool   `json:"isRefresh"`
+	UserId string      `json:"userId"`
+	Action TokenAction `json:"action"`
 }
 
 type GeneratedToken struct {
@@ -30,24 +38,34 @@ func (gt *GeneratedToken) String() string {
 	return gt.Token
 }
 
-func generateToken(user *models.User, isRefresh bool) (GeneratedToken, error) {
+func generateToken(user *models.User, action TokenAction) (GeneratedToken, error) {
 
 	tokenLifespan := ACCESS_TOKEN_DURATION
 	tokenId := uuid.New().String()
-	if isRefresh {
+	if action == Refresh {
 		tokenLifespan = REFRESH_TOKEN_DURATION
 	}
-	standardClaims := jwt.StandardClaims{
-		Id:        tokenId,
-		Issuer:    APPLICATION_NAME,
-		ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+	// standardClaims := jwt.StandardClaims{
+	// 	Id:        tokenId,
+	// 	Issuer:    APPLICATION_NAME,
+	// 	ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+	// }
+	// claims := MyClaims{
+	// 	StandardClaims: standardClaims,
+	// 	UserId:         user.ID,
+	// 	Email:          user.Email,
+	// 	Action:         action,
+	// }
+	var claims MyClaims = MyClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenLifespan).Unix(),
+		},
+		UserId: user.ID,
+		Action: action,
 	}
-
-	claims := MyClaims{
-		StandardClaims: standardClaims,
-		UserId:         user.ID,
-		Email:          user.Email,
-		IsRefresh:      isRefresh,
+	if action == Access || action == Refresh {
+		claims.StandardClaims.Id = tokenId
+		claims.StandardClaims.Issuer = APPLICATION_NAME
 	}
 
 	token := jwt.NewWithClaims(
@@ -65,7 +83,7 @@ func generateToken(user *models.User, isRefresh bool) (GeneratedToken, error) {
 	}, nil
 }
 
-func verifyJWT(tokenString string, isRefresh bool) (jwt.MapClaims, error) {
+func verifyJWT(tokenString string, action TokenAction) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(
 		tokenString,
 		func(token *jwt.Token) (interface{}, error) {
@@ -79,14 +97,17 @@ func verifyJWT(tokenString string, isRefresh bool) (jwt.MapClaims, error) {
 			if !mapClaims.VerifyExpiresAt(time.Now().Unix(), true) {
 				return nil, ErrTokenExpired
 			}
-			if IsRefresh, ok := mapClaims["isRefresh"].(bool); !ok || IsRefresh != isRefresh {
+			if Action, ok := mapClaims["action"].(string); !ok || action != TokenAction(Action) {
 				return nil, ErrTokenInvalidType
 			}
+
 			if _, ok := mapClaims["userId"].(string); !ok {
 				return "", ErrTokenMissingUserId
 			}
-			if _, ok := mapClaims["jti"].(string); !ok {
-				return "", ErrTokenMissingTokenId
+			if action == Access || action == Refresh {
+				if _, ok := mapClaims["jti"].(string); !ok {
+					return "", ErrTokenMissingTokenId
+				}
 			}
 			return []byte(os.Getenv("ENV_JWT_SECRET")), nil
 		},

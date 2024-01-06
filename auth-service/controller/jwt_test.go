@@ -35,8 +35,7 @@ func TestGenerateToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// false here to indicate "access" (not "refresh") flavor of the token
-			token, _ := generateToken(tc.user, false)
+			token, _ := generateToken(tc.user, Access)
 			assert.NotEmpty(t, token.Token, "Token should not be empty")
 
 			// The generated token is parsed and validated using jwt.ParseWithClaims.
@@ -49,7 +48,6 @@ func TestGenerateToken(t *testing.T) {
 			// Claims Verification
 			if claims, ok := parsedToken.Claims.(*MyClaims); ok && parsedToken.Valid {
 				assert.Equal(t, claims.UserId, tc.user.ID)
-				assert.Equal(t, claims.Email, tc.user.Email)
 			} else {
 				t.Fatal("Failed to parse token claims or token is not valid")
 			}
@@ -89,7 +87,7 @@ func TestVerifyJWT(t *testing.T) {
 			var generatedToken GeneratedToken
 			if tc.user != nil {
 				// generate useful token
-				generatedToken, _ = generateToken(tc.user, false)
+				generatedToken, _ = generateToken(tc.user, Access)
 			} else {
 				// generate unuseful token
 				generatedToken = GeneratedToken{
@@ -99,7 +97,7 @@ func TestVerifyJWT(t *testing.T) {
 			}
 
 			// run verifyJWT function
-			claims, err := verifyJWT(generatedToken.Token, false)
+			claims, err := verifyJWT(generatedToken.Token, Access)
 
 			if tc.expectError {
 				// assert should have faults

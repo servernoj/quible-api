@@ -1,17 +1,24 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/quible-io/quible-api/auth-service/realtime"
+	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
+	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/misc"
+	"github.com/quible-io/quible-api/lib/models"
+	"golang.org/x/sync/errgroup"
 )
 
 var UserFields = []string{"id", "username", "email", "phone", "full_name"}
@@ -47,25 +54,96 @@ func UserRegister(c *gin.Context) {
 		SendError(c, http.StatusBadRequest, errorCode)
 		return
 	}
-
-	if foundUser, _ := us.GetUserByEmail(userRegisterDTO.Email); foundUser != nil {
-		SendError(c, http.StatusBadRequest, Err400_UserWithEmailExists)
+	foundUser, _ := us.GetUserByUsernameOrEmail(&userRegisterDTO)
+	if foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
+		SendError(c, http.StatusBadRequest, Err400_UserWithEmailOrUsernameExists)
 		return
 	}
-	if foundUser, _ := us.GetUserByUsername(userRegisterDTO.Username); foundUser != nil {
-		SendError(c, http.StatusBadRequest, Err400_UserWithUsernameExists)
+	// branch on whether the user exists or not
+	var user *models.User
+	if foundUser != nil {
+		if err := us.UpdateWith(foundUser, &userRegisterDTO); err != nil {
+			log.Printf("unable to update existing user with registration data: %q", err)
+			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
+			return
+		}
+		user = foundUser
+	} else {
+		createdUser, err := us.CreateUser(&userRegisterDTO)
+		if err != nil {
+			log.Printf("unable to register user: %q", err)
+			SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
+			return
+		}
+		user = createdUser
+	}
+	// send activation email
+	g := new(errgroup.Group)
+	g.Go(
+		func() error {
+			token, _ := generateToken(user, Activate)
+			var host string
+			switch os.Getenv("ENV_DEPLOYMENT") {
+			case "dev":
+				host = "https://auth.dev.quible.io"
+			case "prod":
+				host = "https://auth.prod.quible.io"
+			default:
+				host = os.Getenv("ENV_URL_AUTH_SERVICE")
+			}
+			var html bytes.Buffer
+			emailService.UserActivation(
+				user.FullName,
+				fmt.Sprintf(
+					"%s/api/v1/user/activate?token=%s",
+					host,
+					token.String(),
+				),
+				&html,
+			)
+			return email.Send(c.Request.Context(), email.EmailDTO{
+				From:     "no-reply@quible.tech",
+				To:       user.Email,
+				Subject:  "Activate your Quible account",
+				HTMLBody: html.String(),
+			})
+		},
+	)
+	if err := g.Wait(); err != nil {
+		log.Printf("unable to send activation email: %q", err)
+		SendError(c, http.StatusFailedDependency, Err424_UnableToSendEmail)
 		return
 	}
-	createdUser, err := us.CreateUser(&userRegisterDTO)
-	if err != nil {
-		log.Printf("unable to register user: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToRegister)
-		return
-	}
+	// response with user profile as data
 	c.JSON(
 		http.StatusCreated,
-		misc.PickFields(createdUser, UserFields...),
+		misc.PickFields(user, UserFields...),
 	)
+}
+
+// @Summary		Activate new user
+// @Description	Handles click from activation email
+// @Tags			user,public
+// @Produce		text/plain
+// @Param			token	query		string	true	"JWT generated during registration"
+// @Success		200	{string}	string
+// @Router		/user/activate [get]
+func UserActivate(c *gin.Context) {
+	us := getUserServiceFromContext(c)
+	token := c.Request.URL.Query().Get("token")
+	tokenClaims, err := verifyJWT(token, Activate)
+	if err != nil {
+		log.Printf("unable to verify token: %q", err)
+		c.String(http.StatusExpectationFailed, "Unable to verify the request")
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	if err := us.ActivateUser(userId); err != nil {
+		log.Printf("unable to activate user: %q", err)
+		c.String(http.StatusInternalServerError, "Unable to activate user account")
+		return
+	}
+	c.String(http.StatusOK, "Account has been successfully activated")
 }
 
 // @Summary		Login
@@ -94,23 +172,47 @@ func UserLogin(c *gin.Context) {
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
+	if foundUser.ActivatedAt.Ptr() == nil {
+		log.Printf("not activated user is attempted to login: %q", userLoginDTO.Email)
+		SendError(c, http.StatusUnauthorized, Err401_UserNotActivated)
+		return
+	}
 	if err := us.ValidatePassword(foundUser.HashedPassword, userLoginDTO.Password); err != nil {
 		log.Printf("invalid password: %+v", userLoginDTO)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidCredentials)
 		return
 	}
-	generatedAccessToken, err := generateToken(foundUser, false)
-	if err != nil {
-		log.Printf("unable to generate access token: %q", err)
+
+	type TokenJob struct {
+		user   *models.User
+		action TokenAction
+		result *GeneratedToken
+	}
+	var generatedAccessToken, generatedRefreshToken GeneratedToken
+	jobs := map[string]TokenJob{
+		"access":  {foundUser, Access, &generatedAccessToken},
+		"refresh": {foundUser, Refresh, &generatedRefreshToken},
+	}
+	g := new(errgroup.Group)
+	for name, job := range jobs {
+		job, name := job, name
+		g.Go(
+			func() error {
+				generatedToken, err := generateToken(job.user, job.action)
+				if err != nil {
+					log.Printf("unable to generate %s token: %q", name, err)
+					return err
+				}
+				*job.result = generatedToken
+				return nil
+			},
+		)
+	}
+	if err := g.Wait(); err != nil {
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
 		return
 	}
-	generatedRefreshToken, err := generateToken(foundUser, true)
-	if err != nil {
-		log.Printf("unable to generate refresh token: %q", err)
-		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
-		return
-	}
+
 	foundUser.Refresh = generatedRefreshToken.ID
 	if err := us.Update(foundUser); err != nil {
 		log.Printf("unable to associate refresh token with user: %q", err)
@@ -259,7 +361,7 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 
-	claims, err := verifyJWT(userRefreshDTO.RefreshToken, true)
+	claims, err := verifyJWT(userRefreshDTO.RefreshToken, Refresh)
 	if err != nil {
 		log.Printf("invalid refresh token: %q", err)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
@@ -281,13 +383,13 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 
-	generatedAccessToken, err := generateToken(user, false)
+	generatedAccessToken, err := generateToken(user, Access)
 	if err != nil {
 		log.Printf("unable to generate access token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
 		return
 	}
-	generatedRefreshToken, err := generateToken(user, true)
+	generatedRefreshToken, err := generateToken(user, Refresh)
 	if err != nil {
 		log.Printf("unable to generate refresh token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
@@ -414,4 +516,170 @@ func UserGetImage(c *gin.Context) {
 	} else {
 		c.Data(http.StatusOK, imageData.ContentType, imageData.BinaryContent)
 	}
+}
+
+// @Summary		Request new password (password forgotten flow)
+// @Description	Allows users to recover their forgotten password by submitting associated email address
+// @Tags			user,public,password
+// @Accept		json
+// @Produce		json
+// @Param			request	body		userService.UserRequestNewPasswordDTO	true	"User's email address"
+// @Success		202		{string}	string
+// @Failure		400		{object}	ErrorResponse
+// @Failure		424		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/user/request-new-password [post]
+func UserRequestNewPassword(c *gin.Context) {
+	var userRequestNewPasswordDTO userService.UserRequestNewPasswordDTO
+	if err := c.ShouldBindJSON(&userRequestNewPasswordDTO); err != nil {
+		errorFields := misc.ParseValidationError(err)
+		log.Printf("unmet request body constraints: %q", errorFields.GetAllFields())
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+	us := getUserServiceFromContext(c)
+	user, err := us.GetUserByEmail(userRequestNewPasswordDTO.Email)
+	if err != nil || user == nil {
+		log.Printf("unable to locate user")
+		SendError(c, http.StatusBadRequest, Err400_EmailNotRegistered)
+		return
+	}
+	// send password reset email
+	token, _ := generateToken(user, PasswordReset)
+	var host string
+	switch os.Getenv("ENV_DEPLOYMENT") {
+	case "dev":
+		host = "https://auth.dev.quible.io"
+	case "prod":
+		host = "https://auth.prod.quible.io"
+	default:
+		host = os.Getenv("ENV_URL_AUTH_SERVICE")
+	}
+	var html bytes.Buffer
+	emailService.PasswordReset(
+		user.FullName,
+		fmt.Sprintf(
+			"%s/api/v1/password-reset?token=%s",
+			host,
+			token.String(),
+		),
+		&html,
+	)
+	if err := email.Send(c.Request.Context(), email.EmailDTO{
+		From:     "no-reply@quible.tech",
+		To:       user.Email,
+		Subject:  "Password reset",
+		HTMLBody: html.String(),
+	}); err != nil {
+		log.Printf("unable to send password reset email: %q", err)
+		SendError(c, http.StatusFailedDependency, Err424_UnableToSendEmail)
+		return
+	}
+	c.String(http.StatusAccepted, "Password reset request accepted")
+}
+
+// @Summary		Render password reset form
+// @Description	Render password reset form in response to click on a link from email
+// @Tags			user,password
+// @Produce		text/html
+// @Param			token	query		string	true	"JWT generated while handling password reset request"
+// @Success		200	{string}	string
+// @Success		417	{string}	string
+// @Router		/password-reset [get]
+func UserPasswordResetForm(c *gin.Context) {
+	us := getUserServiceFromContext(c)
+	token := c.Request.URL.Query().Get("token")
+	tokenClaims, err := verifyJWT(token, PasswordReset)
+	if err != nil {
+		log.Printf("unable to verify token: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Invalid request",
+			},
+		)
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	user, err := us.GetUserById(userId)
+	if err != nil || user == nil {
+		log.Printf("unable to locate requested user: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Account not found",
+			},
+		)
+		return
+	}
+	c.HTML(http.StatusOK, "password.html", gin.H{
+		"error": nil,
+	})
+}
+
+// @Summary		Accepts new password from the rendered web form
+// @Description	Validates token provided in query and performs validation of password field, if successful -- updates the password for user identified from JWT
+// @Tags			user,password
+// @Accept		application/x-www-form-urlencoded
+// @Produce		text/html
+// @Param			request	body		userService.UserResetPasswordDTO	true	"Password and its confirmation"
+// @Param			token	query		string	true	"JWT generated while handling password reset request"
+// @Success		200		{string}	string
+// @Failure		400		{object}	ErrorResponse
+// @Failure		417		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/password-reset [post]
+func UserPasswordResetAction(c *gin.Context) {
+	us := getUserServiceFromContext(c)
+	token := c.Request.URL.Query().Get("token")
+	tokenClaims, err := verifyJWT(token, PasswordReset)
+	if err != nil {
+		log.Printf("unable to verify token: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Invalid request",
+			},
+		)
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	user, err := us.GetUserById(userId)
+	if err != nil || user == nil {
+		log.Printf("unable to locate requested user: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Account not found",
+			},
+		)
+		return
+	}
+	var userResetPasswordDTO userService.UserResetPasswordDTO
+	if err := c.ShouldBindWith(&userResetPasswordDTO, binding.FormPost); err != nil {
+		log.Printf("password validation failed: %q", err)
+		c.HTML(
+			http.StatusExpectationFailed,
+			"password.html",
+			gin.H{
+				"error": "Password(s) don't match or have insufficient complexity",
+			},
+		)
+		return
+	}
+	// All checks passed
+	user.HashedPassword, _ = us.HashPassword(userResetPasswordDTO.Password)
+	if err := us.Update(user); err != nil {
+		log.Printf("unable to update user with the new password: %q", err)
+		c.String(
+			http.StatusInternalServerError,
+			"Unable to apply store new password",
+		)
+		return
+	}
+	c.String(http.StatusOK, "Password has been successfully reset")
 }

@@ -3,8 +3,8 @@
 A template should
 
 - extend default layout `../../../../assets/acorn/layout.pug`
-- define block `filter` to specify generated **renderer function** signature, e.g. `:go:func Activation(first string, second int)`
-- define block `content` and use mixins or other markup while referencing params of the **renderer function**
+- define block `filter` to specify generated **renderer function** signature, e.g. `:go:func Demo(first string, second int)`
+- define block `content` while using Pug mixins or other markup and reference params of the **renderer function**
 - optionally define block `preheader` (see https://litmus.com/blog/the-ultimate-guide-to-preview-text-support)
 
 Example:
@@ -12,7 +12,7 @@ Example:
 extends ../../../../assets/acorn/layout.pug
 
 block filter
-  :go:func Activation(first string, second int)
+  :go:func Demo(first string, second int)
 
 block content
   +Row

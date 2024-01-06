@@ -27,6 +27,10 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	g.Use(injectUserService)
 	// -- Public API
 	g.POST("/user", UserRegister)
+	g.GET("/user/activate", UserActivate)
+	g.GET("/password-reset", UserPasswordResetForm)
+	g.POST("/password-reset", UserPasswordResetAction)
+	g.POST("/user/request-new-password", UserRequestNewPassword)
 	g.POST("/user/refresh", UserRefresh)
 	g.POST("/login", UserLogin)
 	g.GET("/user/:userId/image", UserGetImage)

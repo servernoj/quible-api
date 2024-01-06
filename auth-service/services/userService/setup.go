@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/null/v8"
@@ -35,6 +36,13 @@ func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
 	return models.Users(qm.Where("username = $1", username)).OneG(s.C)
 }
 
+func (s *UserService) GetUserByUsernameOrEmail(dto *UserRegisterDTO) (*models.User, error) {
+	return models.Users(
+		qm.Or2(models.UserWhere.Email.EQ(dto.Email)),
+		qm.Or2(models.UserWhere.Username.EQ(dto.Username)),
+	).OneG(s.C)
+}
+
 func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 	hashedPassword, err := s.HashPassword(dto.Password)
 	if err != nil {
@@ -47,7 +55,12 @@ func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 		Phone:          dto.Phone,
 		HashedPassword: hashedPassword,
 	}
-	err = user.InsertG(s.C, boil.Blacklist("id", "image", "is_oauth"))
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.InsertG(s.C, boil.Blacklist("id", "image"))
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +68,39 @@ func (s *UserService) CreateUser(dto *UserRegisterDTO) (*models.User, error) {
 }
 
 func (s *UserService) Update(user *models.User) error {
-	userInDB, _ := models.FindUserG(s.C, user.ID)
-	if userInDB == nil {
+	if userExists, err := models.UserExistsG(s.C, user.ID); err != nil || !userExists {
 		return ErrUserNotFound
 	}
 	_, err := user.UpdateG(s.C, boil.Infer())
+	return err
+}
+
+func (s *UserService) ActivateUser(userId string) error {
+	var err error
+	var user *models.User
+	if user, err = models.FindUserG(s.C, userId); err != nil || user == nil {
+		return ErrUserNotFound
+	}
+	user.ActivatedAt = null.TimeFrom(time.Now())
+	_, err = user.UpdateG(s.C, boil.Infer())
+	return err
+}
+
+func (s *UserService) UpdateWith(user *models.User, dto *UserRegisterDTO) error {
+	if userExists, err := models.UserExistsG(s.C, user.ID); err != nil || !userExists {
+		return ErrUserNotFound
+	}
+	hashedPassword, err := s.HashPassword(dto.Password)
+	if err != nil {
+		return ErrHashPassword
+	}
+	user.Email = dto.Email
+	user.Username = dto.Username
+	user.FullName = dto.FullName
+	user.Phone = dto.Phone
+	user.HashedPassword = hashedPassword
+
+	_, err = user.UpdateG(s.C, boil.Infer())
 	return err
 }
 
