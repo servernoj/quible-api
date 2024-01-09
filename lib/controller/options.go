@@ -81,7 +81,7 @@ func WithEmailTester(Handlers map[string]any) Option {
 			return
 		}
 		if testEmailDTO.To == nil {
-			var temp = "contact@quible.tech"
+			var temp = "contact@quible.io"
 			testEmailDTO.To = &temp
 		}
 		if testEmailDTO.Subject == nil {
@@ -90,7 +90,7 @@ func WithEmailTester(Handlers map[string]any) Option {
 		}
 
 		if err := email.Send(c.Request.Context(), postmark.EmailDTO{
-			From:     "no-reply@quible.tech",
+			From:     "no-reply@quible.io",
 			To:       *testEmailDTO.To,
 			Subject:  *testEmailDTO.Subject,
 			HTMLBody: html.String(),

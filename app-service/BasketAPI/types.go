@@ -1,6 +1,13 @@
 package BasketAPI
 
-type Live struct {
+// Data structure to represent Ably messages for live data publishing
+type LiveMessage struct {
+	IDs    []uint
+	Events []Event
+}
+
+// Data structure to represent a subset of fields from BasketAPI /live response
+type LiveData struct {
 	Events []Event `json:"events"`
 }
 

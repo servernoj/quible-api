@@ -26,16 +26,20 @@ const DefaultPort = 8002
 var swaggerSpec string
 
 func main() {
-	quit := BasketAPI.Setup()
-	defer func() {
-		quit <- struct{}{}
-	}()
 	Server()
 }
 
 func Server() {
 	// -- Environment vars from .env file
 	env.Setup()
+	// -- Live data BasketAPI
+	quit, err := BasketAPI.Setup()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		quit <- struct{}{}
+	}()
 	// -- Store + ORM
 	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
 		log.Fatalf("unable to setup DB connection: %s", err)
