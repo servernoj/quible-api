@@ -8,8 +8,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/app-service/BasketAPI"
 	"github.com/quible-io/quible-api/app-service/controller"
-
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
 )
@@ -26,6 +26,10 @@ const DefaultPort = 8002
 var swaggerSpec string
 
 func main() {
+	quit := BasketAPI.Setup()
+	defer func() {
+		quit <- struct{}{}
+	}()
 	Server()
 }
 
