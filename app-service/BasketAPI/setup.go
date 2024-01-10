@@ -11,6 +11,7 @@ import (
 
 	"github.com/ably/ably-go/ably"
 	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 const HOST = "basketapi1.p.rapidapi.com"
@@ -25,6 +26,16 @@ func Setup() (chan<- struct{}, error) {
 	countOK := uint(0)
 	isInError := false
 	states := map[uint]string{}
+	// logos
+	images, err := models.Images(models.ImageWhere.ParentID.IsNull()).AllG(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve logos for all teams: %w", err)
+	}
+	logoByShortName := make(map[string]*string, len(images))
+	for _, image := range images {
+		imageUrl := image.ImageURL
+		logoByShortName[image.DisplayName] = &imageUrl
+	}
 	// ably
 	ablyRealTime, err := ably.NewRealtime(
 		ably.WithKey(os.Getenv("ENV_ABLY_KEY")),
@@ -81,13 +92,15 @@ func Setup() (chan<- struct{}, error) {
 				// -- process and publish to clients
 				var liveMessage LiveMessage
 				for _, ev := range body.Events {
-					if ev.Tournament.Name == "Euroleague" {
+					if ev.Tournament.Name == "NBA" {
 						liveMessage.IDs = append(liveMessage.IDs, ev.ID)
 						state := fmt.Sprintf("%d:%d@%s", ev.HomeScore.Current, ev.AwayScore.Current, ev.Status.Description)
 						value, ok := states[ev.ID]
 						if ok && value == state {
 							continue
 						}
+						ev.HomeTeam.Logo = logoByShortName[ev.HomeTeam.ShortName]
+						ev.AwayTeam.Logo = logoByShortName[ev.AwayTeam.ShortName]
 						liveMessage.Events = append(liveMessage.Events, ev)
 						states[ev.ID] = state
 						log.Printf(
@@ -98,6 +111,7 @@ func Setup() (chan<- struct{}, error) {
 							ev.AwayScore.Current,
 							ev.Status.Description,
 						)
+
 					}
 				}
 				if len(liveMessage.Events) > 0 {

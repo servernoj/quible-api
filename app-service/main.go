@@ -32,6 +32,11 @@ func main() {
 func Server() {
 	// -- Environment vars from .env file
 	env.Setup()
+	// -- Store + ORM
+	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
+		log.Fatalf("unable to setup DB connection: %s", err)
+	}
+	defer store.Close()
 	// -- Live data BasketAPI
 	quit, err := BasketAPI.Setup()
 	if err != nil {
@@ -40,11 +45,6 @@ func Server() {
 	defer func() {
 		quit <- struct{}{}
 	}()
-	// -- Store + ORM
-	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
-		log.Fatalf("unable to setup DB connection: %s", err)
-	}
-	defer store.Close()
 	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

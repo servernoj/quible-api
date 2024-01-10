@@ -2,8 +2,8 @@ package BasketAPI
 
 // Data structure to represent Ably messages for live data publishing
 type LiveMessage struct {
-	IDs    []uint
-	Events []Event
+	IDs    []uint  `json:"eventIDs"`
+	Events []Event `json:"events"`
 }
 
 // Data structure to represent a subset of fields from BasketAPI /live response
@@ -36,11 +36,12 @@ type Score struct {
 }
 
 type Team struct {
-	Name      string `json:"name"`
-	Slug      string `json:"slug"`
-	ShortName string `json:"shortName"`
-	NameCode  string `json:"nameCode"`
-	ID        uint   `json:"id"`
+	Name      string  `json:"name"`
+	Slug      string  `json:"slug"`
+	ShortName string  `json:"shortName"`
+	NameCode  string  `json:"nameCode"`
+	ID        uint    `json:"id"`
+	Logo      *string `json:"logoUrl"`
 }
 
 type Time struct {
