@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/ably/ably-go/ably"
@@ -91,8 +92,9 @@ func Setup() (chan<- struct{}, error) {
 				res.Body.Close()
 				// -- process and publish to clients
 				var liveMessage LiveMessage
+				tournaments := []string{"NBA"}
 				for _, ev := range body.Events {
-					if ev.Tournament.Name == "NBA" {
+					if slices.Index(tournaments, ev.Tournament.Name) != -1 {
 						liveMessage.IDs = append(liveMessage.IDs, ev.ID)
 						state := fmt.Sprintf("%d:%d@%s", ev.HomeScore.Current, ev.AwayScore.Current, ev.Status.Description)
 						value, ok := states[ev.ID]
