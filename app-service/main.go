@@ -8,8 +8,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/app-service/BasketAPI"
 	"github.com/quible-io/quible-api/app-service/controller"
-
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
 )
@@ -37,6 +37,14 @@ func Server() {
 		log.Fatalf("unable to setup DB connection: %s", err)
 	}
 	defer store.Close()
+	// -- Live data BasketAPI
+	quit, err := BasketAPI.Setup()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		quit <- struct{}{}
+	}()
 	// -- HTTP server
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

@@ -102,7 +102,7 @@ func UserRegister(c *gin.Context) {
 				&html,
 			)
 			return email.Send(c.Request.Context(), email.EmailDTO{
-				From:     "no-reply@quible.tech",
+				From:     "no-reply@quible.io",
 				To:       user.Email,
 				Subject:  "Activate your Quible account",
 				HTMLBody: html.String(),
@@ -566,7 +566,7 @@ func UserRequestNewPassword(c *gin.Context) {
 		&html,
 	)
 	if err := email.Send(c.Request.Context(), email.EmailDTO{
-		From:     "no-reply@quible.tech",
+		From:     "no-reply@quible.io",
 		To:       user.Email,
 		Subject:  "Password reset",
 		HTMLBody: html.String(),
