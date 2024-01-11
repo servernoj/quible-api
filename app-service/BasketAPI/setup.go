@@ -96,7 +96,7 @@ func Setup() (chan<- struct{}, error) {
 				for _, ev := range body.Events {
 					if slices.Index(tournaments, ev.Tournament.Name) != -1 {
 						liveMessage.IDs = append(liveMessage.IDs, ev.ID)
-						state := fmt.Sprintf("%d:%d@%s", ev.HomeScore.Current, ev.AwayScore.Current, ev.Status.Description)
+						state := fmt.Sprintf("%d:%d@%s+%d", ev.HomeScore.Current, ev.AwayScore.Current, ev.Status.Description, ev.Time.Played)
 						value, ok := states[ev.ID]
 						if ok && value == state {
 							continue
@@ -109,11 +109,10 @@ func Setup() (chan<- struct{}, error) {
 							"[%d] %s: %d:%d (%s)\n",
 							ev.ID,
 							ev.Slug,
-							ev.HomeScore.Current,
 							ev.AwayScore.Current,
+							ev.HomeScore.Current,
 							ev.Status.Description,
 						)
-
 					}
 				}
 				if len(liveMessage.Events) > 0 {
