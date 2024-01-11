@@ -46,7 +46,7 @@ func Setup() (chan<- struct{}, error) {
 		log.Printf("unable to initialize Ably SDK: %s", err)
 		return nil, err
 	}
-	ablyChannel := ablyRealTime.Channels.Get("live:BasketAPI")
+	ablyChannel := ablyRealTime.Channels.Get("live:main")
 	go func() {
 		for {
 			select {
@@ -117,7 +117,7 @@ func Setup() (chan<- struct{}, error) {
 					}
 				}
 				if len(liveMessage.Events) > 0 {
-					if err := ablyChannel.Publish(ctx, "update", liveMessage); err != nil {
+					if err := ablyChannel.Publish(ctx, "message", liveMessage); err != nil {
 						log.Printf("unable to publish live data to Ably: %s", err)
 					}
 				}
