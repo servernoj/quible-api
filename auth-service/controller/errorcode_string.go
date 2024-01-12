@@ -37,7 +37,7 @@ func _() {
 	_ = x[Err404_UserNotFound-4041004]
 	_ = x[Err404_UserHasNoImage-4041005]
 	_ = x[Err417_UnknownError-4171001]
-	_ = x[Err417_UnableToVerifyToken-4171002]
+	_ = x[Err417_InvalidToken-4171002]
 	_ = x[Err417_UnableToAssociateUser-4171003]
 	_ = x[Err424_UnknownError-4241001]
 	_ = x[Err424_UnableToSendEmail-4241002]
@@ -59,7 +59,7 @@ const (
 	_ErrorCode_name_2 = "Err401_InvalidCredentialsErr401_AuthorizationHeaderMissingErr401_AuthorizationHeaderInvalidErr401_AuthorizationExpiredErr401_InvalidRefreshTokenErr401_UserNotFoundErr401_UserNotActivated"
 	_ErrorCode_name_3 = "Err403_CannotToDeleteErr403_CannotEditPhone"
 	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFoundErr404_UserNotFoundErr404_UserHasNoImage"
-	_ErrorCode_name_5 = "Err417_UnknownErrorErr417_UnableToVerifyTokenErr417_UnableToAssociateUser"
+	_ErrorCode_name_5 = "Err417_UnknownErrorErr417_InvalidTokenErr417_UnableToAssociateUser"
 	_ErrorCode_name_6 = "Err424_UnknownErrorErr424_UnableToSendEmail"
 	_ErrorCode_name_7 = "Err429_EditRequestTimedOut"
 	_ErrorCode_name_8 = "Err500_UnknownErrorErr500_UnableToDeleteErr500_UnableToEditPhoneErr500_UnableToRegisterErr500_UnableToGenerateTokenErr500_UnableToResetPasswordErr500_UnableToActivateUser"
@@ -71,7 +71,7 @@ var (
 	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 144, 163, 186}
 	_ErrorCode_index_3 = [...]uint8{0, 21, 43}
 	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74, 93, 114}
-	_ErrorCode_index_5 = [...]uint8{0, 19, 45, 73}
+	_ErrorCode_index_5 = [...]uint8{0, 19, 38, 66}
 	_ErrorCode_index_6 = [...]uint8{0, 19, 43}
 	_ErrorCode_index_8 = [...]uint8{0, 19, 40, 64, 87, 115, 143, 170}
 	_ErrorCode_index_9 = [...]uint8{0, 23, 49}

@@ -77,7 +77,7 @@ const (
 )
 const (
 	Err417_UnknownError ErrorCode = Err417_Shift + iota + 1
-	Err417_UnableToVerifyToken
+	Err417_InvalidToken
 	Err417_UnableToAssociateUser
 )
 
@@ -150,7 +150,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 	// 417
 	http.StatusExpectationFailed: {
 		Err417_UnknownError:          "unknown error",
-		Err417_UnableToVerifyToken:   "unable to verify token",
+		Err417_InvalidToken:          "invalid (possibly expired) token",
 		Err417_UnableToAssociateUser: "unable to associate user with the token",
 	},
 

@@ -586,8 +586,8 @@ func UserPasswordReset(c *gin.Context) {
 	}
 	tokenClaims, err := verifyJWT(userResetPasswordDTO.Token, PasswordReset)
 	if err != nil {
-		log.Printf("unable to verify token: %q", err)
-		SendError(c, http.StatusExpectationFailed, Err417_UnableToVerifyToken)
+		log.Printf("invalid token: %q", err)
+		SendError(c, http.StatusExpectationFailed, Err417_InvalidToken)
 		return
 	}
 	userId := tokenClaims["userId"].(string)
