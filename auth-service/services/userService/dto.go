@@ -27,7 +27,13 @@ type UserRequestNewPasswordDTO struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
+type TokenDTO struct {
+	Token string `json:"token" binding:"required,jwt"`
+}
+
 type UserResetPasswordDTO struct {
-	Password        string `form:"password" binding:"required,min=6,eqfield=ConfirmPassword"`
-	ConfirmPassword string `form:"confirm-password"`
+	TokenDTO
+	Step            string `json:"step" binding:"required,oneof=validate define"`
+	Password        string `json:"password" binding:"omitempty,min=6,eqfield=ConfirmPassword,required_if=Step define,excluded_if=Step validate"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required_if=Step define,excluded_if=Step validate"`
 }
