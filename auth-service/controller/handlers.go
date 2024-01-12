@@ -11,7 +11,6 @@ import (
 	"reflect"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
@@ -82,21 +81,12 @@ func UserRegister(c *gin.Context) {
 	g.Go(
 		func() error {
 			token, _ := generateToken(user, Activate)
-			var host string
-			switch os.Getenv("ENV_DEPLOYMENT") {
-			case "dev":
-				host = "https://auth.dev.quible.io"
-			case "prod":
-				host = "https://auth.prod.quible.io"
-			default:
-				host = os.Getenv("ENV_URL_AUTH_SERVICE")
-			}
 			var html bytes.Buffer
 			emailService.UserActivation(
 				user.FullName,
 				fmt.Sprintf(
-					"%s/api/v1/user/activate?token=%s",
-					host,
+					"%s/forms/activation?token=%s",
+					os.Getenv("WEB_CLIENT_URL"),
 					token.String(),
 				),
 				&html,
@@ -122,28 +112,35 @@ func UserRegister(c *gin.Context) {
 }
 
 // @Summary		Activate new user
-// @Description	Handles click from activation email
+// @Description	Handles user activation initiated by clicking link from email
 // @Tags			user,public
-// @Produce		text/plain
-// @Param			token	query		string	true	"JWT generated during registration"
-// @Success		200	{string}	string
-// @Router		/user/activate [get]
+// @Produce		json
+// @Param			request	body		userService.TokenDTO	true	"JWT generated during registration"
+// @Success   200
+// @Failure		400		{object}	ErrorResponse
+// @Failure		417		{object}	ErrorResponse
+// @Router		/user/activate [post]
 func UserActivate(c *gin.Context) {
 	us := getUserServiceFromContext(c)
-	token := c.Request.URL.Query().Get("token")
-	tokenClaims, err := verifyJWT(token, Activate)
+	var userActivateDTO userService.TokenDTO
+	if err := c.ShouldBindJSON(&userActivateDTO); err != nil {
+		log.Printf("invalid request body: %q", err)
+		SendError(c, http.StatusBadRequest, Err400_InvalidOrMalformedToken)
+		return
+	}
+	tokenClaims, err := verifyJWT(userActivateDTO.Token, Activate)
 	if err != nil {
 		log.Printf("unable to verify token: %q", err)
-		c.String(http.StatusExpectationFailed, "Unable to verify the request")
+		SendError(c, http.StatusExpectationFailed, Err417_UnableToVerifyToken)
 		return
 	}
 	userId := tokenClaims["userId"].(string)
 	if err := us.ActivateUser(userId); err != nil {
 		log.Printf("unable to activate user: %q", err)
-		c.String(http.StatusInternalServerError, "Unable to activate user account")
+		SendError(c, http.StatusInternalServerError, Err500_UnableToActivateUser)
 		return
 	}
-	c.String(http.StatusOK, "Account has been successfully activated")
+	c.Status(http.StatusOK)
 }
 
 // @Summary		Login
@@ -524,7 +521,7 @@ func UserGetImage(c *gin.Context) {
 // @Accept		json
 // @Produce		json
 // @Param			request	body		userService.UserRequestNewPasswordDTO	true	"User's email address"
-// @Success		202		{string}	string
+// @Success		202
 // @Failure		400		{object}	ErrorResponse
 // @Failure		424		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
@@ -546,21 +543,12 @@ func UserRequestNewPassword(c *gin.Context) {
 	}
 	// send password reset email
 	token, _ := generateToken(user, PasswordReset)
-	var host string
-	switch os.Getenv("ENV_DEPLOYMENT") {
-	case "dev":
-		host = "https://auth.dev.quible.io"
-	case "prod":
-		host = "https://auth.prod.quible.io"
-	default:
-		host = os.Getenv("ENV_URL_AUTH_SERVICE")
-	}
 	var html bytes.Buffer
 	emailService.PasswordReset(
 		user.FullName,
 		fmt.Sprintf(
-			"%s/api/v1/password-reset?token=%s",
-			host,
+			"%s/forms/password-reset?token=%s",
+			os.Getenv("WEB_CLIENT_URL"),
 			token.String(),
 		),
 		&html,
@@ -575,111 +563,47 @@ func UserRequestNewPassword(c *gin.Context) {
 		SendError(c, http.StatusFailedDependency, Err424_UnableToSendEmail)
 		return
 	}
-	c.String(http.StatusAccepted, "Password reset request accepted")
+	c.Status(http.StatusAccepted)
 }
 
-// @Summary		Render password reset form
-// @Description	Render password reset form in response to click on a link from email
+// @Summary		Resets user's password
+// @Description	Validates provided JWT, password, and, if successful -- updates the password for the user identified by JWT
 // @Tags			user,password
-// @Produce		text/html
-// @Param			token	query		string	true	"JWT generated while handling password reset request"
-// @Success		200	{string}	string
-// @Success		417	{string}	string
-// @Router		/password-reset [get]
-func UserPasswordResetForm(c *gin.Context) {
-	us := getUserServiceFromContext(c)
-	token := c.Request.URL.Query().Get("token")
-	tokenClaims, err := verifyJWT(token, PasswordReset)
-	if err != nil {
-		log.Printf("unable to verify token: %q", err)
-		c.HTML(
-			http.StatusExpectationFailed,
-			"password.html",
-			gin.H{
-				"error": "Invalid request",
-			},
-		)
-		return
-	}
-	userId := tokenClaims["userId"].(string)
-	user, err := us.GetUserById(userId)
-	if err != nil || user == nil {
-		log.Printf("unable to locate requested user: %q", err)
-		c.HTML(
-			http.StatusExpectationFailed,
-			"password.html",
-			gin.H{
-				"error": "Account not found",
-			},
-		)
-		return
-	}
-	c.HTML(http.StatusOK, "password.html", gin.H{
-		"error": nil,
-	})
-}
-
-// @Summary		Accepts new password from the rendered web form
-// @Description	Validates token provided in query and performs validation of password field, if successful -- updates the password for user identified from JWT
-// @Tags			user,password
-// @Accept		application/x-www-form-urlencoded
-// @Produce		text/html
+// @Accept		json
+// @Produce		json
 // @Param			request	body		userService.UserResetPasswordDTO	true	"Password and its confirmation"
-// @Param			token	query		string	true	"JWT generated while handling password reset request"
-// @Success		200		{string}	string
+// @Success		200
 // @Failure		400		{object}	ErrorResponse
 // @Failure		417		{object}	ErrorResponse
 // @Failure		500		{object}	ErrorResponse
-// @Router		/password-reset [post]
-func UserPasswordResetAction(c *gin.Context) {
-	us := getUserServiceFromContext(c)
-	token := c.Request.URL.Query().Get("token")
-	tokenClaims, err := verifyJWT(token, PasswordReset)
+// @Router		/user/password-reset [post]
+func UserPasswordReset(c *gin.Context) {
+	var userResetPasswordDTO userService.UserResetPasswordDTO
+	if err := c.ShouldBindJSON(&userResetPasswordDTO); err != nil {
+		log.Printf("password validation failed: %q", err)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+	tokenClaims, err := verifyJWT(userResetPasswordDTO.Token, PasswordReset)
 	if err != nil {
 		log.Printf("unable to verify token: %q", err)
-		c.HTML(
-			http.StatusExpectationFailed,
-			"password.html",
-			gin.H{
-				"error": "Invalid request",
-			},
-		)
+		SendError(c, http.StatusExpectationFailed, Err417_UnableToVerifyToken)
 		return
 	}
 	userId := tokenClaims["userId"].(string)
+	us := getUserServiceFromContext(c)
 	user, err := us.GetUserById(userId)
 	if err != nil || user == nil {
-		log.Printf("unable to locate requested user: %q", err)
-		c.HTML(
-			http.StatusExpectationFailed,
-			"password.html",
-			gin.H{
-				"error": "Account not found",
-			},
-		)
-		return
-	}
-	var userResetPasswordDTO userService.UserResetPasswordDTO
-	if err := c.ShouldBindWith(&userResetPasswordDTO, binding.FormPost); err != nil {
-		log.Printf("password validation failed: %q", err)
-		c.HTML(
-			http.StatusExpectationFailed,
-			"password.html",
-			gin.H{
-				"error": "Password(s) don't match or have insufficient complexity",
-			},
-		)
+		log.Printf("unable to associate user: %q", err)
+		SendError(c, http.StatusExpectationFailed, Err417_UnableToAssociateUser)
 		return
 	}
 	// All checks passed
 	user.HashedPassword, _ = us.HashPassword(userResetPasswordDTO.Password)
 	if err := us.Update(user); err != nil {
 		log.Printf("unable to update user with the new password: %q", err)
-		c.String(
-			http.StatusInternalServerError,
-			"Unable to apply store new password",
-		)
+		SendError(c, http.StatusInternalServerError, Err500_UnableToResetPassword)
 		return
 	}
-	c.String(http.StatusOK, "Password has been successfully reset")
+	c.Status(http.StatusOK)
 }

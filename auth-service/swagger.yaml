@@ -53,6 +53,13 @@ definitions:
       username:
         type: string
     type: object
+  userService.TokenDTO:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   userService.UserLoginDTO:
     properties:
       email:
@@ -109,13 +116,21 @@ definitions:
     type: object
   userService.UserResetPasswordDTO:
     properties:
-      confirm-password:
+      confirmPassword:
         type: string
       password:
         minLength: 6
         type: string
+      step:
+        enum:
+        - validate
+        - define
+        type: string
+      token:
+        type: string
     required:
-    - password
+    - step
+    - token
     type: object
 host: www.quible.io
 info:
@@ -208,71 +223,6 @@ paths:
       tags:
       - user
       - public
-  /password-reset:
-    get:
-      description: Render password reset form in response to click on a link from
-        email
-      parameters:
-      - description: JWT generated while handling password reset request
-        in: query
-        name: token
-        required: true
-        type: string
-      produces:
-      - text/html
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "417":
-          description: Expectation Failed
-          schema:
-            type: string
-      summary: Render password reset form
-      tags:
-      - user
-      - password
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Validates token provided in query and performs validation of password
-        field, if successful -- updates the password for user identified from JWT
-      parameters:
-      - description: Password and its confirmation
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/userService.UserResetPasswordDTO'
-      - description: JWT generated while handling password reset request
-        in: query
-        name: token
-        required: true
-        type: string
-      produces:
-      - text/html
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/controller.ErrorResponse'
-        "417":
-          description: Expectation Failed
-          schema:
-            $ref: '#/definitions/controller.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/controller.ErrorResponse'
-      summary: Accepts new password from the rendered web form
-      tags:
-      - user
-      - password
   /rt/token:
     get:
       description: Returns user profile corresponding to provided ID
@@ -438,21 +388,28 @@ paths:
       - user
       - private
   /user/activate:
-    get:
-      description: Handles click from activation email
+    post:
+      description: Handles user activation initiated by clicking link from email
       parameters:
       - description: JWT generated during registration
-        in: query
-        name: token
+        in: body
+        name: request
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/userService.TokenDTO'
       produces:
-      - text/plain
+      - application/json
       responses:
         "200":
           description: OK
+        "400":
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/controller.ErrorResponse'
+        "417":
+          description: Expectation Failed
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
       summary: Activate new user
       tags:
       - user
@@ -489,6 +446,40 @@ paths:
       tags:
       - user
       - private
+  /user/password-reset:
+    post:
+      consumes:
+      - application/json
+      description: Validates provided JWT, password, and, if successful -- updates
+        the password for the user identified by JWT
+      parameters:
+      - description: Password and its confirmation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userService.UserResetPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "417":
+          description: Expectation Failed
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Resets user's password
+      tags:
+      - user
+      - password
   /user/refresh:
     post:
       consumes:
@@ -542,8 +533,6 @@ paths:
       responses:
         "202":
           description: Accepted
-          schema:
-            type: string
         "400":
           description: Bad Request
           schema:

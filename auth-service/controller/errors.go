@@ -28,6 +28,7 @@ const (
 	Err401_Shift = ErrStatusGain*http.StatusUnauthorized + ErrServiceId
 	Err403_Shift = ErrStatusGain*http.StatusForbidden + ErrServiceId
 	Err404_Shift = ErrStatusGain*http.StatusNotFound + ErrServiceId
+	Err417_Shift = ErrStatusGain*http.StatusExpectationFailed + ErrServiceId
 	Err424_Shift = ErrStatusGain*http.StatusFailedDependency + ErrServiceId
 	Err429_Shift = ErrStatusGain*http.StatusTooManyRequests + ErrServiceId
 	Err500_Shift = ErrStatusGain*http.StatusInternalServerError + ErrServiceId
@@ -50,6 +51,7 @@ const (
 	Err400_FileTooLarge
 	Err400_InvalidClientId
 	Err400_UserWithEmailOrUsernameExists
+	Err400_InvalidOrMalformedToken
 )
 
 const (
@@ -74,6 +76,12 @@ const (
 	Err404_UserHasNoImage
 )
 const (
+	Err417_UnknownError ErrorCode = Err417_Shift + iota + 1
+	Err417_UnableToVerifyToken
+	Err417_UnableToAssociateUser
+)
+
+const (
 	Err424_UnknownError ErrorCode = Err424_Shift + iota + 1
 	Err424_UnableToSendEmail
 )
@@ -86,6 +94,8 @@ const (
 	Err500_UnableToEditPhone
 	Err500_UnableToRegister
 	Err500_UnableToGenerateToken
+	Err500_UnableToResetPassword
+	Err500_UnableToActivateUser
 )
 const (
 	Err503_DataBaseOnDelete ErrorCode = Err503_Shift + iota + 1
@@ -112,6 +122,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_FileTooLarge:                  "invalid file size",
 		Err400_InvalidClientId:               "unexpected clientId",
 		Err400_UserWithEmailOrUsernameExists: "activated user with such username or email exists",
+		Err400_InvalidOrMalformedToken:       "activation token is missing or malformed",
 	},
 	// 401
 	http.StatusUnauthorized: {
@@ -136,6 +147,13 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err404_UserNotFound:        "user not found",
 		Err404_UserHasNoImage:      "user has no image",
 	},
+	// 417
+	http.StatusExpectationFailed: {
+		Err417_UnknownError:          "unknown error",
+		Err417_UnableToVerifyToken:   "unable to verify token",
+		Err417_UnableToAssociateUser: "unable to associate user with the token",
+	},
+
 	// 424
 	http.StatusFailedDependency: {
 		Err424_UnknownError:      "unknown error",
@@ -152,6 +170,8 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err500_UnableToRegister:      "unexpected issue during registration",
 		Err500_UnableToGenerateToken: "unable to generate JWT token",
 		Err500_UnknownError:          "internal server error",
+		Err500_UnableToActivateUser:  "unable to activate user",
+		Err500_UnableToResetPassword: "unable to reset password",
 	},
 	// 503
 	http.StatusServiceUnavailable: {
