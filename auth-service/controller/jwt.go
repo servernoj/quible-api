@@ -10,8 +10,8 @@ import (
 )
 
 var APPLICATION_NAME = "Quible"
-var ACCESS_TOKEN_DURATION = 8 * time.Hour
-var REFRESH_TOKEN_DURATION = 5 * 24 * time.Hour
+var ACCESS_TOKEN_DURATION = 24 * time.Hour
+var REFRESH_TOKEN_DURATION = 10 * 24 * time.Hour
 var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
 
 type TokenAction string
