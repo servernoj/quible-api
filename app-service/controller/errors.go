@@ -43,6 +43,7 @@ const (
 	Err424_PlayerStats
 	Err424_Injuries
 	Err424_LiveFeed
+	Err424_BasketAPIGetGames
 )
 const (
 	Err500_UnknownError ErrorCode = Err500_Shift + iota + 1
@@ -68,15 +69,16 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 	},
 	// 424
 	http.StatusFailedDependency: {
-		Err424_UnknownError:   "unknown error",
-		Err424_ScheduleSeason: "unexpected problem with /schedule-season RSC API",
-		Err424_DailySchedule:  "unexpected problem with /schedule RSC API",
-		Err424_TeamInfo:       "unexpected problem with /team-info RSC API",
-		Err424_TeamStats:      "unexpected problem with /team-stats RSC API",
-		Err424_PlayerInfo:     "unexpected problem with /player-info RSC API",
-		Err424_PlayerStats:    "unexpected problem with /player-stats RSC API",
-		Err424_Injuries:       "unexpected problem with /injuries RSC API",
-		Err424_LiveFeed:       "unexpected problem with /live RSC API",
+		Err424_UnknownError:      "unknown error",
+		Err424_ScheduleSeason:    "unexpected problem with /schedule-season RSC API",
+		Err424_DailySchedule:     "unexpected problem with /schedule RSC API",
+		Err424_TeamInfo:          "unexpected problem with /team-info RSC API",
+		Err424_TeamStats:         "unexpected problem with /team-stats RSC API",
+		Err424_PlayerInfo:        "unexpected problem with /player-info RSC API",
+		Err424_PlayerStats:       "unexpected problem with /player-stats RSC API",
+		Err424_Injuries:          "unexpected problem with /injuries RSC API",
+		Err424_LiveFeed:          "unexpected problem with /live RSC API",
+		Err424_BasketAPIGetGames: "unexpected problem with /matches from BasketAPI",
 	},
 	// 500
 	http.StatusInternalServerError: {

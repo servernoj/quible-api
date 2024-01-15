@@ -30,6 +30,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	g.POST("/live-push", LivePush)
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
+	// RSC
 	protected.GET("/schedule-season", ScheduleSeason)
 	protected.GET("/daily-schedule", DailySchedule)
 	protected.GET("/team-info", TeamInfo)
@@ -38,5 +39,6 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/player-stats", PlayerStats)
 	protected.GET("/injuries", Injuries)
 	protected.GET("/live", LiveFeed)
-
+	// BasketAPI
+	protected.GET("/games", GetGames)
 }

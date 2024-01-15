@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/app-service/BasketAPI"
 	"github.com/quible-io/quible-api/app-service/RSC"
 )
 
@@ -184,4 +185,14 @@ func LivePush(c *gin.Context) {
 		log.Println(string(encoded))
 	}
 	c.Status(http.StatusOK)
+}
+
+func GetGames(c *gin.Context) {
+	games, err := BasketAPI.GetGames(c.Request.Context(), c.Request.URL.Query().Get("date"))
+	if err != nil {
+		log.Println(err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGames)
+		return
+	}
+	c.JSON(http.StatusOK, games)
 }
