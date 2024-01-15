@@ -192,6 +192,7 @@ func LivePush(c *gin.Context) {
 // @Produce		json
 // @Param			date	query		string	true	"Specific date to list games for" format(date) example(2024-01-20)
 // @Success		200	{array}		BasketAPI.Game
+// @Failure		400	{object}	ErrorResponse
 // @Failure		401	{object}	ErrorResponse
 // @Failure		424	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
