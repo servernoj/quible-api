@@ -24,6 +24,7 @@ const (
 	Err400_UnknownError ErrorCode = Err400_Shift + iota + 1
 	Err400_MalformedJSON
 	Err400_InvalidRequestBody
+	Err400_MissingRequiredQueryParam
 )
 const (
 	Err401_UnknownError ErrorCode = Err401_Shift + iota + 1
@@ -53,9 +54,10 @@ const (
 var ErrorMap = c.ErrorMap[ErrorCode]{
 	// 400
 	http.StatusBadRequest: {
-		Err400_UnknownError:       "unknown error",
-		Err400_MalformedJSON:      "malformed JSON request",
-		Err400_InvalidRequestBody: "invalid request body",
+		Err400_UnknownError:              "unknown error",
+		Err400_MalformedJSON:             "malformed JSON request",
+		Err400_InvalidRequestBody:        "invalid request body",
+		Err400_MissingRequiredQueryParam: "missing required query param",
 	},
 	// 401
 	http.StatusUnauthorized: {

@@ -1,7 +1,5 @@
 package BasketAPI
 
-import "github.com/quible-io/quible-api/lib/models"
-
 // Data structure to represent a subset of fields from BasketAPI /live response
 type LiveData struct {
 	Events []LiveEvent `json:"events"`
@@ -124,11 +122,24 @@ type LiveMessage struct {
 
 // Data structure to represent a single entry of GetGames() response
 type Game struct {
-	ID         uint             `json:"id"`
-	GameStatus string           `json:"gameStatus"`
-	HomeTeam   *models.TeamInfo `json:"homeTeam"`
-	AwayTeam   *models.TeamInfo `json:"awayTeam"`
-	HomeScore  *uint            `json:"homeScore"`
-	AwayScore  *uint            `json:"awayScore"`
-	Date       string           `json:"date"`
+	ID         uint     `json:"id"`
+	GameStatus string   `json:"gameStatus"`
+	HomeTeam   TeamInfo `json:"homeTeam"`
+	AwayTeam   TeamInfo `json:"awayTeam"`
+	HomeScore  *uint    `json:"homeScore"`
+	AwayScore  *uint    `json:"awayScore"`
+	Date       string   `json:"date"`
+}
+
+type TeamInfo struct {
+	ID             int     `json:"id"`
+	Name           string  `json:"name"`
+	Slug           string  `json:"slug"`
+	ShortName      string  `json:"shortName"`
+	Abbr           string  `json:"abbr"`
+	ArenaName      string  `json:"arenaName"`
+	ArenaSize      int     `json:"arenaSize"`
+	Color          string  `json:"color"`
+	SecondaryColor string  `json:"secondaryColor"`
+	Logo           *string `json:"logo"`
 }

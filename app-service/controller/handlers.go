@@ -187,8 +187,22 @@ func LivePush(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// @Summary		Get list of games on a specific date
+// @Tags			BasketAPI,private
+// @Produce		json
+// @Param			date	query		string	true	"Specific date to list games for" format(date) example(2024-01-20)
+// @Success		200	{array}		BasketAPI.Game
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/games [get]
 func GetGames(c *gin.Context) {
-	games, err := BasketAPI.GetGames(c.Request.Context(), c.Request.URL.Query().Get("date"))
+	var query GetGamesDTO
+	if err := c.ShouldBindQuery(&query); err != nil {
+		ErrorMap.SendError(c, http.StatusBadRequest, Err400_MissingRequiredQueryParam)
+		return
+	}
+	games, err := BasketAPI.GetGames(c.Request.Context(), query.Date)
 	if err != nil {
 		log.Println(err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGames)

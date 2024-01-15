@@ -11,7 +11,7 @@ import (
 	"github.com/quible-io/quible-api/lib/models"
 )
 
-func getTeamEnhancer(ctx context.Context) (func(MatchScheduleTeam) *models.TeamInfo, error) {
+func getTeamEnhancer(ctx context.Context) (func(MatchScheduleTeam) TeamInfo, error) {
 	// teams info
 	teamsInfo, err := models.TeamInfos().AllG(ctx)
 	if err != nil {
@@ -21,8 +21,20 @@ func getTeamEnhancer(ctx context.Context) (func(MatchScheduleTeam) *models.TeamI
 	for _, teamInfo := range teamsInfo {
 		teamInfoById[teamInfo.ID] = teamInfo
 	}
-	return func(team MatchScheduleTeam) *models.TeamInfo {
-		return teamInfoById[int(team.ID)]
+	return func(team MatchScheduleTeam) TeamInfo {
+		teamInfo := *teamInfoById[int(team.ID)]
+		return TeamInfo{
+			ID:             teamInfo.ID,
+			Name:           teamInfo.Name,
+			Slug:           teamInfo.Slug,
+			ShortName:      teamInfo.ShortName,
+			Abbr:           teamInfo.Abbr,
+			ArenaName:      teamInfo.ArenaName,
+			ArenaSize:      teamInfo.ArenaSize,
+			Color:          teamInfo.Color,
+			SecondaryColor: teamInfo.SecondaryColor,
+			Logo:           teamInfo.Logo.Ptr(),
+		}
 	}, nil
 }
 
