@@ -26,8 +26,12 @@ type TeamDetailsData struct {
 	Team TeamDetails `json:"team"`
 }
 type TeamDetails struct {
+	ID         int        `json:"id"`
+	Name       string     `json:"name"`
+	Slug       string     `json:"slug"`
+	ShortName  string     `json:"shortName"`
+	NameCode   string     `json:"nameCode"`
 	Venue      Venue      `json:"venue"`
-	ID         uint       `json:"id"`
 	TeamColors TeamColors `json:"teamColors"`
 }
 type TeamColors struct {
@@ -40,5 +44,5 @@ type Venue struct {
 
 type Stadium struct {
 	Name     string `json:"name"`
-	Capacity uint   `json:"capacity"`
+	Capacity int    `json:"capacity"`
 }

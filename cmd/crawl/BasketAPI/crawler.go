@@ -9,6 +9,7 @@ import (
 
 	"github.com/quible-io/quible-api/cmd/crawl/common"
 	"github.com/quible-io/quible-api/lib/models"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
@@ -85,7 +86,7 @@ func (c *Crawler) UpdateTeamInfo(ctx context.Context) error {
 		},
 	}.Do()
 	if err != nil {
-		return fmt.Errorf("UpdateTeams: get refs: %w", err)
+		return fmt.Errorf("UpdateTeamInfo: get list of teams: %w", err)
 	}
 	teamsIDs := make(map[uint]struct{})
 	for _, item := range response.Standings {
@@ -96,15 +97,54 @@ func (c *Crawler) UpdateTeamInfo(ctx context.Context) error {
 			teamsIDs[row.Team.ID] = struct{}{}
 		}
 	}
-	log.Printf("%+v\nlength: %d\n", teamsIDs, len(teamsIDs))
-	// // -- retrieve list of teams
-	// teams, err := common.GetList[TeamDetailsData]{
-	// 	Client:      c.Client,
-	// 	URLs:        teamsURLs,
-	// 	Concurrency: 10,
-	// }.Do()
-	// if err != nil {
-	// 	return fmt.Errorf("UpdateTeams: get items: %w", err)
-	// }
+	teamsURLs := make([]string, len(teamsIDs))
+	idx := 0
+	for id := range teamsIDs {
+		teamsURLs[idx] = fmt.Sprintf("%s/team/%d", c.URL, id)
+		idx++
+	}
+	// -- retrieve list of teams
+	teamsDetails, err := common.GetList[TeamDetailsData]{
+		Client:         c.Client,
+		URLs:           teamsURLs,
+		Concurrency:    2,
+		RPS:            4,
+		ExpectedStatus: 200,
+		UpdateRequest: func(req *http.Request) {
+			req.Header = c.Header
+		},
+	}.Do()
+	if err != nil {
+		return fmt.Errorf("UpdateTeamInfo: get team info records: %w", err)
+	}
+	// logos
+	images, err := models.Images(models.ImageWhere.ParentID.IsNull()).AllG(ctx)
+	if err != nil {
+		return fmt.Errorf("UpdateTeamInfo: unable to retrieve logos for all teams: %w", err)
+	}
+	logoByShortName := make(map[string]*string, len(images))
+	for _, image := range images {
+		imageUrl := image.ImageURL
+		logoByShortName[image.DisplayName] = &imageUrl
+	}
+	for _, teamDetails := range teamsDetails {
+		team := teamDetails.Team
+		teamInfo := models.TeamInfo{
+			ID:             int(team.ID),
+			Name:           team.Name,
+			Slug:           team.Slug,
+			Abbr:           team.NameCode,
+			ShortName:      team.ShortName,
+			ArenaName:      team.Venue.Stadium.Name,
+			ArenaSize:      team.Venue.Stadium.Capacity,
+			Color:          team.TeamColors.Primary,
+			SecondaryColor: team.TeamColors.Secondary,
+			Logo:           null.StringFromPtr(logoByShortName[team.ShortName]),
+		}
+		if err := teamInfo.InsertG(ctx, boil.Infer()); err != nil {
+			return fmt.Errorf("unable to insert record with id %q: %w", team.ID, err)
+		}
+	}
+
 	return nil
 }

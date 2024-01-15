@@ -1,5 +1,7 @@
 package BasketAPI
 
+import "github.com/quible-io/quible-api/lib/models"
+
 // Data structure to represent a subset of fields from BasketAPI /live response
 type LiveData struct {
 	Events []LiveEvent `json:"events"`
@@ -87,17 +89,7 @@ type MatchScheduleScore struct {
 }
 
 type MatchScheduleTeam struct {
-	Name       string              `json:"name"`
-	Slug       string              `json:"slug"`
-	ShortName  string              `json:"shortName"`
-	NameCode   string              `json:"nameCode"`
-	ID         uint                `json:"id"`
-	TeamColors MatchScheduleColors `json:"teamColors"`
-}
-
-type MatchScheduleColors struct {
-	Primary   string `json:"primary"`
-	Secondary string `json:"secondary"`
+	ID uint `json:"id"`
 }
 
 type MatchScheduleTime struct {
@@ -122,28 +114,6 @@ const (
 	TypePostponed MatchScheduleStatusType = "postponed"
 )
 
-// -- Team details
-type TeamDetailsData struct {
-	Team TeamDetails `json:"team"`
-}
-type TeamDetails struct {
-	Venue      Venue      `json:"venue"`
-	ID         uint       `json:"id"`
-	TeamColors TeamColors `json:"teamColors"`
-}
-type TeamColors struct {
-	Primary   string `json:"primary"`
-	Secondary string `json:"secondary"`
-}
-type Venue struct {
-	Stadium Stadium `json:"stadium"`
-}
-
-type Stadium struct {
-	Name     string `json:"name"`
-	Capacity uint   `json:"capacity"`
-}
-
 // -- Our reported types
 
 // Data structure to represent Ably messages for live data publishing
@@ -154,25 +124,11 @@ type LiveMessage struct {
 
 // Data structure to represent a single entry of GetGames() response
 type Game struct {
-	ID         uint                `json:"id"`
-	GameStatus string              `json:"gameStatus"`
-	HomeTeam   TeamInfo            `json:"homeTeam"`
-	AwayTeam   TeamInfo            `json:"awayTeam"`
-	HomeScore  *uint               `json:"homeScore"`
-	AwayScore  *uint               `json:"awayScore"`
-	Date       string              `json:"date"`
-	Event      *MatchScheduleEvent `json:"-"`
-}
-
-type TeamInfo struct {
-	ID             uint    `json:"id"`
-	Name           string  `json:"name"`
-	Slug           string  `json:"slug"`
-	ShortName      string  `json:"shortName"`
-	Abbr           string  `json:"abbreviation"`
-	ArenaName      string  `json:"arenaName"`
-	ArenaSize      uint    `json:"arenaSize"`
-	Color          string  `json:"color"`
-	SecondaryColor string  `json:"secondaryColor"`
-	Logo           *string `json:"logoUrl"`
+	ID         uint             `json:"id"`
+	GameStatus string           `json:"gameStatus"`
+	HomeTeam   *models.TeamInfo `json:"homeTeam"`
+	AwayTeam   *models.TeamInfo `json:"awayTeam"`
+	HomeScore  *uint            `json:"homeScore"`
+	AwayScore  *uint            `json:"awayScore"`
+	Date       string           `json:"date"`
 }
