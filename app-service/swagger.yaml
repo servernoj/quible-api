@@ -1,5 +1,45 @@
 basePath: /api/v1
 definitions:
+  BasketAPI.Game:
+    properties:
+      awayScore:
+        type: integer
+      awayTeam:
+        $ref: '#/definitions/BasketAPI.TeamInfo'
+      date:
+        type: string
+      gameStatus:
+        type: string
+      homeScore:
+        type: integer
+      homeTeam:
+        $ref: '#/definitions/BasketAPI.TeamInfo'
+      id:
+        type: integer
+    type: object
+  BasketAPI.TeamInfo:
+    properties:
+      abbr:
+        type: string
+      arenaName:
+        type: string
+      arenaSize:
+        type: integer
+      color:
+        type: string
+      id:
+        type: integer
+      logo:
+        type: string
+      name:
+        type: string
+      secondaryColor:
+        type: string
+      shortName:
+        type: string
+      slug:
+        type: string
+    type: object
   RSC.Current:
     properties:
       Quarter:
@@ -117,11 +157,13 @@ definitions:
       two_points_made:
         type: integer
     type: object
-  RSC.PlayerInfoItem:
+  RSC.PlayerInfoItemExtended:
     properties:
       age:
         type: string
       college:
+        type: string
+      headshot:
         type: string
       height:
         type: string
@@ -427,6 +469,8 @@ definitions:
         type: string
       location:
         type: string
+      logo:
+        type: string
       mascot:
         type: string
       team:
@@ -571,7 +615,7 @@ paths:
       - docs
   /docs/errors:
     get:
-      description: Renders the list of erros reported by the microservice
+      description: Renders the list of errors reported by the microservice
       produces:
       - text/html
       responses:
@@ -595,6 +639,51 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+  /games:
+    get:
+      parameters:
+      - description: Specific date to list games for
+        example: "2024-01-20"
+        format: date
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: Local TZ shift (to UTC) in hours to relate game start time. Defaults
+          to EST/EDT timezone
+        example: "-7"
+        in: query
+        name: localTimeZoneShift
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/BasketAPI.Game'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get list of games on a specific date
+      tags:
+      - BasketAPI
+      - private
   /injuries:
     get:
       description: Returns list of recorded players injuries
@@ -679,7 +768,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/RSC.PlayerInfoItem'
+              $ref: '#/definitions/RSC.PlayerInfoItemExtended'
             type: array
         "401":
           description: Unauthorized

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/quible-io/quible-api/cmd/crawl/BasketAPI"
 	"github.com/quible-io/quible-api/cmd/crawl/espn"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
@@ -28,6 +29,11 @@ func main() {
 		crawlerImpl = os.Args[1]
 	}
 	switch crawlerImpl {
+	case "BasketAPI":
+		crawler = BasketAPI.NewCrawler(BasketAPI.Options{
+			TournamentID: 132,
+			SeasonID:     54105,
+		})
 	default:
 		crawler = espn.NewCrawler()
 	}

@@ -1,4 +1,4 @@
-package espn
+package common
 
 import (
 	"encoding/json"
@@ -6,9 +6,10 @@ import (
 	"net/http"
 )
 
-type GetOne[T ResponseItem] struct {
-	Client http.Client
-	URL    string
+type GetOne[T any] struct {
+	Client        http.Client
+	URL           string
+	UpdateRequest func(req *http.Request)
 }
 
 func (g GetOne[T]) Do() (*T, error) {
@@ -17,6 +18,9 @@ func (g GetOne[T]) Do() (*T, error) {
 		g.URL,
 		http.NoBody,
 	)
+	if g.UpdateRequest != nil {
+		g.UpdateRequest(request)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("GetOne: unable to prepare request: %w", err)
 	}

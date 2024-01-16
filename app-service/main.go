@@ -38,7 +38,7 @@ func Server() {
 	}
 	defer store.Close()
 	// -- Live data BasketAPI
-	quit, err := BasketAPI.Setup()
+	quit, err := BasketAPI.StartLive()
 	if err != nil {
 		log.Fatalln(err)
 	}

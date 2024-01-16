@@ -15,11 +15,11 @@ import (
 	"github.com/quible-io/quible-api/lib/models"
 )
 
-const HOST = "basketapi1.p.rapidapi.com"
 const ERRORS_IN_A_ROW_TO_SET_ALERT = 10
 const OK_IN_A_ROW_TO_CLEAR_ALERT = 10
 
-func Setup() (chan<- struct{}, error) {
+func StartLive() (chan<- struct{}, error) {
+	host := "basketapi1.p.rapidapi.com"
 	ctx := context.Background()
 	quit := make(chan struct{})
 	ticker := time.NewTicker(2 * time.Second)
@@ -51,10 +51,10 @@ func Setup() (chan<- struct{}, error) {
 		for {
 			select {
 			case <-ticker.C:
-				url := fmt.Sprintf("https://%s/api/basketball/matches/live", HOST)
+				url := fmt.Sprintf("https://%s/api/basketball/matches/live", host)
 				req, _ := http.NewRequest("GET", url, nil)
 				req.Header.Add("X-RapidAPI-Key", os.Getenv("ENV_RAPIDAPI_KEY"))
-				req.Header.Add("X-RapidAPI-Host", HOST)
+				req.Header.Add("X-RapidAPI-Host", host)
 				res, err := http.DefaultClient.Do(req)
 				if err != nil {
 					countError++

@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/app-service/BasketAPI"
 	"github.com/quible-io/quible-api/app-service/RSC"
 )
 
@@ -176,12 +176,39 @@ func LiveFeed(c *gin.Context) {
 }
 
 func LivePush(c *gin.Context) {
-	var body any
-	if err := c.BindJSON(&body); err != nil {
-		log.Printf("unable to parse request body")
-	} else {
-		encoded, _ := json.MarshalIndent(&body, "", "  ")
-		log.Println(string(encoded))
-	}
+	// var body any
+	// if err := c.BindJSON(&body); err != nil {
+	// 	log.Printf("unable to parse request body")
+	// } else {
+	// 	encoded, _ := json.MarshalIndent(&body, "", "  ")
+	// 	log.Println(string(encoded))
+	// }
 	c.Status(http.StatusOK)
+}
+
+// @Summary		Get list of games on a specific date
+// @Tags			BasketAPI,private
+// @Produce		json
+// @Param			date	query		string	true	"Specific date to list games for" format(date) example(2024-01-20)
+// @Param			localTimeZoneShift	query		string	false	"Local TZ shift (to UTC) in hours to relate game start time. Defaults to EST/EDT timezone" example(-7)
+// @Success		200	{array}		BasketAPI.Game
+// @Failure		400	{object}	ErrorResponse
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/games [get]
+func GetGames(c *gin.Context) {
+	var query BasketAPI.GetGamesDTO
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Printf("unable to parse query: %s", err)
+		ErrorMap.SendError(c, http.StatusBadRequest, Err400_MissingRequiredQueryParam)
+		return
+	}
+	games, err := BasketAPI.GetGames(c.Request.Context(), query)
+	if err != nil {
+		log.Println(err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGames)
+		return
+	}
+	c.JSON(http.StatusOK, games)
 }
