@@ -191,6 +191,7 @@ func LivePush(c *gin.Context) {
 // @Tags			BasketAPI,private
 // @Produce		json
 // @Param			date	query		string	true	"Specific date to list games for" format(date) example(2024-01-20)
+// @Param			localTimeZoneShift	query		string	false	"Local TZ shift (to UTC) in hours to relate game start time. Defaults to EST/EDT timezone" example(-7)
 // @Success		200	{array}		BasketAPI.Game
 // @Failure		400	{object}	ErrorResponse
 // @Failure		401	{object}	ErrorResponse
@@ -198,12 +199,13 @@ func LivePush(c *gin.Context) {
 // @Failure		500	{object}	ErrorResponse
 // @Router		/games [get]
 func GetGames(c *gin.Context) {
-	var query GetGamesDTO
+	var query BasketAPI.GetGamesDTO
 	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Printf("unable to parse query: %s", err)
 		ErrorMap.SendError(c, http.StatusBadRequest, Err400_MissingRequiredQueryParam)
 		return
 	}
-	games, err := BasketAPI.GetGames(c.Request.Context(), query.Date)
+	games, err := BasketAPI.GetGames(c.Request.Context(), query)
 	if err != nil {
 		log.Println(err)
 		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGames)

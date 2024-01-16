@@ -57,7 +57,7 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 		Err400_UnknownError:              "unknown error",
 		Err400_MalformedJSON:             "malformed JSON request",
 		Err400_InvalidRequestBody:        "invalid request body",
-		Err400_MissingRequiredQueryParam: "missing required query param",
+		Err400_MissingRequiredQueryParam: "missing/invalid required query param",
 	},
 	// 401
 	http.StatusUnauthorized: {

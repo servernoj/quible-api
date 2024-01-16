@@ -38,11 +38,13 @@ func getTeamEnhancer(ctx context.Context) (func(MatchScheduleTeam) TeamInfo, err
 	}, nil
 }
 
-func GetGames(ctx context.Context, date string) ([]Game, error) {
-	dateParsed, err := time.Parse(time.DateOnly, date)
-	if err != nil || dateParsed.Format(time.DateOnly) != date {
-		return nil, fmt.Errorf("unable to [correctly] parse date %q as YYYY-MM-DD: %w", date, err)
+func GetGames(ctx context.Context, query GetGamesDTO) ([]Game, error) {
+	loc, _ := time.LoadLocation("America/New_York")
+	if query.LocalTimeZoneShift != nil {
+		loc = time.FixedZone("User timezone", *query.LocalTimeZoneShift*int(time.Hour/time.Second))
 	}
+	dateParsed, _ := time.Parse(time.DateOnly, query.Date)
+	dateParsedInLocation, _ := time.ParseInLocation(time.DateOnly, query.Date, loc)
 	host := "basketapi1.p.rapidapi.com"
 	url := fmt.Sprintf("https://%s/api/basketball/matches/%s", host, dateParsed.Format("2/1/2006"))
 	req, _ := http.NewRequest("GET", url, nil)
@@ -63,9 +65,11 @@ func GetGames(ctx context.Context, date string) ([]Game, error) {
 		return nil, fmt.Errorf("unable to initialize team entity enhancer: %w", err)
 	}
 	games := make([]Game, 0, len(body.Events))
+	tsFrom := dateParsedInLocation.Unix()
+	tsTo := dateParsedInLocation.Add(24 * time.Hour).Unix()
 	// -- pre-populate `games` slice
 	for _, ev := range body.Events {
-		if ev.Tournament.Name != "NBA" {
+		if ev.Tournament.Name != "NBA" || ev.StartTimestamp < tsFrom || ev.StartTimestamp > tsTo {
 			continue
 		}
 		ev := ev

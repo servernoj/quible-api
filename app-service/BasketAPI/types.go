@@ -143,3 +143,8 @@ type TeamInfo struct {
 	SecondaryColor string  `json:"secondaryColor"`
 	Logo           *string `json:"logo"`
 }
+
+type GetGamesDTO struct {
+	Date               string `form:"date" binding:"required,datetime=2006-01-02"`
+	LocalTimeZoneShift *int   `form:"localTimeZoneShift" binding:"omitempty,number,lte=0"`
+}

@@ -649,6 +649,12 @@ paths:
         name: date
         required: true
         type: string
+      - description: Local TZ shift (to UTC) in hours to relate game start time. Defaults
+          to EST/EDT timezone
+        example: "-7"
+        in: query
+        name: localTimeZoneShift
+        type: string
       produces:
       - application/json
       responses:
@@ -658,6 +664,10 @@ paths:
             items:
               $ref: '#/definitions/BasketAPI.Game'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
