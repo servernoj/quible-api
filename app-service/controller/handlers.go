@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -177,13 +176,13 @@ func LiveFeed(c *gin.Context) {
 }
 
 func LivePush(c *gin.Context) {
-	var body any
-	if err := c.BindJSON(&body); err != nil {
-		log.Printf("unable to parse request body")
-	} else {
-		encoded, _ := json.MarshalIndent(&body, "", "  ")
-		log.Println(string(encoded))
-	}
+	// var body any
+	// if err := c.BindJSON(&body); err != nil {
+	// 	log.Printf("unable to parse request body")
+	// } else {
+	// 	encoded, _ := json.MarshalIndent(&body, "", "  ")
+	// 	log.Println(string(encoded))
+	// }
 	c.Status(http.StatusOK)
 }
 
