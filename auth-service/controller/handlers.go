@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
@@ -221,6 +222,11 @@ func UserLogin(c *gin.Context) {
 		AccessToken:  generatedAccessToken.String(),
 		RefreshToken: generatedRefreshToken.String(),
 	}
+	log.Printf(
+		"login user %q with refresh signature %q\n",
+		userLoginDTO.Email,
+		strings.SplitN(responseData.RefreshToken, ".", 3)[2],
+	)
 	c.JSON(http.StatusOK, responseData)
 }
 
@@ -375,7 +381,7 @@ func UserRefresh(c *gin.Context) {
 	}
 
 	if refreshTokenId := claims["jti"].(string); user.Refresh != refreshTokenId {
-		log.Printf("provided refresh token has been revoked")
+		log.Printf("provided refresh token %q has been revoked", userRefreshDTO.RefreshToken)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
 		return
 	}
@@ -402,6 +408,11 @@ func UserRefresh(c *gin.Context) {
 		AccessToken:  generatedAccessToken.String(),
 		RefreshToken: generatedRefreshToken.String(),
 	}
+	log.Printf(
+		"refresh token for %q, new refresh signature %q\n",
+		user.Email,
+		strings.SplitN(responseData.RefreshToken, ".", 3)[2],
+	)
 	c.JSON(http.StatusOK, responseData)
 }
 
