@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/quible-io/quible-api/cmd/crawl/common"
+	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -78,7 +78,7 @@ func (c *Crawler) CleanUp(ctx context.Context) error {
 }
 
 func (c *Crawler) UpdateTeamInfo(ctx context.Context) error {
-	response, err := common.GetOne[Standings]{
+	response, err := misc.GetOne[Standings]{
 		Client: c.Client,
 		URL:    fmt.Sprintf("%s/tournament/%d/season/%d/standings/total", c.URL, c.TournamentID, c.SeasonID),
 		UpdateRequest: func(req *http.Request) {
@@ -104,7 +104,7 @@ func (c *Crawler) UpdateTeamInfo(ctx context.Context) error {
 		idx++
 	}
 	// -- retrieve list of teams
-	teamsDetails, err := common.GetList[TeamDetailsData]{
+	teamsDetails, err := misc.GetList[TeamDetailsData]{
 		Client:         c.Client,
 		URLs:           teamsURLs,
 		Concurrency:    2,
