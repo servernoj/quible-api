@@ -41,4 +41,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/live", LiveFeed)
 	// BasketAPI
 	protected.GET("/games", GetGames)
+	protected.GET("/game", GetGameDetails)
 }

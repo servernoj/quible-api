@@ -7,9 +7,10 @@ import (
 )
 
 type GetOne[T any] struct {
-	Client        http.Client
-	URL           string
-	UpdateRequest func(req *http.Request)
+	Client         http.Client
+	URL            string
+	UpdateRequest  func(req *http.Request)
+	ExpectedStatus int
 }
 
 func (g GetOne[T]) Do() (*T, error) {
@@ -27,6 +28,9 @@ func (g GetOne[T]) Do() (*T, error) {
 	res, err := g.Client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("GetOne: unable to execute the request: %w", err)
+	}
+	if g.ExpectedStatus != 0 && res.StatusCode != g.ExpectedStatus {
+		return nil, fmt.Errorf("GetList: request to %q failed: %s", g.URL, res.Status)
 	}
 	body := res.Body
 	defer body.Close()

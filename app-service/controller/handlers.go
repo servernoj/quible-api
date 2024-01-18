@@ -212,3 +212,19 @@ func GetGames(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, games)
 }
+
+func GetGameDetails(c *gin.Context) {
+	var query BasketAPI.GetGameDetailsDTO
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Printf("unable to parse query: %s", err)
+		ErrorMap.SendError(c, http.StatusBadRequest, Err400_MissingRequiredQueryParam)
+		return
+	}
+	result, err := BasketAPI.GetGameDetails(c.Request.Context(), c.Request.URL.Query())
+	if err != nil {
+		log.Println(err)
+		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGameDetails)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}

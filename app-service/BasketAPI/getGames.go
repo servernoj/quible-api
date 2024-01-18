@@ -2,41 +2,13 @@ package BasketAPI
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/quible-io/quible-api/lib/models"
+	"github.com/quible-io/quible-api/lib/misc"
 )
-
-func getTeamEnhancer(ctx context.Context) (func(MatchScheduleTeam) TeamInfo, error) {
-	// teams info
-	teamsInfo, err := models.TeamInfos().AllG(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve combined team info (for all teams): %w", err)
-	}
-	teamInfoById := make(map[int]*models.TeamInfo, len(teamsInfo))
-	for _, teamInfo := range teamsInfo {
-		teamInfoById[teamInfo.ID] = teamInfo
-	}
-	return func(team MatchScheduleTeam) TeamInfo {
-		teamInfo := *teamInfoById[int(team.ID)]
-		return TeamInfo{
-			ID:             teamInfo.ID,
-			Name:           teamInfo.Name,
-			Slug:           teamInfo.Slug,
-			ShortName:      teamInfo.ShortName,
-			Abbr:           teamInfo.Abbr,
-			ArenaName:      teamInfo.ArenaName,
-			ArenaSize:      teamInfo.ArenaSize,
-			Color:          teamInfo.Color,
-			SecondaryColor: teamInfo.SecondaryColor,
-			Logo:           teamInfo.Logo.Ptr(),
-		}
-	}, nil
-}
 
 func GetGames(ctx context.Context, query GetGamesDTO) ([]Game, error) {
 	loc, _ := time.LoadLocation("America/New_York")
@@ -45,30 +17,33 @@ func GetGames(ctx context.Context, query GetGamesDTO) ([]Game, error) {
 	}
 	dateParsed, _ := time.Parse(time.DateOnly, query.Date)
 	dateParsedInLocation, _ := time.ParseInLocation(time.DateOnly, query.Date, loc)
-	host := "basketapi1.p.rapidapi.com"
-	url := fmt.Sprintf("https://%s/api/basketball/matches/%s", host, dateParsed.Format("2/1/2006"))
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("X-RapidAPI-Key", os.Getenv("ENV_RAPIDAPI_KEY"))
-	req.Header.Add("X-RapidAPI-Host", host)
-	res, err := http.DefaultClient.Do(req)
+	url := fmt.Sprintf(
+		"https://%s/api/basketball/matches/%s",
+		Host,
+		dateParsed.Format("2/1/2006"),
+	)
+	response, err := misc.GetOne[MatchScheduleData]{
+		Client: *http.DefaultClient,
+		URL:    url,
+		UpdateRequest: func(req *http.Request) {
+			req.Header.Set("X-RapidAPI-Key", os.Getenv("ENV_RAPIDAPI_KEY"))
+			req.Header.Set("X-RapidAPI-Host", Host)
+		},
+		ExpectedStatus: http.StatusOK,
+	}.Do()
 	if err != nil {
-		return nil, fmt.Errorf("unable execute request to %q: %w", url, err)
+		return nil, fmt.Errorf("unable to retrieve matches: %w", err)
 	}
-	var body MatchScheduleData
-	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
-		return nil, fmt.Errorf("unable to decode response: %w", err)
-	}
-	res.Body.Close()
 	// -- inject team details into games
 	teamEnhancer, err := getTeamEnhancer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize team entity enhancer: %w", err)
 	}
-	games := make([]Game, 0, len(body.Events))
+	games := make([]Game, 0, len(response.Events))
 	tsFrom := dateParsedInLocation.Unix()
 	tsTo := dateParsedInLocation.Add(24 * time.Hour).Unix()
 	// -- pre-populate `games` slice
-	for _, ev := range body.Events {
+	for _, ev := range response.Events {
 		if ev.Tournament.Name != "NBA" || ev.StartTimestamp < tsFrom || ev.StartTimestamp > tsTo {
 			continue
 		}

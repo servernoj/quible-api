@@ -67,11 +67,18 @@ type LiveTournament struct {
 type MatchScheduleData struct {
 	Events []MatchScheduleEvent `json:"events"`
 }
+type MatchData struct {
+	Event MatchScheduleEvent `json:"event"`
+}
+
+type TeamId struct {
+	ID uint `json:"id"`
+}
 type MatchScheduleEvent struct {
 	Tournament     EventTournament     `json:"tournament"`
 	Status         MatchScheduleStatus `json:"status"`
-	HomeTeam       MatchScheduleTeam   `json:"homeTeam"`
-	AwayTeam       MatchScheduleTeam   `json:"awayTeam"`
+	HomeTeam       TeamId              `json:"homeTeam"`
+	AwayTeam       TeamId              `json:"awayTeam"`
 	HomeScore      MatchScheduleScore  `json:"homeScore"`
 	AwayScore      MatchScheduleScore  `json:"awayScore"`
 	Time           MatchScheduleTime   `json:"time"`
@@ -84,10 +91,6 @@ type EventTournament struct {
 type MatchScheduleScore struct {
 	Current *uint `json:"current,omitempty"`
 	Display *uint `json:"display,omitempty"`
-}
-
-type MatchScheduleTeam struct {
-	ID uint `json:"id"`
 }
 
 type MatchScheduleTime struct {
@@ -148,3 +151,106 @@ type GetGamesDTO struct {
 	Date               string `form:"date" binding:"required,datetime=2006-01-02"`
 	LocalTimeZoneShift *int   `form:"localTimeZoneShift" binding:"omitempty,number,lte=0"`
 }
+
+type GetGameDetailsDTO struct {
+	GameId uint `form:"gameId" binding:"required,gt=0"`
+}
+
+// Data structures for GetGameDetails()
+
+type MatchDetails struct {
+	ID         uint                `json:"id"`
+	GameStatus string              `json:"gameStatus"`
+	HomeScore  *uint               `json:"homeScore"`
+	AwayScore  *uint               `json:"awayScore"`
+	Date       string              `json:"date"`
+	Event      *MatchScheduleEvent `json:"-"`
+}
+
+type GameDetails struct {
+	MatchDetails
+	HomeTeam TeamInfoExtended `json:"homeTeam"`
+	AwayTeam TeamInfoExtended `json:"awayTeam"`
+}
+
+type TeamInfoExtended struct {
+	TeamInfo
+	Stats TeamStats `json:"stats"`
+	// Players []PlayerEntity  `json:"players"`
+}
+
+type GameTeamsStats struct {
+	HomeTeam TeamStats
+	AwayTeam TeamStats
+}
+
+type TeamStats struct {
+	Rebounds  uint `json:"reb"`
+	Assists   uint `json:"ast"`
+	Steals    uint `json:"stl"`
+	Blocks    uint `json:"blk"`
+	Turnovers uint `json:"to"`
+	Fouls     uint `json:"fp"`
+}
+type PlayerEntity struct {
+	ID    uint
+	Name  string
+	Stats PlayerStats
+}
+
+type PlayerStats struct {
+	min  uint // minutes
+	fgm  uint // fieldGoalsMade
+	fga  uint // fieldGoalsAttempted
+	tpm  uint // threePointsMade
+	tpa  uint // threePointsAttempted
+	ftm  uint // freeThrowsMade
+	fta  uint // freeThrowsAttempted
+	oreb uint // offensiveRebounds
+	dreb uint // defensiveRebounds
+	reb  uint // totalRebounds
+	ast  uint // assists
+	stl  uint // steals
+	blk  uint // blocks
+	to   uint // turnovers
+	// fp   uint // fouls
+}
+
+type MatchStatisticsEntries struct {
+	Statistics []StatisticsEntry `json:"statistics"`
+}
+
+type StatisticsEntry struct {
+	Period string                 `json:"period"`
+	Groups []StatisticsEntryGroup `json:"groups"`
+}
+
+type StatisticsEntryGroup struct {
+	GroupName       GroupName   `json:"groupName"`
+	StatisticsItems []GroupItem `json:"statisticsItems"`
+}
+
+type GroupName string
+
+const (
+	GroupName_Lead    GroupName = "Lead"
+	GroupName_Other   GroupName = "Other"
+	GroupName_Scoring GroupName = "Scoring"
+)
+
+type GroupItem struct {
+	Name      GroupItemName `json:"name"`
+	HomeValue uint          `json:"homeValue"`
+	AwayValue uint          `json:"awayValue"`
+}
+
+type GroupItemName string
+
+const (
+	Other_Rebounds  GroupItemName = "Rebounds"
+	Other_Assists   GroupItemName = "Assists"
+	Other_Turnovers GroupItemName = "Turnovers"
+	Other_Steals    GroupItemName = "Steals"
+	Other_Blocks    GroupItemName = "Blocks"
+	Other_Fouls     GroupItemName = "Fouls"
+)
