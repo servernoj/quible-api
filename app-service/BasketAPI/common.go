@@ -53,3 +53,11 @@ func getTeamEnhancer(ctx context.Context) (func(TeamId) TeamInfo, error) {
 		}
 	}, nil
 }
+
+func ApplyMapper[F any, T any](s []F, m func(F) T) []T {
+	result := make([]T, len(s))
+	for idx := range s {
+		result[idx] = m(s[idx])
+	}
+	return result
+}

@@ -29,6 +29,10 @@ type GameTeamsStats struct {
 	HomeTeam TeamStats
 	AwayTeam TeamStats
 }
+type GamePlayers struct {
+	HomeTeam []PlayerEntity
+	AwayTeam []PlayerEntity
+}
 
 type TeamStats struct {
 	Rebounds  uint `json:"reb"`
@@ -40,27 +44,77 @@ type TeamStats struct {
 }
 
 type PlayerEntity struct {
-	ID   uint
-	Name string
-	// Stats PlayerStats
+	ID    uint
+	Name  string
+	Stats PlayerStats
 }
 
 type PlayerStats struct {
-	min  uint // minutes
-	fgm  uint // fieldGoalsMade
-	fga  uint // fieldGoalsAttempted
-	tpm  uint // threePointsMade
-	tpa  uint // threePointsAttempted
-	ftm  uint // freeThrowsMade
-	fta  uint // freeThrowsAttempted
-	oreb uint // offensiveRebounds
-	dreb uint // defensiveRebounds
-	reb  uint // totalRebounds
-	ast  uint // assists
-	stl  uint // steals
-	blk  uint // blocks
-	to   uint // turnovers
-	// fp   uint // fouls
+	MinutesPlayed      float64 `json:"min"`
+	SecondsPlayed      uint    `json:"sec"`
+	FieldGoalsMade     uint    `json:"fgm"`
+	FieldGoalAttempts  uint    `json:"fga"`
+	ThreePointsMade    uint    `json:"tpm"`
+	ThreePointAttempts uint    `json:"tpa"`
+	FreeThrowsMade     uint    `json:"ftm"`
+	FreeThrowAttempts  uint    `json:"fta"`
+	OffensiveRebounds  uint    `json:"oreb"`
+	DefensiveRebounds  uint    `json:"dreb"`
+	Rebounds           uint    `json:"reb"`
+	Assists            uint    `json:"ast"`
+	Steals             uint    `json:"stl"`
+	Blocks             uint    `json:"blk"`
+	Turnovers          uint    `json:"to"`
+	PersonalFouls      uint    `json:"fp"`
+	Points             uint    `json:"pts"`
+}
+
+// -- MatchLineups (ML) API
+
+type ML_Data struct {
+	Home ML_Team `json:"home"`
+	Away ML_Team `json:"away"`
+}
+
+type ML_Team struct {
+	Players []ML_PlayerElement `json:"players"`
+}
+
+type ML_PlayerElement struct {
+	Player     ML_Player     `json:"player"`
+	Statistics ML_Statistics `json:"statistics"`
+}
+
+type ML_Player struct {
+	Name         string `json:"name"`
+	Slug         string `json:"slug"`
+	ShortName    string `json:"shortName"`
+	Position     string `json:"position"`
+	JerseyNumber string `json:"jerseyNumber"`
+	ID           uint   `json:"id"`
+}
+
+type ML_Statistics struct {
+	SecondsPlayed      uint `json:"secondsPlayed"`
+	FieldGoalsMade     uint `json:"fieldGoalsMade"`
+	FieldGoalAttempts  uint `json:"fieldGoalAttempts"`
+	ThreePointsMade    uint `json:"threePointsMade"`
+	ThreePointAttempts uint `json:"threePointAttempts"`
+	FreeThrowsMade     uint `json:"freeThrowsMade"`
+	FreeThrowAttempts  uint `json:"freeThrowAttempts"`
+	OffensiveRebounds  uint `json:"offensiveRebounds"`
+	DefensiveRebounds  uint `json:"defensiveRebounds"`
+	Rebounds           uint `json:"rebounds"`
+	Assists            uint `json:"assists"`
+	Steals             uint `json:"steals"`
+	Blocks             uint `json:"blocks"`
+	Turnovers          uint `json:"turnovers"`
+	PersonalFouls      uint `json:"personalFouls"`
+	Points             uint `json:"points"`
+	// -- currently unused
+	// TwoPointsMade    uint `json:"twoPointsMade"`
+	// TwoPointAttempts uint `json:"twoPointAttempts"`
+	// PlusMinus        uint `json:"plusMinus"`
 }
 
 // -- Match (MD) API

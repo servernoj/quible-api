@@ -89,6 +89,55 @@ func getTeamStats(query url.Values) (*GameTeamsStats, error) {
 	return &result, nil
 }
 
+func getPlayersStats(query url.Values) (*GamePlayers, error) {
+	url := fmt.Sprintf(
+		"https://%s/api/basketball/match/%s/lineups",
+		Host,
+		query.Get("gameId"),
+	)
+	response, err := misc.GetOne[ML_Data]{
+		Client: *http.DefaultClient,
+		URL:    url,
+		UpdateRequest: func(req *http.Request) {
+			req.Header.Set("X-RapidAPI-Key", os.Getenv("ENV_RAPIDAPI_KEY"))
+			req.Header.Set("X-RapidAPI-Host", Host)
+		},
+		ExpectedStatus: http.StatusOK,
+	}.Do()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get response of MatchLineups: %w", err)
+	}
+	mapper := func(playerElement ML_PlayerElement) PlayerEntity {
+		return PlayerEntity{
+			ID:   playerElement.Player.ID,
+			Name: playerElement.Player.Name,
+			Stats: PlayerStats{
+				MinutesPlayed:      float64(playerElement.Statistics.SecondsPlayed) / 60.0,
+				SecondsPlayed:      playerElement.Statistics.SecondsPlayed,
+				FieldGoalsMade:     playerElement.Statistics.FieldGoalsMade,
+				FieldGoalAttempts:  playerElement.Statistics.FieldGoalAttempts,
+				ThreePointsMade:    playerElement.Statistics.ThreePointsMade,
+				ThreePointAttempts: playerElement.Statistics.FreeThrowAttempts,
+				FreeThrowsMade:     playerElement.Statistics.FreeThrowsMade,
+				FreeThrowAttempts:  playerElement.Statistics.FreeThrowAttempts,
+				OffensiveRebounds:  playerElement.Statistics.OffensiveRebounds,
+				DefensiveRebounds:  playerElement.Statistics.DefensiveRebounds,
+				Rebounds:           playerElement.Statistics.Rebounds,
+				Assists:            playerElement.Statistics.Assists,
+				Steals:             playerElement.Statistics.Steals,
+				Blocks:             playerElement.Statistics.Blocks,
+				Turnovers:          playerElement.Statistics.Turnovers,
+				PersonalFouls:      playerElement.Statistics.PersonalFouls,
+				Points:             playerElement.Statistics.Points,
+			},
+		}
+	}
+	return &GamePlayers{
+		HomeTeam: ApplyMapper(response.Home.Players, mapper),
+		AwayTeam: ApplyMapper(response.Away.Players, mapper),
+	}, nil
+}
+
 func getMatchDetails(query url.Values) (*MatchDetails, error) {
 	url := fmt.Sprintf(
 		"https://%s/api/basketball/match/%s",
@@ -142,16 +191,22 @@ func GetGameDetails(ctx context.Context, query url.Values) (*GameDetails, error)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve teams stats: %w", err)
 	}
+	playersStats, err := getPlayersStats(query)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve players stats: %w", err)
+	}
 
 	return &GameDetails{
 		MatchDetails: *matchDetails,
 		HomeTeam: TeamInfoExtended{
 			TeamInfo: teamEnhancer(matchDetails.Event.HomeTeam),
 			Stats:    teamsStats.HomeTeam,
+			Players:  playersStats.HomeTeam,
 		},
 		AwayTeam: TeamInfoExtended{
 			TeamInfo: teamEnhancer(matchDetails.Event.AwayTeam),
 			Stats:    teamsStats.AwayTeam,
+			Players:  playersStats.AwayTeam,
 		},
 	}, nil
 }
