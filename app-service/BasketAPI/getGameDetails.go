@@ -3,6 +3,7 @@ package BasketAPI
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -154,7 +155,7 @@ func getMatchDetails(query url.Values) (*MatchDetails, error) {
 		ExpectedStatus: http.StatusOK,
 	}.Do()
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve match event: %w", err)
+		return nil, fmt.Errorf("unable to get response of Match API: %w", err)
 	}
 	// enhance response
 	ev := response.Event
@@ -187,26 +188,30 @@ func GetGameDetails(ctx context.Context, query url.Values) (*GameDetails, error)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve match details: %w", err)
 	}
-	teamsStats, err := getTeamStats(query)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve teams stats: %w", err)
-	}
 	playersStats, err := getPlayersStats(query)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve players stats: %w", err)
 	}
+	teamsStats, err := getTeamStats(query)
+	if err != nil {
+		log.Printf("unable to retrieve teams stats: %s", err)
+	}
 
-	return &GameDetails{
+	result := GameDetails{
 		MatchDetails: *matchDetails,
 		HomeTeam: TeamInfoExtended{
 			TeamInfo: teamEnhancer(matchDetails.Event.HomeTeam),
-			Stats:    teamsStats.HomeTeam,
 			Players:  playersStats.HomeTeam,
 		},
 		AwayTeam: TeamInfoExtended{
 			TeamInfo: teamEnhancer(matchDetails.Event.AwayTeam),
-			Stats:    teamsStats.AwayTeam,
 			Players:  playersStats.AwayTeam,
 		},
-	}, nil
+	}
+	if teamsStats != nil {
+		result.HomeTeam.Stats = &teamsStats.HomeTeam
+		result.AwayTeam.Stats = &teamsStats.AwayTeam
+	}
+
+	return &result, nil
 }

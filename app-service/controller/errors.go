@@ -82,7 +82,7 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 		Err424_Injuries:                "unexpected problem with /injuries RSC API",
 		Err424_LiveFeed:                "unexpected problem with /live RSC API",
 		Err424_BasketAPIGetGames:       "unexpected problem with MatchSchedules from BasketAPI",
-		Err424_BasketAPIGetGameDetails: "unexpected problem with League(RegularSeason|Playoffs)TopTeams from BasketAPI",
+		Err424_BasketAPIGetGameDetails: "unexpected problem with (Match|MatchStatistics|MatchLineups) API from BasketAPI",
 	},
 	// 500
 	http.StatusInternalServerError: {

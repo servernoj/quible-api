@@ -21,7 +21,7 @@ type GameDetails struct {
 
 type TeamInfoExtended struct {
 	TeamInfo
-	Stats   TeamStats      `json:"stats"`
+	Stats   *TeamStats     `json:"stats"`
 	Players []PlayerEntity `json:"players"`
 }
 
