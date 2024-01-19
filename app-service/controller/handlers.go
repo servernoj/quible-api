@@ -213,6 +213,16 @@ func GetGames(c *gin.Context) {
 	c.JSON(http.StatusOK, games)
 }
 
+// @Summary		Get game details
+// @Tags			BasketAPI,private
+// @Produce		json
+// @Param			gameId	query		string	true	"ID of the BasketAPI match"
+// @Success		200	{array}		BasketAPI.GameDetails
+// @Failure		400	{object}	ErrorResponse
+// @Failure		401	{object}	ErrorResponse
+// @Failure		424	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/game [get]
 func GetGameDetails(c *gin.Context) {
 	var query BasketAPI.GetGameDetailsDTO
 	if err := c.ShouldBindQuery(&query); err != nil {
