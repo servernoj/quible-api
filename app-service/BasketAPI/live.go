@@ -79,6 +79,7 @@ func StartLive() (chan<- struct{}, error) {
 							log.Printf("unable to send BasketAPI error report: %s", err)
 						}
 					}
+					continue
 				} else {
 					countOK++
 					countError = 0
