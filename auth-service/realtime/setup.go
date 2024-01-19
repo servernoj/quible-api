@@ -33,3 +33,7 @@ func GetToken(userId string) (*ably.TokenRequest, error) {
 	}
 	return ablyRealTime.Auth.CreateTokenRequest(tokenParams)
 }
+
+func CreateTokenRequest(params *ably.TokenParams, opts ...ably.AuthOption) (*ably.TokenRequest, error) {
+	return ablyRealTime.Auth.CreateTokenRequest(params, opts...)
+}

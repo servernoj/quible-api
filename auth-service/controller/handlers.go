@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/ably/ably-go/ably"
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/realtime"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
@@ -434,6 +436,21 @@ func AblyToken(c *gin.Context) {
 	token, err := realtime.GetToken(user.ID)
 	if err != nil {
 		log.Printf("unable to retrieve ably token for user %q: %q", user.ID, err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, token)
+}
+
+func AblyTokenDemo(c *gin.Context) {
+	capabilities, _ := json.Marshal(&map[string][]string{
+		"*": {"subscribe", "history"},
+	})
+	token, err := realtime.CreateTokenRequest(&ably.TokenParams{
+		Capability: string(capabilities),
+	})
+	if err != nil {
+		log.Printf("unable to retrieve demo ably token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
 	}

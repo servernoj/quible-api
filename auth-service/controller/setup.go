@@ -31,6 +31,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	g.POST("/user/refresh", UserRefresh)
 	g.POST("/login", UserLogin)
 	g.GET("/user/:userId/image", UserGetImage)
+	g.GET("/rt/read-only-token", AblyTokenDemo)
 	//-- Protected API
 	protected := g.Group("", authMiddleware)
 	protected.GET("/user", UserGet)
