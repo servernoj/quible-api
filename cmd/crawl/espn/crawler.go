@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/quible-io/quible-api/cmd/crawl/common"
+	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -71,7 +71,7 @@ func (c *Crawler) UpdateTeams(ctx context.Context) error {
 	query := url.Values{
 		"limit": {"100"},
 	}
-	teamsRefs, err := common.GetOne[ResponseWithItems]{
+	teamsRefs, err := misc.GetOne[ResponseWithItems]{
 		Client: c.Client,
 		URL:    fmt.Sprintf("%s/teams?%s", c.URL, query.Encode()),
 	}.Do()
@@ -83,7 +83,7 @@ func (c *Crawler) UpdateTeams(ctx context.Context) error {
 		teamsURLs = append(teamsURLs, item.Ref)
 	}
 	// -- retrieve list of teams
-	teams, err := common.GetList[TeamItem]{
+	teams, err := misc.GetList[TeamItem]{
 		Client:      c.Client,
 		URLs:        teamsURLs,
 		Concurrency: 10,
@@ -121,7 +121,7 @@ func (c *Crawler) UpdatePlayers(ctx context.Context) error {
 	query := url.Values{
 		"limit": {"1000"},
 	}
-	playersRefs, err := common.GetOne[ResponseWithItems]{
+	playersRefs, err := misc.GetOne[ResponseWithItems]{
 		Client: c.Client,
 		URL:    fmt.Sprintf("%s/athletes?%s", c.URL, query.Encode()),
 	}.Do()
@@ -133,7 +133,7 @@ func (c *Crawler) UpdatePlayers(ctx context.Context) error {
 		playersURLs = append(playersURLs, item.Ref)
 	}
 	// -- retrieve list of players
-	players, err := common.GetList[PlayerItem]{
+	players, err := misc.GetList[PlayerItem]{
 		Client:      c.Client,
 		URLs:        playersURLs,
 		Concurrency: 50,

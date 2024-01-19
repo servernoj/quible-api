@@ -2,7 +2,6 @@ package BasketAPI
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/ably/ably-go/ably"
 	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 )
 
@@ -19,7 +19,6 @@ const ERRORS_IN_A_ROW_TO_SET_ALERT = 10
 const OK_IN_A_ROW_TO_CLEAR_ALERT = 10
 
 func StartLive() (chan<- struct{}, error) {
-	host := "basketapi1.p.rapidapi.com"
 	ctx := context.Background()
 	quit := make(chan struct{})
 	ticker := time.NewTicker(2 * time.Second)
@@ -51,11 +50,16 @@ func StartLive() (chan<- struct{}, error) {
 		for {
 			select {
 			case <-ticker.C:
-				url := fmt.Sprintf("https://%s/api/basketball/matches/live", host)
-				req, _ := http.NewRequest("GET", url, nil)
-				req.Header.Add("X-RapidAPI-Key", os.Getenv("ENV_RAPIDAPI_KEY"))
-				req.Header.Add("X-RapidAPI-Host", host)
-				res, err := http.DefaultClient.Do(req)
+				url := fmt.Sprintf("https://%s/api/basketball/matches/live", Host)
+				res, err := misc.GetOne[LM_Data]{
+					Client: *http.DefaultClient,
+					URL:    url,
+					UpdateRequest: func(req *http.Request) {
+						req.Header.Set("X-RapidAPI-Key", os.Getenv("ENV_RAPIDAPI_KEY"))
+						req.Header.Set("X-RapidAPI-Host", Host)
+					},
+					ExpectedStatus: http.StatusOK,
+				}.Do()
 				if err != nil {
 					countError++
 					countOK = 0
@@ -82,18 +86,10 @@ func StartLive() (chan<- struct{}, error) {
 						isInError = false
 					}
 				}
-				var body LiveData
-				if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
-					log.Printf(
-						"BasketAPI error: %s",
-						fmt.Errorf("unable to decode response: %w", err),
-					)
-				}
-				res.Body.Close()
 				// -- process and publish to clients
 				var liveMessage LiveMessage
 				tournaments := []string{"NBA"}
-				for _, ev := range body.Events {
+				for _, ev := range res.Events {
 					if slices.Index(tournaments, ev.Tournament.Name) != -1 {
 						liveMessage.IDs = append(liveMessage.IDs, ev.ID)
 						state := fmt.Sprintf("%d:%d@%s+%d", ev.HomeScore.Current, ev.AwayScore.Current, ev.Status.Description, ev.Time.Played)

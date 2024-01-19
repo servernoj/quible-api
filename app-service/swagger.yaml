@@ -17,6 +17,69 @@ definitions:
       id:
         type: integer
     type: object
+  BasketAPI.GameDetails:
+    properties:
+      awayScore:
+        type: integer
+      awayTeam:
+        $ref: '#/definitions/BasketAPI.TeamInfoExtended'
+      date:
+        type: string
+      gameStatus:
+        type: string
+      homeScore:
+        type: integer
+      homeTeam:
+        $ref: '#/definitions/BasketAPI.TeamInfoExtended'
+      id:
+        type: integer
+    type: object
+  BasketAPI.PlayerEntity:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      stats:
+        $ref: '#/definitions/BasketAPI.PlayerStats'
+    type: object
+  BasketAPI.PlayerStats:
+    properties:
+      ast:
+        type: integer
+      blk:
+        type: integer
+      dreb:
+        type: integer
+      fga:
+        type: integer
+      fgm:
+        type: integer
+      fp:
+        type: integer
+      fta:
+        type: integer
+      ftm:
+        type: integer
+      min:
+        type: number
+      oreb:
+        type: integer
+      pts:
+        type: integer
+      reb:
+        type: integer
+      sec:
+        type: integer
+      stl:
+        type: integer
+      to:
+        type: integer
+      tpa:
+        type: integer
+      tpm:
+        type: integer
+    type: object
   BasketAPI.TeamInfo:
     properties:
       abbr:
@@ -39,6 +102,50 @@ definitions:
         type: string
       slug:
         type: string
+    type: object
+  BasketAPI.TeamInfoExtended:
+    properties:
+      abbr:
+        type: string
+      arenaName:
+        type: string
+      arenaSize:
+        type: integer
+      color:
+        type: string
+      id:
+        type: integer
+      logo:
+        type: string
+      name:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/BasketAPI.PlayerEntity'
+        type: array
+      secondaryColor:
+        type: string
+      shortName:
+        type: string
+      slug:
+        type: string
+      stats:
+        $ref: '#/definitions/BasketAPI.TeamStats'
+    type: object
+  BasketAPI.TeamStats:
+    properties:
+      ast:
+        type: integer
+      blk:
+        type: integer
+      fp:
+        type: integer
+      reb:
+        type: integer
+      stl:
+        type: integer
+      to:
+        type: integer
     type: object
   RSC.Current:
     properties:
@@ -639,6 +746,43 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+  /game:
+    get:
+      parameters:
+      - description: ID of the BasketAPI match
+        in: query
+        name: gameId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/BasketAPI.GameDetails'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "424":
+          description: Failed Dependency
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Get game details
+      tags:
+      - BasketAPI
+      - private
   /games:
     get:
       parameters:
