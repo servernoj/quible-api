@@ -17,7 +17,7 @@ func getTeamStats(query url.Values) (*GameTeamsStats, error) {
 		Host,
 		query.Get("gameId"),
 	)
-	response, err := misc.GetOne[MatchStatisticsEntries]{
+	response, err := misc.GetOne[MStat_Data]{
 		Client: *http.DefaultClient,
 		URL:    url,
 		UpdateRequest: func(req *http.Request) {
@@ -29,7 +29,7 @@ func getTeamStats(query url.Values) (*GameTeamsStats, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to get response of MatchStatistics: %w", err)
 	}
-	var statGroups []StatisticsEntryGroup
+	var statGroups []MStat_Group
 	for idx := range response.Statistics {
 		if response.Statistics[idx].Period == "ALL" {
 			statGroups = response.Statistics[idx].Groups
@@ -39,9 +39,9 @@ func getTeamStats(query url.Values) (*GameTeamsStats, error) {
 	if len(statGroups) == 0 {
 		return nil, fmt.Errorf("statistics groups not found")
 	}
-	var statItems []GroupItem
+	var statItems []MStat_GroupItem
 	for idx := range statGroups {
-		if statGroups[idx].GroupName == GroupName_Other {
+		if statGroups[idx].GroupName == MStat_GroupName_Other {
 			statItems = statGroups[idx].StatisticsItems
 			break
 		}
@@ -52,33 +52,33 @@ func getTeamStats(query url.Values) (*GameTeamsStats, error) {
 	var result GameTeamsStats
 	for _, item := range statItems {
 		switch item.Name {
-		case Other_Assists:
+		case MStat_GroupItemName_OtherAssists:
 			{
 				result.HomeTeam.Assists = item.HomeValue
 				result.AwayTeam.Assists = item.AwayValue
 			}
 
-		case Other_Blocks:
+		case MStat_GroupItemName_OtherBlocks:
 			{
 				result.HomeTeam.Blocks = item.HomeValue
 				result.AwayTeam.Blocks = item.AwayValue
 			}
-		case Other_Fouls:
+		case MStat_GroupItemName_OtherFouls:
 			{
 				result.HomeTeam.Fouls = item.HomeValue
 				result.AwayTeam.Fouls = item.AwayValue
 			}
-		case Other_Rebounds:
+		case MStat_GroupItemName_OtherRebounds:
 			{
 				result.HomeTeam.Rebounds = item.HomeValue
 				result.AwayTeam.Rebounds = item.AwayValue
 			}
-		case Other_Steals:
+		case MStat_GroupItemName_OtherSteals:
 			{
 				result.HomeTeam.Steals = item.HomeValue
 				result.AwayTeam.Steals = item.AwayValue
 			}
-		case Other_Turnovers:
+		case MStat_GroupItemName_OtherTurnovers:
 			{
 				result.HomeTeam.Turnovers = item.HomeValue
 				result.AwayTeam.Turnovers = item.AwayValue
@@ -95,7 +95,7 @@ func getMatchDetails(query url.Values) (*MatchDetails, error) {
 		Host,
 		query.Get("gameId"),
 	)
-	response, err := misc.GetOne[MatchData]{
+	response, err := misc.GetOne[MD_Data]{
 		Client: *http.DefaultClient,
 		URL:    url,
 		UpdateRequest: func(req *http.Request) {
@@ -110,7 +110,7 @@ func getMatchDetails(query url.Values) (*MatchDetails, error) {
 	// enhance response
 	ev := response.Event
 	GameStatus := ev.Status.Description
-	if ev.Status.Type == Inprogress && ev.Time.Played != nil {
+	if ev.Status.Type == MD_StatusType_Inprogress && ev.Time.Played != nil {
 		totalSeconds := *ev.Time.Played - *ev.Time.PeriodLength**ev.Time.TotalPeriodCount
 		if totalSeconds <= 0 {
 			totalSeconds = *ev.Time.Played % *ev.Time.PeriodLength
@@ -140,7 +140,7 @@ func GetGameDetails(ctx context.Context, query url.Values) (*GameDetails, error)
 	}
 	teamsStats, err := getTeamStats(query)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve teams stats injector: %w", err)
+		return nil, fmt.Errorf("unable to retrieve teams stats: %w", err)
 	}
 
 	return &GameDetails{

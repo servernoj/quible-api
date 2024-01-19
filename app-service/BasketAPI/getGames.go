@@ -22,7 +22,7 @@ func GetGames(ctx context.Context, query GetGamesDTO) ([]Game, error) {
 		Host,
 		dateParsed.Format("2/1/2006"),
 	)
-	response, err := misc.GetOne[MatchScheduleData]{
+	response, err := misc.GetOne[MS_Data]{
 		Client: *http.DefaultClient,
 		URL:    url,
 		UpdateRequest: func(req *http.Request) {
@@ -49,7 +49,7 @@ func GetGames(ctx context.Context, query GetGamesDTO) ([]Game, error) {
 		}
 		ev := ev
 		GameStatus := ev.Status.Description
-		if ev.Status.Type == Inprogress && ev.Time.Played != nil {
+		if ev.Status.Type == MS_StatusType_Inprogress && ev.Time.Played != nil {
 			totalSeconds := *ev.Time.Played - *ev.Time.PeriodLength**ev.Time.TotalPeriodCount
 			if totalSeconds <= 0 {
 				totalSeconds = *ev.Time.Played % *ev.Time.PeriodLength

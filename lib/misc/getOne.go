@@ -30,7 +30,7 @@ func (g GetOne[T]) Do() (*T, error) {
 		return nil, fmt.Errorf("GetOne: unable to execute the request: %w", err)
 	}
 	if g.ExpectedStatus != 0 && res.StatusCode != g.ExpectedStatus {
-		return nil, fmt.Errorf("GetList: request to %q failed: %s", g.URL, res.Status)
+		return nil, fmt.Errorf("GetOne: request to %q failed: %s", g.URL, res.Status)
 	}
 	body := res.Body
 	defer body.Close()

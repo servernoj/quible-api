@@ -1,10 +1,9 @@
 package BasketAPI
 
-// Data structure to represent a subset of fields from BasketAPI /live response
+// -- Data structure to represent a subset of fields from BasketAPI /live response
 type LiveData struct {
 	Events []LiveEvent `json:"events"`
 }
-
 type LiveEvent struct {
 	Tournament     LiveTournament `json:"tournament"`
 	Season         LiveSeason     `json:"season"`
@@ -18,7 +17,6 @@ type LiveEvent struct {
 	StartTimestamp uint           `json:"startTimestamp"`
 	Slug           string         `json:"slug"`
 }
-
 type LiveScore struct {
 	Current  uint  `json:"current"`
 	Display  uint  `json:"display"`
@@ -28,7 +26,6 @@ type LiveScore struct {
 	Period4  *uint `json:"period4,omitempty"`
 	Overtime *uint `json:"overtime,omitempty"`
 }
-
 type LiveTeam struct {
 	Name      string  `json:"name"`
 	Slug      string  `json:"slug"`
@@ -37,7 +34,6 @@ type LiveTeam struct {
 	ID        uint    `json:"id"`
 	Logo      *string `json:"logoUrl"`
 }
-
 type LiveTime struct {
 	Played                      uint  `json:"played"`
 	PeriodLength                uint  `json:"periodLength"`
@@ -45,19 +41,16 @@ type LiveTime struct {
 	TotalPeriodCount            uint  `json:"totalPeriodCount"`
 	CurrentPeriodStartTimestamp *uint `json:"currentPeriodStartTimestamp,omitempty"`
 }
-
 type LiveStatus struct {
 	Code        uint   `json:"code"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
 }
-
 type LiveSeason struct {
 	Name string `json:"name"`
 	Year string `json:"year"`
 	ID   uint   `json:"id"`
 }
-
 type LiveTournament struct {
 	Name string `json:"name"`
 	ID   uint   `json:"id"`
@@ -115,15 +108,13 @@ const (
 	TypePostponed MatchScheduleStatusType = "postponed"
 )
 
-// -- Our reported types
-
-// Data structure to represent Ably messages for live data publishing
+// -- Data structure to represent Ably messages for live data publishing
 type LiveMessage struct {
 	IDs    []uint      `json:"eventIDs"`
 	Events []LiveEvent `json:"events"`
 }
 
-// Data structure to represent a single entry of GetGames() response
+// -- Data structure to represent a single entry of GetGames() response
 type Game struct {
 	ID         uint     `json:"id"`
 	GameStatus string   `json:"gameStatus"`
@@ -156,7 +147,7 @@ type GetGameDetailsDTO struct {
 	GameId uint `form:"gameId" binding:"required,gt=0"`
 }
 
-// Data structures for GetGameDetails()
+// -- Data structures for GetGameDetails()
 
 type MatchDetails struct {
 	ID         uint                `json:"id"`
@@ -216,6 +207,8 @@ type PlayerStats struct {
 	// fp   uint // fouls
 }
 
+// -- Match statistics
+
 type MatchStatisticsEntries struct {
 	Statistics []StatisticsEntry `json:"statistics"`
 }
@@ -254,3 +247,5 @@ const (
 	Other_Blocks    GroupItemName = "Blocks"
 	Other_Fouls     GroupItemName = "Fouls"
 )
+
+// -- MatchLineups

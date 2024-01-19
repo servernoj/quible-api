@@ -7,10 +7,25 @@ import (
 	"github.com/quible-io/quible-api/lib/models"
 )
 
+type TeamId struct {
+	ID uint `json:"id"`
+}
+
+type TeamInfo struct {
+	ID             int     `json:"id"`
+	Name           string  `json:"name"`
+	Slug           string  `json:"slug"`
+	ShortName      string  `json:"shortName"`
+	Abbr           string  `json:"abbr"`
+	ArenaName      string  `json:"arenaName"`
+	ArenaSize      int     `json:"arenaSize"`
+	Color          string  `json:"color"`
+	SecondaryColor string  `json:"secondaryColor"`
+	Logo           *string `json:"logo"`
+}
+
 const (
-	TournamentID = 132
-	SeasonID     = 54105
-	Host         = "basketapi1.p.rapidapi.com"
+	Host = "basketapi1.p.rapidapi.com"
 )
 
 func getTeamEnhancer(ctx context.Context) (func(TeamId) TeamInfo, error) {
