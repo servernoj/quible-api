@@ -448,6 +448,7 @@ func AblyTokenDemo(c *gin.Context) {
 	})
 	token, err := realtime.CreateTokenRequest(&ably.TokenParams{
 		Capability: string(capabilities),
+		ClientID:   "nobody",
 	})
 	if err != nil {
 		log.Printf("unable to retrieve demo ably token: %q", err)
