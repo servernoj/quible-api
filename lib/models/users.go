@@ -167,15 +167,36 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-}{}
+	ChatUsers  string
+	OwnerChats string
+}{
+	ChatUsers:  "ChatUsers",
+	OwnerChats: "OwnerChats",
+}
 
 // userR is where relationships are stored.
 type userR struct {
+	ChatUsers  ChatUserSlice `boil:"ChatUsers" json:"ChatUsers" toml:"ChatUsers" yaml:"ChatUsers"`
+	OwnerChats ChatSlice     `boil:"OwnerChats" json:"OwnerChats" toml:"OwnerChats" yaml:"OwnerChats"`
 }
 
 // NewStruct creates a new relationship struct
 func (*userR) NewStruct() *userR {
 	return &userR{}
+}
+
+func (r *userR) GetChatUsers() ChatUserSlice {
+	if r == nil {
+		return nil
+	}
+	return r.ChatUsers
+}
+
+func (r *userR) GetOwnerChats() ChatSlice {
+	if r == nil {
+		return nil
+	}
+	return r.OwnerChats
 }
 
 // userL is where Load methods for each relationship are stored.
@@ -485,6 +506,572 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	}
 
 	return count > 0, nil
+}
+
+// ChatUsers retrieves all the chat_user's ChatUsers with an executor.
+func (o *User) ChatUsers(mods ...qm.QueryMod) chatUserQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"chat_user\".\"user_id\"=?", o.ID),
+	)
+
+	return ChatUsers(queryMods...)
+}
+
+// OwnerChats retrieves all the chat's Chats with an executor via owner_id column.
+func (o *User) OwnerChats(mods ...qm.QueryMod) chatQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"chats\".\"owner_id\"=?", o.ID),
+	)
+
+	return Chats(queryMods...)
+}
+
+// LoadChatUsers allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadChatUsers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`chat_user`),
+		qm.WhereIn(`chat_user.user_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load chat_user")
+	}
+
+	var resultSlice []*ChatUser
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice chat_user")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on chat_user")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for chat_user")
+	}
+
+	if len(chatUserAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.ChatUsers = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &chatUserR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.UserID) {
+				local.R.ChatUsers = append(local.R.ChatUsers, foreign)
+				if foreign.R == nil {
+					foreign.R = &chatUserR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadOwnerChats allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadOwnerChats(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`chats`),
+		qm.WhereIn(`chats.owner_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load chats")
+	}
+
+	var resultSlice []*Chat
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice chats")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on chats")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for chats")
+	}
+
+	if len(chatAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.OwnerChats = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &chatR{}
+			}
+			foreign.R.Owner = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.OwnerID) {
+				local.R.OwnerChats = append(local.R.OwnerChats, foreign)
+				if foreign.R == nil {
+					foreign.R = &chatR{}
+				}
+				foreign.R.Owner = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// AddChatUsersG adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.ChatUsers.
+// Sets related.R.User appropriately.
+// Uses the global database handle.
+func (o *User) AddChatUsersG(ctx context.Context, insert bool, related ...*ChatUser) error {
+	return o.AddChatUsers(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// AddChatUsers adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.ChatUsers.
+// Sets related.R.User appropriately.
+func (o *User) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ChatUser) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.UserID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"chat_user\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, chatUserPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.UserID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			ChatUsers: related,
+		}
+	} else {
+		o.R.ChatUsers = append(o.R.ChatUsers, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &chatUserR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
+	return nil
+}
+
+// SetChatUsersG removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.User's ChatUsers accordingly.
+// Replaces o.R.ChatUsers with related.
+// Sets related.R.User's ChatUsers accordingly.
+// Uses the global database handle.
+func (o *User) SetChatUsersG(ctx context.Context, insert bool, related ...*ChatUser) error {
+	return o.SetChatUsers(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// SetChatUsers removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.User's ChatUsers accordingly.
+// Replaces o.R.ChatUsers with related.
+// Sets related.R.User's ChatUsers accordingly.
+func (o *User) SetChatUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ChatUser) error {
+	query := "update \"chat_user\" set \"user_id\" = null where \"user_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.ChatUsers {
+			queries.SetScanner(&rel.UserID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.User = nil
+		}
+		o.R.ChatUsers = nil
+	}
+
+	return o.AddChatUsers(ctx, exec, insert, related...)
+}
+
+// RemoveChatUsersG relationships from objects passed in.
+// Removes related items from R.ChatUsers (uses pointer comparison, removal does not keep order)
+// Sets related.R.User.
+// Uses the global database handle.
+func (o *User) RemoveChatUsersG(ctx context.Context, related ...*ChatUser) error {
+	return o.RemoveChatUsers(ctx, boil.GetContextDB(), related...)
+}
+
+// RemoveChatUsers relationships from objects passed in.
+// Removes related items from R.ChatUsers (uses pointer comparison, removal does not keep order)
+// Sets related.R.User.
+func (o *User) RemoveChatUsers(ctx context.Context, exec boil.ContextExecutor, related ...*ChatUser) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.UserID, nil)
+		if rel.R != nil {
+			rel.R.User = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("user_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.ChatUsers {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.ChatUsers)
+			if ln > 1 && i < ln-1 {
+				o.R.ChatUsers[i] = o.R.ChatUsers[ln-1]
+			}
+			o.R.ChatUsers = o.R.ChatUsers[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+// AddOwnerChatsG adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.OwnerChats.
+// Sets related.R.Owner appropriately.
+// Uses the global database handle.
+func (o *User) AddOwnerChatsG(ctx context.Context, insert bool, related ...*Chat) error {
+	return o.AddOwnerChats(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// AddOwnerChats adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.OwnerChats.
+// Sets related.R.Owner appropriately.
+func (o *User) AddOwnerChats(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Chat) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.OwnerID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"chats\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"owner_id"}),
+				strmangle.WhereClause("\"", "\"", 2, chatPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.OwnerID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			OwnerChats: related,
+		}
+	} else {
+		o.R.OwnerChats = append(o.R.OwnerChats, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &chatR{
+				Owner: o,
+			}
+		} else {
+			rel.R.Owner = o
+		}
+	}
+	return nil
+}
+
+// SetOwnerChatsG removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Owner's OwnerChats accordingly.
+// Replaces o.R.OwnerChats with related.
+// Sets related.R.Owner's OwnerChats accordingly.
+// Uses the global database handle.
+func (o *User) SetOwnerChatsG(ctx context.Context, insert bool, related ...*Chat) error {
+	return o.SetOwnerChats(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// SetOwnerChats removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Owner's OwnerChats accordingly.
+// Replaces o.R.OwnerChats with related.
+// Sets related.R.Owner's OwnerChats accordingly.
+func (o *User) SetOwnerChats(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Chat) error {
+	query := "update \"chats\" set \"owner_id\" = null where \"owner_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.OwnerChats {
+			queries.SetScanner(&rel.OwnerID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Owner = nil
+		}
+		o.R.OwnerChats = nil
+	}
+
+	return o.AddOwnerChats(ctx, exec, insert, related...)
+}
+
+// RemoveOwnerChatsG relationships from objects passed in.
+// Removes related items from R.OwnerChats (uses pointer comparison, removal does not keep order)
+// Sets related.R.Owner.
+// Uses the global database handle.
+func (o *User) RemoveOwnerChatsG(ctx context.Context, related ...*Chat) error {
+	return o.RemoveOwnerChats(ctx, boil.GetContextDB(), related...)
+}
+
+// RemoveOwnerChats relationships from objects passed in.
+// Removes related items from R.OwnerChats (uses pointer comparison, removal does not keep order)
+// Sets related.R.Owner.
+func (o *User) RemoveOwnerChats(ctx context.Context, exec boil.ContextExecutor, related ...*Chat) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.OwnerID, nil)
+		if rel.R != nil {
+			rel.R.Owner = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("owner_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.OwnerChats {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.OwnerChats)
+			if ln > 1 && i < ln-1 {
+				o.R.OwnerChats[i] = o.R.OwnerChats[ln-1]
+			}
+			o.R.OwnerChats = o.R.OwnerChats[:ln-1]
+			break
+		}
+	}
+
+	return nil
 }
 
 // Users retrieves all the records using an executor.
