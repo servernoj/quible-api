@@ -14,6 +14,13 @@ type ChatService struct {
 	C context.Context
 }
 
+type CreateChatGroupDTO struct {
+	Name      string  `json:"name"`
+	Title     string  `json:"title"`
+	Summary   *string `json:"summary"`
+	IsPrivate bool    `json:"isPrivate"`
+}
+
 const (
 	GROUP_PREFIX string = "chat:"
 )
@@ -25,7 +32,11 @@ var (
 
 func getErrorWrapper(format string, args ...any) func(error) error {
 	return func(err error) error {
-		return fmt.Errorf(format, append(args, err))
+		return fmt.Errorf(
+			"%s: %w",
+			fmt.Sprintf(format, args...),
+			err,
+		)
 	}
 }
 
@@ -40,16 +51,21 @@ func (cs *ChatService) CreateChatGroup(
 		return nil, fmt.Errorf("user is not defined")
 	}
 	userId := user.ID
-	errorWrapper := getErrorWrapper("CreateChatGroup for user %s: %w", userId)
+	errorWrapper := getErrorWrapper("CreateChatGroup for user %q", userId)
 	resource := GROUP_PREFIX + name
 	chatGroupFound, err := models.Chats(
 		models.ChatWhere.OwnerID.EQ(null.StringFrom(userId)),
 		models.ChatWhere.Resource.EQ(resource),
 		models.ChatWhere.ParentID.IsNull(),
 	).ExistsG(cs.C)
-	if err != nil || chatGroupFound {
+	if err != nil {
 		return nil, errorWrapper(
-			fmt.Errorf("unable to create chat group due to conflict: %w", err),
+			fmt.Errorf("unable to create chat group: %w", err),
+		)
+	}
+	if chatGroupFound {
+		return nil, errorWrapper(
+			fmt.Errorf("unable to create chat group, group already exists"),
 		)
 	}
 	chatGroup := models.Chat{
@@ -73,7 +89,7 @@ func (cs *ChatService) CreateChannel(
 	title string,
 	summary *string,
 ) (*models.Chat, error) {
-	errorWrapper := getErrorWrapper("CreateChannel: %w")
+	errorWrapper := getErrorWrapper("CreateChannel")
 	if chatGroup == nil {
 		return nil, errorWrapper(
 			fmt.Errorf("parent chat group must be defined, got `nil`"),
@@ -123,7 +139,7 @@ func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, 
 		return nil, fmt.Errorf("user is not defined")
 	}
 	userId := user.ID
-	errorWrapper := getErrorWrapper("GetCapabilities for user %s: %w", userId)
+	errorWrapper := getErrorWrapper("GetCapabilities for user %q", userId)
 	// -- initialize empty map
 	capabilities := map[string][]string{}
 	// -- process implied capabilities from self-owned chat groups
@@ -181,7 +197,7 @@ func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, 
 	return capabilities, nil
 }
 func (cs *ChatService) GetPublicChannelsByUser(user *models.User) (models.ChatSlice, error) {
-	errorWrapper := getErrorWrapper("GetPublicChannels: %w")
+	errorWrapper := getErrorWrapper("GetPublicChannels")
 	chatGroups, err := cs.GetPublicChatGroups(user)
 	if err != nil {
 		return nil, errorWrapper(
@@ -203,7 +219,7 @@ func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat
 	if channel == nil {
 		return fmt.Errorf("channel is not defined")
 	}
-	errorWrapper := getErrorWrapper("JoinPublicChannel for user %s: %w", user.ID)
+	errorWrapper := getErrorWrapper("JoinPublicChannel for user %q", user.ID)
 	chatGroup, err := channel.Parent().OneG(cs.C)
 	if err != nil || chatGroup == nil {
 		return errorWrapper(
@@ -222,7 +238,7 @@ func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat
 	return chatUser.InsertG(cs.C, boil.Infer())
 }
 func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle string) (models.ChatSlice, error) {
-	errorWrapper := getErrorWrapper("GetPublicChannelsByGroupTitle: %w")
+	errorWrapper := getErrorWrapper("GetPublicChannelsByGroupTitle")
 	chatGroup, err := models.Chats(
 		models.ChatWhere.Title.ILIKE("%"+chatGroupTitle+"%"),
 		models.ChatWhere.ParentID.IsNull(),
@@ -239,4 +255,17 @@ func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle strin
 		return nil, errorWrapper(err)
 	}
 	return chats, nil
+}
+func (cs *ChatService) DeleteChatGroup(owner *models.User, chatGroupId string) error {
+	errorWrapper := getErrorWrapper("DeleteChatGroup of %q", chatGroupId)
+	chatGroup, err := models.Chats(
+		models.ChatWhere.ID.EQ(chatGroupId),
+		models.ChatWhere.ParentID.IsNull(),
+		models.ChatWhere.OwnerID.EQ(null.StringFrom(owner.ID)),
+	).OneG(cs.C)
+	if err != nil || chatGroup == nil {
+		return errorWrapper(ErrChatGroupNotFound)
+	}
+	_, err = chatGroup.DeleteG(cs.C)
+	return err
 }

@@ -74,6 +74,7 @@ const (
 	Err404_AccountNotFound
 	Err404_UserNotFound
 	Err404_UserHasNoImage
+	Err404_ChatGroupNotFound
 )
 const (
 	Err417_UnknownError ErrorCode = Err417_Shift + iota + 1
@@ -146,6 +147,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err404_AccountNotFound:     "account already deleted or does not exist",
 		Err404_UserNotFound:        "user not found",
 		Err404_UserHasNoImage:      "user has no image",
+		Err404_ChatGroupNotFound:   "chat group not found",
 	},
 	// 417
 	http.StatusExpectationFailed: {

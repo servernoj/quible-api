@@ -39,4 +39,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.PATCH("/user", UserPatch)
 	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
+	// -- chat service related
+	protected.POST("chat/groups", CreateChatGroup)
+	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
 }
