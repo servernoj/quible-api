@@ -53,6 +53,7 @@ const (
 	Err400_UserWithEmailOrUsernameExists
 	Err400_InvalidOrMalformedToken
 	Err400_ChatGroupExists
+	Err400_ChannelExists
 )
 
 const (
@@ -126,6 +127,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_UserWithEmailOrUsernameExists: "activated user with such username or email exists",
 		Err400_InvalidOrMalformedToken:       "activation token is missing or malformed",
 		Err400_ChatGroupExists:               "chat group with given name exists",
+		Err400_ChannelExists:                 "channel with this name in the same chat group already exists",
 	},
 	// 401
 	http.StatusUnauthorized: {

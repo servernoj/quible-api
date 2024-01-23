@@ -652,7 +652,7 @@ func CreateChatGroup(c *gin.Context) {
 	cs := chatService.ChatService{
 		C: c.Request.Context(),
 	}
-	_, err := cs.CreateChatGroup(
+	chatGroup, err := cs.CreateChatGroup(
 		user,
 		dto.Name,
 		dto.Title,
@@ -668,7 +668,7 @@ func CreateChatGroup(c *gin.Context) {
 		}
 		return
 	}
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, chatGroup)
 }
 
 func DeleteChatGroup(c *gin.Context) {
@@ -715,4 +715,35 @@ func ListChatGroups(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, chatGroups)
+}
+
+func CreateChannel(c *gin.Context) {
+	id := c.Param("chatGroupId")
+	var dto chatService.CreateChannelDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		log.Println(err)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	channel, err := cs.CreateChannel(
+		id,
+		dto.Name,
+		dto.Title,
+		dto.Summary,
+	)
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, chatService.ErrChatGroupNotFound) {
+			SendError(c, http.StatusNotFound, Err404_ChatGroupNotFound)
+		} else if errors.Is(err, chatService.ErrChannelExists) {
+			SendError(c, http.StatusBadRequest, Err400_ChannelExists)
+		} else {
+			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		}
+		return
+	}
+	c.JSON(http.StatusCreated, channel)
 }

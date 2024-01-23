@@ -15,10 +15,15 @@ type ChatService struct {
 }
 
 type CreateChatGroupDTO struct {
-	Name      string  `json:"name"`
-	Title     string  `json:"title"`
-	Summary   *string `json:"summary"`
-	IsPrivate bool    `json:"isPrivate"`
+	Name      string  `json:"name" binding:"alpha,required"`
+	Title     string  `json:"title" binding:"required"`
+	Summary   *string `json:"summary" binding:"omitempty"`
+	IsPrivate bool    `json:"isPrivate" binding:"boolean"`
+}
+type CreateChannelDTO struct {
+	Name    string  `json:"name" binding:"required"`
+	Title   string  `json:"title" binding:"required"`
+	Summary *string `json:"summary" binding:"omitempty"`
 }
 
 const (
@@ -82,21 +87,31 @@ func (cs *ChatService) CreateChatGroup(
 	return &chatGroup, nil
 }
 func (cs *ChatService) CreateChannel(
-	chatGroup *models.Chat,
+	chatGroupId string,
 	name string,
 	title string,
 	summary *string,
 ) (*models.Chat, error) {
 	errorWrapper := getErrorWrapper("CreateChannel")
-	if chatGroup == nil {
-		return nil, errorWrapper(
-			fmt.Errorf("parent chat group must be defined, got `nil`"),
-		)
+	chatGroupFound, err := models.Chats(
+		models.ChatWhere.ID.EQ(chatGroupId),
+		models.ChatWhere.ParentID.IsNull(),
+	).ExistsG(cs.C)
+	if err != nil || !chatGroupFound {
+		return nil, errorWrapper(ErrChatGroupNotFound)
+	}
+	channelFound, err := models.Chats(
+		models.ChatWhere.Resource.EQ(name),
+		models.ChatWhere.ParentID.EQ(null.StringFrom(chatGroupId)),
+	).ExistsG(cs.C)
+	if err != nil || channelFound {
+		return nil, errorWrapper(ErrChannelExists)
 	}
 	channel := models.Chat{
 		Resource:  name,
+		Title:     title,
 		Summary:   null.StringFromPtr(summary),
-		ParentID:  null.StringFrom(chatGroup.ID),
+		ParentID:  null.StringFrom(chatGroupId),
 		OwnerID:   null.StringFromPtr(nil),
 		IsPrivate: null.BoolFromPtr(nil),
 	}
@@ -264,6 +279,13 @@ func (cs *ChatService) DeleteChatGroup(owner *models.User, chatGroupId string) e
 	if err != nil || chatGroup == nil {
 		return errorWrapper(ErrChatGroupNotFound)
 	}
+	_, err = chatGroup.ParentChats().DeleteAllG(cs.C)
+	if err != nil {
+		return errorWrapper(err)
+	}
 	_, err = chatGroup.DeleteG(cs.C)
-	return err
+	if err != nil {
+		return errorWrapper(err)
+	}
+	return nil
 }
