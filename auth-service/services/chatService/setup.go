@@ -19,8 +19,8 @@ const (
 )
 
 var (
-	AccessReadOnly  = []string{"subscribe"}
-	AccessReadWrite = []string{"subscribe", "publish"}
+	AccessReadOnly  = []string{"subscribe", "history"}
+	AccessReadWrite = []string{"subscribe", "publish", "history"}
 )
 
 func getErrorWrapper(format string, args ...any) func(error) error {
@@ -30,6 +30,9 @@ func getErrorWrapper(format string, args ...any) func(error) error {
 }
 
 func (cs *ChatService) CreateChatGroup(user *models.User, name string, summary string, isPrivate bool) (*models.Chat, error) {
+	if user == nil {
+		return nil, fmt.Errorf("user is not defined")
+	}
 	userId := user.ID
 	errorWrapper := getErrorWrapper("CreateChatGroup for user %s: %w", userId)
 	resource := GROUP_PREFIX + name
@@ -185,4 +188,29 @@ func (cs *ChatService) GetPublicChannelsByGroup(chatGroup *models.Chat) ([]*mode
 	return models.Chats(
 		models.ChatWhere.ParentID.EQ(null.StringFrom(chatGroup.ID)),
 	).AllG(cs.C)
+}
+func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat) error {
+	if user == nil {
+		return fmt.Errorf("user is not defined")
+	}
+	if channel == nil {
+		return fmt.Errorf("channel is not defined")
+	}
+	errorWrapper := getErrorWrapper("JoinPublicChannel for user %s: %w", user.ID)
+	chatGroup, err := channel.Parent().OneG(cs.C)
+	if err != nil || chatGroup == nil {
+		return errorWrapper(
+			fmt.Errorf("unable to locate parent chat group"),
+		)
+	}
+	if chatGroup.IsPrivate.Bool {
+		return errorWrapper(
+			fmt.Errorf("channel is private"),
+		)
+	}
+	chatUser := models.ChatUser{
+		ChatID: channel.ID,
+		UserID: user.ID,
+	}
+	return chatUser.InsertG(cs.C, boil.Infer())
 }
