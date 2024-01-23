@@ -578,7 +578,7 @@ func (userL) LoadChatUsers(ctx context.Context, e boil.ContextExecutor, singular
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
+				if a == obj.ID {
 					continue Outer
 				}
 			}
@@ -636,7 +636,7 @@ func (userL) LoadChatUsers(ctx context.Context, e boil.ContextExecutor, singular
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.UserID) {
+			if local.ID == foreign.UserID {
 				local.R.ChatUsers = append(local.R.ChatUsers, foreign)
 				if foreign.R == nil {
 					foreign.R = &chatUserR{}
@@ -781,7 +781,7 @@ func (o *User) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 	var err error
 	for _, rel := range related {
 		if insert {
-			queries.Assign(&rel.UserID, o.ID)
+			rel.UserID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -802,7 +802,7 @@ func (o *User) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			queries.Assign(&rel.UserID, o.ID)
+			rel.UserID = o.ID
 		}
 	}
 
@@ -823,99 +823,6 @@ func (o *User) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 			rel.R.User = o
 		}
 	}
-	return nil
-}
-
-// SetChatUsersG removes all previously related items of the
-// user replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.User's ChatUsers accordingly.
-// Replaces o.R.ChatUsers with related.
-// Sets related.R.User's ChatUsers accordingly.
-// Uses the global database handle.
-func (o *User) SetChatUsersG(ctx context.Context, insert bool, related ...*ChatUser) error {
-	return o.SetChatUsers(ctx, boil.GetContextDB(), insert, related...)
-}
-
-// SetChatUsers removes all previously related items of the
-// user replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.User's ChatUsers accordingly.
-// Replaces o.R.ChatUsers with related.
-// Sets related.R.User's ChatUsers accordingly.
-func (o *User) SetChatUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ChatUser) error {
-	query := "update \"chat_user\" set \"user_id\" = null where \"user_id\" = $1"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.ChatUsers {
-			queries.SetScanner(&rel.UserID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.User = nil
-		}
-		o.R.ChatUsers = nil
-	}
-
-	return o.AddChatUsers(ctx, exec, insert, related...)
-}
-
-// RemoveChatUsersG relationships from objects passed in.
-// Removes related items from R.ChatUsers (uses pointer comparison, removal does not keep order)
-// Sets related.R.User.
-// Uses the global database handle.
-func (o *User) RemoveChatUsersG(ctx context.Context, related ...*ChatUser) error {
-	return o.RemoveChatUsers(ctx, boil.GetContextDB(), related...)
-}
-
-// RemoveChatUsers relationships from objects passed in.
-// Removes related items from R.ChatUsers (uses pointer comparison, removal does not keep order)
-// Sets related.R.User.
-func (o *User) RemoveChatUsers(ctx context.Context, exec boil.ContextExecutor, related ...*ChatUser) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.UserID, nil)
-		if rel.R != nil {
-			rel.R.User = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("user_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.ChatUsers {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.ChatUsers)
-			if ln > 1 && i < ln-1 {
-				o.R.ChatUsers[i] = o.R.ChatUsers[ln-1]
-			}
-			o.R.ChatUsers = o.R.ChatUsers[:ln-1]
-			break
-		}
-	}
-
 	return nil
 }
 

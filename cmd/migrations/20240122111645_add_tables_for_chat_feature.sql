@@ -3,14 +3,15 @@
 create table chats (
   id uuid primary key default gen_random_uuid (),
   resource text not null,
+  summary text not null,
   parent_id uuid null references chats,
-  is_private boolean not null default false,
+  is_private boolean null,
   owner_id uuid null references users
 );
 create table chat_user (
   id uuid primary key default gen_random_uuid (),
-  chat_id uuid null references chats,
-  user_id uuid null references users,
+  chat_id uuid not null references chats,
+  user_id uuid not null references users,
   is_ro boolean not null default false
 );
 -- +goose StatementEnd

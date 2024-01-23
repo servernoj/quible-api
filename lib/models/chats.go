@@ -26,8 +26,9 @@ import (
 type Chat struct {
 	ID        string      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Resource  string      `boil:"resource" json:"resource" toml:"resource" yaml:"resource"`
+	Summary   string      `boil:"summary" json:"summary" toml:"summary" yaml:"summary"`
 	ParentID  null.String `boil:"parent_id" json:"parent_id,omitempty" toml:"parent_id" yaml:"parent_id,omitempty"`
-	IsPrivate bool        `boil:"is_private" json:"is_private" toml:"is_private" yaml:"is_private"`
+	IsPrivate null.Bool   `boil:"is_private" json:"is_private,omitempty" toml:"is_private" yaml:"is_private,omitempty"`
 	OwnerID   null.String `boil:"owner_id" json:"owner_id,omitempty" toml:"owner_id" yaml:"owner_id,omitempty"`
 
 	R *chatR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -37,12 +38,14 @@ type Chat struct {
 var ChatColumns = struct {
 	ID        string
 	Resource  string
+	Summary   string
 	ParentID  string
 	IsPrivate string
 	OwnerID   string
 }{
 	ID:        "id",
 	Resource:  "resource",
+	Summary:   "summary",
 	ParentID:  "parent_id",
 	IsPrivate: "is_private",
 	OwnerID:   "owner_id",
@@ -51,12 +54,14 @@ var ChatColumns = struct {
 var ChatTableColumns = struct {
 	ID        string
 	Resource  string
+	Summary   string
 	ParentID  string
 	IsPrivate string
 	OwnerID   string
 }{
 	ID:        "chats.id",
 	Resource:  "chats.resource",
+	Summary:   "chats.summary",
 	ParentID:  "chats.parent_id",
 	IsPrivate: "chats.is_private",
 	OwnerID:   "chats.owner_id",
@@ -64,17 +69,93 @@ var ChatTableColumns = struct {
 
 // Generated where
 
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelpernull_String) LIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" LIKE ?", x)
+}
+func (w whereHelpernull_String) NLIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT LIKE ?", x)
+}
+func (w whereHelpernull_String) ILIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" ILIKE ?", x)
+}
+func (w whereHelpernull_String) NILIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT ILIKE ?", x)
+}
+func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
+type whereHelpernull_Bool struct{ field string }
+
+func (w whereHelpernull_Bool) EQ(x null.Bool) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Bool) NEQ(x null.Bool) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Bool) LT(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Bool) LTE(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Bool) GT(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Bool) GTE(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_Bool) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Bool) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var ChatWhere = struct {
 	ID        whereHelperstring
 	Resource  whereHelperstring
+	Summary   whereHelperstring
 	ParentID  whereHelpernull_String
-	IsPrivate whereHelperbool
+	IsPrivate whereHelpernull_Bool
 	OwnerID   whereHelpernull_String
 }{
 	ID:        whereHelperstring{field: "\"chats\".\"id\""},
 	Resource:  whereHelperstring{field: "\"chats\".\"resource\""},
+	Summary:   whereHelperstring{field: "\"chats\".\"summary\""},
 	ParentID:  whereHelpernull_String{field: "\"chats\".\"parent_id\""},
-	IsPrivate: whereHelperbool{field: "\"chats\".\"is_private\""},
+	IsPrivate: whereHelpernull_Bool{field: "\"chats\".\"is_private\""},
 	OwnerID:   whereHelpernull_String{field: "\"chats\".\"owner_id\""},
 }
 
@@ -136,8 +217,8 @@ func (r *chatR) GetParentChats() ChatSlice {
 type chatL struct{}
 
 var (
-	chatAllColumns            = []string{"id", "resource", "parent_id", "is_private", "owner_id"}
-	chatColumnsWithoutDefault = []string{"resource"}
+	chatAllColumns            = []string{"id", "resource", "summary", "parent_id", "is_private", "owner_id"}
+	chatColumnsWithoutDefault = []string{"resource", "summary"}
 	chatColumnsWithDefault    = []string{"id", "parent_id", "is_private", "owner_id"}
 	chatPrimaryKeyColumns     = []string{"id"}
 	chatGeneratedColumns      = []string{}
@@ -781,7 +862,7 @@ func (chatL) LoadChatUsers(ctx context.Context, e boil.ContextExecutor, singular
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
+				if a == obj.ID {
 					continue Outer
 				}
 			}
@@ -839,7 +920,7 @@ func (chatL) LoadChatUsers(ctx context.Context, e boil.ContextExecutor, singular
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.ChatID) {
+			if local.ID == foreign.ChatID {
 				local.R.ChatUsers = append(local.R.ChatUsers, foreign)
 				if foreign.R == nil {
 					foreign.R = &chatUserR{}
@@ -1176,7 +1257,7 @@ func (o *Chat) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 	var err error
 	for _, rel := range related {
 		if insert {
-			queries.Assign(&rel.ChatID, o.ID)
+			rel.ChatID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -1197,7 +1278,7 @@ func (o *Chat) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			queries.Assign(&rel.ChatID, o.ID)
+			rel.ChatID = o.ID
 		}
 	}
 
@@ -1218,99 +1299,6 @@ func (o *Chat) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 			rel.R.Chat = o
 		}
 	}
-	return nil
-}
-
-// SetChatUsersG removes all previously related items of the
-// chat replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Chat's ChatUsers accordingly.
-// Replaces o.R.ChatUsers with related.
-// Sets related.R.Chat's ChatUsers accordingly.
-// Uses the global database handle.
-func (o *Chat) SetChatUsersG(ctx context.Context, insert bool, related ...*ChatUser) error {
-	return o.SetChatUsers(ctx, boil.GetContextDB(), insert, related...)
-}
-
-// SetChatUsers removes all previously related items of the
-// chat replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Chat's ChatUsers accordingly.
-// Replaces o.R.ChatUsers with related.
-// Sets related.R.Chat's ChatUsers accordingly.
-func (o *Chat) SetChatUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ChatUser) error {
-	query := "update \"chat_user\" set \"chat_id\" = null where \"chat_id\" = $1"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.ChatUsers {
-			queries.SetScanner(&rel.ChatID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Chat = nil
-		}
-		o.R.ChatUsers = nil
-	}
-
-	return o.AddChatUsers(ctx, exec, insert, related...)
-}
-
-// RemoveChatUsersG relationships from objects passed in.
-// Removes related items from R.ChatUsers (uses pointer comparison, removal does not keep order)
-// Sets related.R.Chat.
-// Uses the global database handle.
-func (o *Chat) RemoveChatUsersG(ctx context.Context, related ...*ChatUser) error {
-	return o.RemoveChatUsers(ctx, boil.GetContextDB(), related...)
-}
-
-// RemoveChatUsers relationships from objects passed in.
-// Removes related items from R.ChatUsers (uses pointer comparison, removal does not keep order)
-// Sets related.R.Chat.
-func (o *Chat) RemoveChatUsers(ctx context.Context, exec boil.ContextExecutor, related ...*ChatUser) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.ChatID, nil)
-		if rel.R != nil {
-			rel.R.Chat = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("chat_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.ChatUsers {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.ChatUsers)
-			if ln > 1 && i < ln-1 {
-				o.R.ChatUsers[i] = o.R.ChatUsers[ln-1]
-			}
-			o.R.ChatUsers = o.R.ChatUsers[:ln-1]
-			break
-		}
-	}
-
 	return nil
 }
 

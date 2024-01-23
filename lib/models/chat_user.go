@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,10 +23,10 @@ import (
 
 // ChatUser is an object representing the database table.
 type ChatUser struct {
-	ID     string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	ChatID null.String `boil:"chat_id" json:"chat_id,omitempty" toml:"chat_id" yaml:"chat_id,omitempty"`
-	UserID null.String `boil:"user_id" json:"user_id,omitempty" toml:"user_id" yaml:"user_id,omitempty"`
-	IsRo   bool        `boil:"is_ro" json:"is_ro" toml:"is_ro" yaml:"is_ro"`
+	ID     string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ChatID string `boil:"chat_id" json:"chat_id" toml:"chat_id" yaml:"chat_id"`
+	UserID string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	IsRo   bool   `boil:"is_ro" json:"is_ro" toml:"is_ro" yaml:"is_ro"`
 
 	R *chatUserR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L chatUserL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -86,56 +85,6 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-type whereHelpernull_String struct{ field string }
-
-func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelpernull_String) LIKE(x null.String) qm.QueryMod {
-	return qm.Where(w.field+" LIKE ?", x)
-}
-func (w whereHelpernull_String) NLIKE(x null.String) qm.QueryMod {
-	return qm.Where(w.field+" NOT LIKE ?", x)
-}
-func (w whereHelpernull_String) ILIKE(x null.String) qm.QueryMod {
-	return qm.Where(w.field+" ILIKE ?", x)
-}
-func (w whereHelpernull_String) NILIKE(x null.String) qm.QueryMod {
-	return qm.Where(w.field+" NOT ILIKE ?", x)
-}
-func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-
 type whereHelperbool struct{ field string }
 
 func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
@@ -147,13 +96,13 @@ func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field
 
 var ChatUserWhere = struct {
 	ID     whereHelperstring
-	ChatID whereHelpernull_String
-	UserID whereHelpernull_String
+	ChatID whereHelperstring
+	UserID whereHelperstring
 	IsRo   whereHelperbool
 }{
 	ID:     whereHelperstring{field: "\"chat_user\".\"id\""},
-	ChatID: whereHelpernull_String{field: "\"chat_user\".\"chat_id\""},
-	UserID: whereHelpernull_String{field: "\"chat_user\".\"user_id\""},
+	ChatID: whereHelperstring{field: "\"chat_user\".\"chat_id\""},
+	UserID: whereHelperstring{field: "\"chat_user\".\"user_id\""},
 	IsRo:   whereHelperbool{field: "\"chat_user\".\"is_ro\""},
 }
 
@@ -196,8 +145,8 @@ type chatUserL struct{}
 
 var (
 	chatUserAllColumns            = []string{"id", "chat_id", "user_id", "is_ro"}
-	chatUserColumnsWithoutDefault = []string{}
-	chatUserColumnsWithDefault    = []string{"id", "chat_id", "user_id", "is_ro"}
+	chatUserColumnsWithoutDefault = []string{"chat_id", "user_id"}
+	chatUserColumnsWithDefault    = []string{"id", "is_ro"}
 	chatUserPrimaryKeyColumns     = []string{"id"}
 	chatUserGeneratedColumns      = []string{}
 )
@@ -555,9 +504,7 @@ func (chatUserL) LoadChat(ctx context.Context, e boil.ContextExecutor, singular 
 		if object.R == nil {
 			object.R = &chatUserR{}
 		}
-		if !queries.IsNil(object.ChatID) {
-			args = append(args, object.ChatID)
-		}
+		args = append(args, object.ChatID)
 
 	} else {
 	Outer:
@@ -567,14 +514,12 @@ func (chatUserL) LoadChat(ctx context.Context, e boil.ContextExecutor, singular 
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ChatID) {
+				if a == obj.ChatID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.ChatID) {
-				args = append(args, obj.ChatID)
-			}
+			args = append(args, obj.ChatID)
 
 		}
 	}
@@ -632,7 +577,7 @@ func (chatUserL) LoadChat(ctx context.Context, e boil.ContextExecutor, singular 
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.ChatID, foreign.ID) {
+			if local.ChatID == foreign.ID {
 				local.R.Chat = foreign
 				if foreign.R == nil {
 					foreign.R = &chatR{}
@@ -679,9 +624,7 @@ func (chatUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular 
 		if object.R == nil {
 			object.R = &chatUserR{}
 		}
-		if !queries.IsNil(object.UserID) {
-			args = append(args, object.UserID)
-		}
+		args = append(args, object.UserID)
 
 	} else {
 	Outer:
@@ -691,14 +634,12 @@ func (chatUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular 
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.UserID) {
+				if a == obj.UserID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.UserID) {
-				args = append(args, obj.UserID)
-			}
+			args = append(args, obj.UserID)
 
 		}
 	}
@@ -756,7 +697,7 @@ func (chatUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular 
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.UserID, foreign.ID) {
+			if local.UserID == foreign.ID {
 				local.R.User = foreign
 				if foreign.R == nil {
 					foreign.R = &userR{}
@@ -805,7 +746,7 @@ func (o *ChatUser) SetChat(ctx context.Context, exec boil.ContextExecutor, inser
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.ChatID, related.ID)
+	o.ChatID = related.ID
 	if o.R == nil {
 		o.R = &chatUserR{
 			Chat: related,
@@ -822,47 +763,6 @@ func (o *ChatUser) SetChat(ctx context.Context, exec boil.ContextExecutor, inser
 		related.R.ChatUsers = append(related.R.ChatUsers, o)
 	}
 
-	return nil
-}
-
-// RemoveChatG relationship.
-// Sets o.R.Chat to nil.
-// Removes o from all passed in related items' relationships struct.
-// Uses the global database handle.
-func (o *ChatUser) RemoveChatG(ctx context.Context, related *Chat) error {
-	return o.RemoveChat(ctx, boil.GetContextDB(), related)
-}
-
-// RemoveChat relationship.
-// Sets o.R.Chat to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *ChatUser) RemoveChat(ctx context.Context, exec boil.ContextExecutor, related *Chat) error {
-	var err error
-
-	queries.SetScanner(&o.ChatID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("chat_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.Chat = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.ChatUsers {
-		if queries.Equal(o.ChatID, ri.ChatID) {
-			continue
-		}
-
-		ln := len(related.R.ChatUsers)
-		if ln > 1 && i < ln-1 {
-			related.R.ChatUsers[i] = related.R.ChatUsers[ln-1]
-		}
-		related.R.ChatUsers = related.R.ChatUsers[:ln-1]
-		break
-	}
 	return nil
 }
 
@@ -901,7 +801,7 @@ func (o *ChatUser) SetUser(ctx context.Context, exec boil.ContextExecutor, inser
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.UserID, related.ID)
+	o.UserID = related.ID
 	if o.R == nil {
 		o.R = &chatUserR{
 			User: related,
@@ -918,47 +818,6 @@ func (o *ChatUser) SetUser(ctx context.Context, exec boil.ContextExecutor, inser
 		related.R.ChatUsers = append(related.R.ChatUsers, o)
 	}
 
-	return nil
-}
-
-// RemoveUserG relationship.
-// Sets o.R.User to nil.
-// Removes o from all passed in related items' relationships struct.
-// Uses the global database handle.
-func (o *ChatUser) RemoveUserG(ctx context.Context, related *User) error {
-	return o.RemoveUser(ctx, boil.GetContextDB(), related)
-}
-
-// RemoveUser relationship.
-// Sets o.R.User to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *ChatUser) RemoveUser(ctx context.Context, exec boil.ContextExecutor, related *User) error {
-	var err error
-
-	queries.SetScanner(&o.UserID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("user_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.User = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.ChatUsers {
-		if queries.Equal(o.UserID, ri.UserID) {
-			continue
-		}
-
-		ln := len(related.R.ChatUsers)
-		if ln > 1 && i < ln-1 {
-			related.R.ChatUsers[i] = related.R.ChatUsers[ln-1]
-		}
-		related.R.ChatUsers = related.R.ChatUsers[:ln-1]
-		break
-	}
 	return nil
 }
 
