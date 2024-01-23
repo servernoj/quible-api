@@ -684,3 +684,17 @@ func DeleteChatGroup(c *gin.Context) {
 	}
 	c.Status(http.StatusNoContent)
 }
+
+func GetCapabilities(c *gin.Context) {
+	user := getUserFromContext(c)
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	caps, err := cs.GetCapabilities(user)
+	if err != nil {
+		log.Println(err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, caps)
+}

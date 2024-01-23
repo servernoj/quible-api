@@ -42,4 +42,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	// -- chat service related
 	protected.POST("chat/groups", CreateChatGroup)
 	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
+	protected.GET("chat/capabilities", GetCapabilities)
 }
