@@ -661,7 +661,11 @@ func CreateChatGroup(c *gin.Context) {
 	)
 	if err != nil {
 		log.Println(err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		if errors.Is(err, chatService.ErrChatGroupExists) {
+			SendError(c, http.StatusBadRequest, Err400_ChatGroupExists)
+		} else {
+			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		}
 		return
 	}
 	c.Status(http.StatusCreated)
@@ -697,4 +701,18 @@ func GetCapabilities(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, caps)
+}
+
+func ListChatGroups(c *gin.Context) {
+	user := getUserFromContext(c)
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	chatGroups, err := cs.GetChatGroups(user)
+	if err != nil {
+		log.Println(err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, chatGroups)
 }

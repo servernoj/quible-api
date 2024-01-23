@@ -64,9 +64,7 @@ func (cs *ChatService) CreateChatGroup(
 		)
 	}
 	if chatGroupFound {
-		return nil, errorWrapper(
-			fmt.Errorf("unable to create chat group, group already exists"),
-		)
+		return nil, errorWrapper(ErrChatGroupExists)
 	}
 	chatGroup := models.Chat{
 		Resource:  resource,

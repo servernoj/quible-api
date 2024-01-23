@@ -52,6 +52,7 @@ const (
 	Err400_InvalidClientId
 	Err400_UserWithEmailOrUsernameExists
 	Err400_InvalidOrMalformedToken
+	Err400_ChatGroupExists
 )
 
 const (
@@ -124,6 +125,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_InvalidClientId:               "unexpected clientId",
 		Err400_UserWithEmailOrUsernameExists: "activated user with such username or email exists",
 		Err400_InvalidOrMalformedToken:       "activation token is missing or malformed",
+		Err400_ChatGroupExists:               "chat group with given name exists",
 	},
 	// 401
 	http.StatusUnauthorized: {
