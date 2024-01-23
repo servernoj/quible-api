@@ -3,7 +3,8 @@
 create table chats (
   id uuid primary key default gen_random_uuid (),
   resource text not null,
-  summary text not null,
+  summary text null,
+  title text not null,
   parent_id uuid null references chats,
   is_private boolean null,
   owner_id uuid null references users

@@ -26,7 +26,8 @@ import (
 type Chat struct {
 	ID        string      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Resource  string      `boil:"resource" json:"resource" toml:"resource" yaml:"resource"`
-	Summary   string      `boil:"summary" json:"summary" toml:"summary" yaml:"summary"`
+	Summary   null.String `boil:"summary" json:"summary,omitempty" toml:"summary" yaml:"summary,omitempty"`
+	Title     string      `boil:"title" json:"title" toml:"title" yaml:"title"`
 	ParentID  null.String `boil:"parent_id" json:"parent_id,omitempty" toml:"parent_id" yaml:"parent_id,omitempty"`
 	IsPrivate null.Bool   `boil:"is_private" json:"is_private,omitempty" toml:"is_private" yaml:"is_private,omitempty"`
 	OwnerID   null.String `boil:"owner_id" json:"owner_id,omitempty" toml:"owner_id" yaml:"owner_id,omitempty"`
@@ -39,6 +40,7 @@ var ChatColumns = struct {
 	ID        string
 	Resource  string
 	Summary   string
+	Title     string
 	ParentID  string
 	IsPrivate string
 	OwnerID   string
@@ -46,6 +48,7 @@ var ChatColumns = struct {
 	ID:        "id",
 	Resource:  "resource",
 	Summary:   "summary",
+	Title:     "title",
 	ParentID:  "parent_id",
 	IsPrivate: "is_private",
 	OwnerID:   "owner_id",
@@ -55,6 +58,7 @@ var ChatTableColumns = struct {
 	ID        string
 	Resource  string
 	Summary   string
+	Title     string
 	ParentID  string
 	IsPrivate string
 	OwnerID   string
@@ -62,6 +66,7 @@ var ChatTableColumns = struct {
 	ID:        "chats.id",
 	Resource:  "chats.resource",
 	Summary:   "chats.summary",
+	Title:     "chats.title",
 	ParentID:  "chats.parent_id",
 	IsPrivate: "chats.is_private",
 	OwnerID:   "chats.owner_id",
@@ -146,14 +151,16 @@ func (w whereHelpernull_Bool) IsNotNull() qm.QueryMod { return qmhelper.WhereIsN
 var ChatWhere = struct {
 	ID        whereHelperstring
 	Resource  whereHelperstring
-	Summary   whereHelperstring
+	Summary   whereHelpernull_String
+	Title     whereHelperstring
 	ParentID  whereHelpernull_String
 	IsPrivate whereHelpernull_Bool
 	OwnerID   whereHelpernull_String
 }{
 	ID:        whereHelperstring{field: "\"chats\".\"id\""},
 	Resource:  whereHelperstring{field: "\"chats\".\"resource\""},
-	Summary:   whereHelperstring{field: "\"chats\".\"summary\""},
+	Summary:   whereHelpernull_String{field: "\"chats\".\"summary\""},
+	Title:     whereHelperstring{field: "\"chats\".\"title\""},
 	ParentID:  whereHelpernull_String{field: "\"chats\".\"parent_id\""},
 	IsPrivate: whereHelpernull_Bool{field: "\"chats\".\"is_private\""},
 	OwnerID:   whereHelpernull_String{field: "\"chats\".\"owner_id\""},
@@ -217,9 +224,9 @@ func (r *chatR) GetParentChats() ChatSlice {
 type chatL struct{}
 
 var (
-	chatAllColumns            = []string{"id", "resource", "summary", "parent_id", "is_private", "owner_id"}
-	chatColumnsWithoutDefault = []string{"resource", "summary"}
-	chatColumnsWithDefault    = []string{"id", "parent_id", "is_private", "owner_id"}
+	chatAllColumns            = []string{"id", "resource", "summary", "title", "parent_id", "is_private", "owner_id"}
+	chatColumnsWithoutDefault = []string{"resource", "title"}
+	chatColumnsWithDefault    = []string{"id", "summary", "parent_id", "is_private", "owner_id"}
 	chatPrimaryKeyColumns     = []string{"id"}
 	chatGeneratedColumns      = []string{}
 )

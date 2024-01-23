@@ -29,7 +29,13 @@ func getErrorWrapper(format string, args ...any) func(error) error {
 	}
 }
 
-func (cs *ChatService) CreateChatGroup(user *models.User, name string, summary string, isPrivate bool) (*models.Chat, error) {
+func (cs *ChatService) CreateChatGroup(
+	user *models.User,
+	name string,
+	title string,
+	summary *string,
+	isPrivate bool,
+) (*models.Chat, error) {
 	if user == nil {
 		return nil, fmt.Errorf("user is not defined")
 	}
@@ -51,7 +57,8 @@ func (cs *ChatService) CreateChatGroup(user *models.User, name string, summary s
 		ParentID:  null.StringFromPtr(nil),
 		IsPrivate: null.BoolFrom(isPrivate),
 		OwnerID:   null.StringFrom(userId),
-		Summary:   summary,
+		Summary:   null.StringFromPtr(summary),
+		Title:     title,
 	}
 	if err := chatGroup.InsertG(cs.C, boil.Infer()); err != nil {
 		return nil, errorWrapper(
@@ -60,7 +67,12 @@ func (cs *ChatService) CreateChatGroup(user *models.User, name string, summary s
 	}
 	return &chatGroup, nil
 }
-func (cs *ChatService) CreateChannel(chatGroup *models.Chat, name string, summary string) (*models.Chat, error) {
+func (cs *ChatService) CreateChannel(
+	chatGroup *models.Chat,
+	name string,
+	title string,
+	summary *string,
+) (*models.Chat, error) {
 	errorWrapper := getErrorWrapper("CreateChannel: %w")
 	if chatGroup == nil {
 		return nil, errorWrapper(
@@ -69,7 +81,7 @@ func (cs *ChatService) CreateChannel(chatGroup *models.Chat, name string, summar
 	}
 	channel := models.Chat{
 		Resource:  name,
-		Summary:   summary,
+		Summary:   null.StringFromPtr(summary),
 		ParentID:  null.StringFrom(chatGroup.ID),
 		OwnerID:   null.StringFromPtr(nil),
 		IsPrivate: null.BoolFromPtr(nil),
@@ -81,7 +93,7 @@ func (cs *ChatService) CreateChannel(chatGroup *models.Chat, name string, summar
 	}
 	return &channel, nil
 }
-func (cs *ChatService) GetChatGroups(user *models.User, extraMods ...qm.QueryMod) ([]*models.Chat, error) {
+func (cs *ChatService) GetChatGroups(user *models.User, extraMods ...qm.QueryMod) (models.ChatSlice, error) {
 	mods := []qm.QueryMod{
 		models.ChatWhere.ParentID.IsNull(),
 	}
@@ -94,19 +106,22 @@ func (cs *ChatService) GetChatGroups(user *models.User, extraMods ...qm.QueryMod
 	mods = append(mods, extraMods...)
 	return models.Chats(mods...).AllG(cs.C)
 }
-func (cs *ChatService) GetPublicChatGroups(user *models.User) ([]*models.Chat, error) {
+func (cs *ChatService) GetPublicChatGroups(user *models.User) (models.ChatSlice, error) {
 	return cs.GetChatGroups(
 		user,
 		models.ChatWhere.IsPrivate.EQ(null.BoolFrom(false)),
 	)
 }
-func (cs *ChatService) GetPrivateChatGroups(user *models.User) ([]*models.Chat, error) {
+func (cs *ChatService) GetPrivateChatGroups(user *models.User) (models.ChatSlice, error) {
 	return cs.GetChatGroups(
 		user,
 		models.ChatWhere.IsPrivate.EQ(null.BoolFrom(true)),
 	)
 }
 func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, error) {
+	if user == nil {
+		return nil, fmt.Errorf("user is not defined")
+	}
 	userId := user.ID
 	errorWrapper := getErrorWrapper("GetCapabilities for user %s: %w", userId)
 	// -- initialize empty map
@@ -165,7 +180,7 @@ func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, 
 	}
 	return capabilities, nil
 }
-func (cs *ChatService) GetPublicChannelsByUser(user *models.User) ([]*models.Chat, error) {
+func (cs *ChatService) GetPublicChannelsByUser(user *models.User) (models.ChatSlice, error) {
 	errorWrapper := getErrorWrapper("GetPublicChannels: %w")
 	chatGroups, err := cs.GetPublicChatGroups(user)
 	if err != nil {
@@ -179,14 +194,6 @@ func (cs *ChatService) GetPublicChannelsByUser(user *models.User) ([]*models.Cha
 	}
 	return models.Chats(
 		models.ChatWhere.ParentID.IN(IDs),
-	).AllG(cs.C)
-}
-func (cs *ChatService) GetPublicChannelsByGroup(chatGroup *models.Chat) ([]*models.Chat, error) {
-	if chatGroup == nil || chatGroup.IsPrivate.Bool {
-		return []*models.Chat{}, nil
-	}
-	return models.Chats(
-		models.ChatWhere.ParentID.EQ(null.StringFrom(chatGroup.ID)),
 	).AllG(cs.C)
 }
 func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat) error {
@@ -213,4 +220,23 @@ func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat
 		UserID: user.ID,
 	}
 	return chatUser.InsertG(cs.C, boil.Infer())
+}
+func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle string) (models.ChatSlice, error) {
+	errorWrapper := getErrorWrapper("GetPublicChannelsByGroupTitle: %w")
+	chatGroup, err := models.Chats(
+		models.ChatWhere.Title.ILIKE("%"+chatGroupTitle+"%"),
+		models.ChatWhere.ParentID.IsNull(),
+		models.ChatWhere.IsPrivate.EQ(null.BoolFrom(false)),
+	).OneG(cs.C)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	if chatGroup == nil {
+		return models.ChatSlice{}, nil
+	}
+	chats, err := chatGroup.ParentChats().AllG(cs.C)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return chats, nil
 }
