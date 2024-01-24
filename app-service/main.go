@@ -8,8 +8,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/app-service/BasketAPI"
 	"github.com/quible-io/quible-api/app-service/controller"
+	"github.com/quible-io/quible-api/app-service/services/BasketAPI"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
 )

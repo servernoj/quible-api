@@ -25,6 +25,12 @@ const (
 	Err400_MalformedJSON
 	Err400_InvalidRequestBody
 	Err400_MissingRequiredQueryParam
+
+	Err400_ChatGroupExists
+	Err400_ChannelExists
+	Err400_ChatGroupIsPrivate
+	Err400_ChatGroupIsSelfOwned
+	Err400_ChannelAlreadyJoined
 )
 const (
 	Err401_UnknownError ErrorCode = Err401_Shift + iota + 1
@@ -33,6 +39,8 @@ const (
 )
 const (
 	Err404_UnknownError ErrorCode = Err404_Shift + iota + 1
+	Err404_ChatGroupNotFound
+	Err404_ChannelNotFound
 )
 const (
 	Err424_UnknownError ErrorCode = Err424_Shift + iota + 1
@@ -59,6 +67,11 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 		Err400_MalformedJSON:             "malformed JSON request",
 		Err400_InvalidRequestBody:        "invalid request body",
 		Err400_MissingRequiredQueryParam: "missing/invalid required query param",
+		Err400_ChatGroupExists:           "chat group with given name exists",
+		Err400_ChannelExists:             "channel with this name in the same chat group already exists",
+		Err400_ChatGroupIsPrivate:        "chat group holding the channel is private",
+		Err400_ChatGroupIsSelfOwned:      "chat group holding the channel is self-owned",
+		Err400_ChannelAlreadyJoined:      "channel already joined",
 	},
 	// 401
 	http.StatusUnauthorized: {
@@ -68,7 +81,9 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 	},
 	// 404
 	http.StatusNotFound: {
-		Err404_UnknownError: "unknown error",
+		Err404_UnknownError:      "unknown error",
+		Err404_ChatGroupNotFound: "chat group not found",
+		Err404_ChannelNotFound:   "channel not found",
 	},
 	// 424
 	http.StatusFailedDependency: {
@@ -89,3 +104,8 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 		Err500_UnknownError: "internal server error",
 	},
 }
+
+var (
+	SendError     = ErrorMap.SendError
+	GetErrorCodes = ErrorMap.GetErrorCodes
+)

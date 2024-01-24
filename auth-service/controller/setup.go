@@ -39,13 +39,4 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.PATCH("/user", UserPatch)
 	protected.GET("/rt/token", AblyToken)
 	protected.PUT("/user/image", UserUploadImage)
-	// -- chat service related
-	protected.POST("chat/groups", CreateChatGroup)
-	protected.GET("chat/groups", ListChatGroups)
-	protected.GET("chat/groups/search", SearchPublicChannelsByChatGroupTitle)
-	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
-	protected.POST("chat/channels", CreateChannel)
-	protected.POST("chat/channels/:channelId", JoinPublicChannel)
-	protected.DELETE("chat/channels/:channelId", LeaveChannel)
-	protected.GET("chat/capabilities", GetCapabilities)
 }

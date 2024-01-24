@@ -52,11 +52,6 @@ const (
 	Err400_InvalidClientId
 	Err400_UserWithEmailOrUsernameExists
 	Err400_InvalidOrMalformedToken
-	Err400_ChatGroupExists
-	Err400_ChannelExists
-	Err400_ChatGroupIsPrivate
-	Err400_ChatGroupIsSelfOwned
-	Err400_ChannelAlreadyJoined
 )
 
 const (
@@ -79,8 +74,6 @@ const (
 	Err404_AccountNotFound
 	Err404_UserNotFound
 	Err404_UserHasNoImage
-	Err404_ChatGroupNotFound
-	Err404_ChannelNotFound
 )
 const (
 	Err417_UnknownError ErrorCode = Err417_Shift + iota + 1
@@ -110,7 +103,7 @@ const (
 )
 
 // TODO: Complete the mapping
-var errorMap = c.ErrorMap[ErrorCode]{
+var ErrorMap = c.ErrorMap[ErrorCode]{
 	// 207
 	http.StatusMultiStatus: {
 		Err207_SomeDataUndeleted: "some data remains undeleted",
@@ -130,11 +123,6 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_InvalidClientId:               "unexpected clientId",
 		Err400_UserWithEmailOrUsernameExists: "activated user with such username or email exists",
 		Err400_InvalidOrMalformedToken:       "activation token is missing or malformed",
-		Err400_ChatGroupExists:               "chat group with given name exists",
-		Err400_ChannelExists:                 "channel with this name in the same chat group already exists",
-		Err400_ChatGroupIsPrivate:            "chat group holding the channel is private",
-		Err400_ChatGroupIsSelfOwned:          "chat group holding the channel is self-owned",
-		Err400_ChannelAlreadyJoined:          "channel already joined",
 	},
 	// 401
 	http.StatusUnauthorized: {
@@ -158,8 +146,6 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err404_AccountNotFound:     "account already deleted or does not exist",
 		Err404_UserNotFound:        "user not found",
 		Err404_UserHasNoImage:      "user has no image",
-		Err404_ChatGroupNotFound:   "chat group not found",
-		Err404_ChannelNotFound:     "channel not found",
 	},
 	// 417
 	http.StatusExpectationFailed: {
@@ -195,6 +181,6 @@ var errorMap = c.ErrorMap[ErrorCode]{
 }
 
 var (
-	SendError     = errorMap.SendError
-	GetErrorCodes = errorMap.GetErrorCodes
+	SendError     = ErrorMap.SendError
+	GetErrorCodes = ErrorMap.GetErrorCodes
 )

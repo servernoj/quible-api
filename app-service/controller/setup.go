@@ -16,7 +16,7 @@ var (
 // terminator for "protected" group
 func terminator(c *gin.Context, fmt string, args ...any) {
 	log.Printf(fmt, args...)
-	ErrorMap.SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+	SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 }
 
 // Setup the controller and all handlers
@@ -42,4 +42,13 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	// BasketAPI
 	protected.GET("/games", GetGames)
 	protected.GET("/game", GetGameDetails)
+	// Chat
+	protected.POST("chat/groups", CreateChatGroup)
+	protected.GET("chat/groups", ListChatGroups)
+	protected.GET("chat/groups/search", SearchPublicChannelsByChatGroupTitle)
+	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
+	protected.POST("chat/channels", CreateChannel)
+	protected.POST("chat/channels/:channelId", JoinPublicChannel)
+	protected.DELETE("chat/channels/:channelId", LeaveChannel)
+	protected.GET("chat/capabilities", GetCapabilities)
 }

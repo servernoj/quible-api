@@ -41,11 +41,11 @@ type LM_Team struct {
 	Logo      *string `json:"logoUrl"`
 }
 type LM_Time struct {
-	Played                      uint  `json:"played"`
-	PeriodLength                uint  `json:"periodLength"`
-	OvertimeLength              uint  `json:"overtimeLength"`
-	TotalPeriodCount            uint  `json:"totalPeriodCount"`
-	CurrentPeriodStartTimestamp *uint `json:"currentPeriodStartTimestamp,omitempty"`
+	Played                      int64  `json:"played"`
+	PeriodLength                int64  `json:"periodLength"`
+	OvertimeLength              int64  `json:"overtimeLength"`
+	TotalPeriodCount            int64  `json:"totalPeriodCount"`
+	CurrentPeriodStartTimestamp *int64 `json:"currentPeriodStartTimestamp,omitempty"`
 }
 type LM_Status struct {
 	Code        uint   `json:"code"`

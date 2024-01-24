@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/app-service/BasketAPI"
-	"github.com/quible-io/quible-api/app-service/RSC"
+	"github.com/quible-io/quible-api/app-service/services/RSC"
 )
 
 // @Summary		Get Schedule for Season
@@ -24,7 +23,7 @@ func ScheduleSeason(c *gin.Context) {
 	data, err := RSC.GetScheduleSeason(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use ScheduleSeason API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_ScheduleSeason)
+		SendError(c, http.StatusFailedDependency, Err424_ScheduleSeason)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -46,7 +45,7 @@ func DailySchedule(c *gin.Context) {
 	data, err := RSC.GetDailySchedule(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use DailySchedule API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_DailySchedule)
+		SendError(c, http.StatusFailedDependency, Err424_DailySchedule)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -66,7 +65,7 @@ func TeamInfo(c *gin.Context) {
 	data, err := RSC.GetTeamInfo(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamInfo API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamInfo)
+		SendError(c, http.StatusFailedDependency, Err424_TeamInfo)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -87,7 +86,7 @@ func TeamStats(c *gin.Context) {
 	data, err := RSC.GetTeamStats(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use TeamStats API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_TeamStats)
+		SendError(c, http.StatusFailedDependency, Err424_TeamStats)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -107,7 +106,7 @@ func PlayerInfo(c *gin.Context) {
 	data, err := RSC.GetPlayerInfo(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use PlayerInfo API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerInfo)
+		SendError(c, http.StatusFailedDependency, Err424_PlayerInfo)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -129,7 +128,7 @@ func PlayerStats(c *gin.Context) {
 	data, err := RSC.GetPlayerStats(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use PlayerStats API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_PlayerStats)
+		SendError(c, http.StatusFailedDependency, Err424_PlayerStats)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -149,7 +148,7 @@ func Injuries(c *gin.Context) {
 	data, err := RSC.GetInjuries(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use Injuries API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_Injuries)
+		SendError(c, http.StatusFailedDependency, Err424_Injuries)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -169,7 +168,7 @@ func LiveFeed(c *gin.Context) {
 	data, err := RSC.GetLiveFeed(c.Request.URL.Query())
 	if err != nil {
 		log.Printf("failed to use LiveFeed API: %q", err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_LiveFeed)
+		SendError(c, http.StatusFailedDependency, Err424_LiveFeed)
 		return
 	}
 	c.JSON(http.StatusOK, data)
@@ -184,57 +183,4 @@ func LivePush(c *gin.Context) {
 	// 	log.Println(string(encoded))
 	// }
 	c.Status(http.StatusOK)
-}
-
-// @Summary		Get list of games on a specific date
-// @Tags			BasketAPI,private
-// @Produce		json
-// @Param			date	query		string	true	"Specific date to list games for" format(date) example(2024-01-20)
-// @Param			localTimeZoneShift	query		string	false	"Local TZ shift (to UTC) in hours to relate game start time. Defaults to EST/EDT timezone" example(-7)
-// @Success		200	{array}		BasketAPI.Game
-// @Failure		400	{object}	ErrorResponse
-// @Failure		401	{object}	ErrorResponse
-// @Failure		424	{object}	ErrorResponse
-// @Failure		500	{object}	ErrorResponse
-// @Router		/games [get]
-func GetGames(c *gin.Context) {
-	var query BasketAPI.GetGamesDTO
-	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Printf("unable to parse query: %s", err)
-		ErrorMap.SendError(c, http.StatusBadRequest, Err400_MissingRequiredQueryParam)
-		return
-	}
-	games, err := BasketAPI.GetGames(c.Request.Context(), query)
-	if err != nil {
-		log.Println(err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGames)
-		return
-	}
-	c.JSON(http.StatusOK, games)
-}
-
-// @Summary		Get game details
-// @Tags			BasketAPI,private
-// @Produce		json
-// @Param			gameId	query		string	true	"ID of the BasketAPI match"
-// @Success		200	{array}		BasketAPI.GameDetails
-// @Failure		400	{object}	ErrorResponse
-// @Failure		401	{object}	ErrorResponse
-// @Failure		424	{object}	ErrorResponse
-// @Failure		500	{object}	ErrorResponse
-// @Router		/game [get]
-func GetGameDetails(c *gin.Context) {
-	var query BasketAPI.GetGameDetailsDTO
-	if err := c.ShouldBindQuery(&query); err != nil {
-		log.Printf("unable to parse query: %s", err)
-		ErrorMap.SendError(c, http.StatusBadRequest, Err400_MissingRequiredQueryParam)
-		return
-	}
-	result, err := BasketAPI.GetGameDetails(c.Request.Context(), c.Request.URL.Query())
-	if err != nil {
-		log.Println(err)
-		ErrorMap.SendError(c, http.StatusFailedDependency, Err424_BasketAPIGetGameDetails)
-		return
-	}
-	c.JSON(http.StatusOK, result)
 }
