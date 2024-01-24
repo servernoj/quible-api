@@ -3,6 +3,7 @@ package chatService
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/null/v8"
@@ -24,6 +25,11 @@ type CreateChannelDTO struct {
 	Name    string  `json:"name" binding:"required"`
 	Title   string  `json:"title" binding:"required"`
 	Summary *string `json:"summary" binding:"omitempty"`
+}
+
+type SearchResultItem struct {
+	Group    *models.Chat     `json:"chatGroup"`
+	Channels models.ChatSlice `json:"channels"`
 }
 
 const (
@@ -250,24 +256,41 @@ func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat
 	}
 	return chatUser.InsertG(cs.C, boil.Infer())
 }
-func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle string) (models.ChatSlice, error) {
-	errorWrapper := getErrorWrapper("GetPublicChannelsByGroupTitle")
-	chatGroup, err := models.Chats(
+func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle string) []SearchResultItem {
+	errorWrapper := getErrorWrapper("SearchPublicChannelsByChatGroupTitle with query %q", chatGroupTitle)
+	chatGroups, err := models.Chats(
 		models.ChatWhere.Title.ILIKE("%"+chatGroupTitle+"%"),
 		models.ChatWhere.ParentID.IsNull(),
 		models.ChatWhere.IsPrivate.EQ(null.BoolFrom(false)),
-	).OneG(cs.C)
+	).AllG(cs.C)
 	if err != nil {
-		return nil, errorWrapper(err)
+		log.Println(
+			errorWrapper(
+				fmt.Errorf("chat groups not found: %w", err),
+			),
+		)
+		return []SearchResultItem{}
 	}
-	if chatGroup == nil {
-		return models.ChatSlice{}, nil
+	if len(chatGroups) == 0 {
+		return []SearchResultItem{}
 	}
-	chats, err := chatGroup.ParentChats().AllG(cs.C)
-	if err != nil {
-		return nil, errorWrapper(err)
+	result := make([]SearchResultItem, len(chatGroups))
+	for idx, chatGroup := range chatGroups {
+		channels, err := chatGroup.ParentChats().AllG(cs.C)
+		if err != nil {
+			log.Println(
+				errorWrapper(
+					fmt.Errorf("channels for chat group %q not found: %w", chatGroup.ID, err),
+				),
+			)
+			continue
+		}
+		result[idx] = SearchResultItem{
+			Group:    chatGroup,
+			Channels: channels,
+		}
 	}
-	return chats, nil
+	return result
 }
 func (cs *ChatService) DeleteChatGroup(owner *models.User, chatGroupId string) error {
 	errorWrapper := getErrorWrapper("DeleteChatGroup of %q", chatGroupId)

@@ -747,3 +747,11 @@ func CreateChannel(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, channel)
 }
+
+func SearchPublicChannelsByChatGroupTitle(c *gin.Context) {
+	q := c.Request.URL.Query().Get("q")
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	c.JSON(http.StatusOK, cs.SearchPublicChannelsByChatGroupTitle(q))
+}

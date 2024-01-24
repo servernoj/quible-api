@@ -45,4 +45,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
 	protected.GET("chat/capabilities", GetCapabilities)
 	protected.GET("chat/groups", ListChatGroups)
+	protected.GET("chat/groups/search", SearchPublicChannelsByChatGroupTitle)
 }
