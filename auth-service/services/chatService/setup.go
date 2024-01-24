@@ -250,11 +250,33 @@ func (cs *ChatService) JoinPublicChannel(user *models.User, channelId string) er
 	if chatGroup.OwnerID.String == user.ID {
 		return errorWrapper(ErrSelfOwnedChatGroup)
 	}
+	chatUserFound, err := models.ChatUserExistsG(cs.C, channel.ID, user.ID)
+	if err != nil || chatUserFound {
+		return errorWrapper(ErrChannelAlreadyJoined)
+	}
+
 	chatUser := models.ChatUser{
 		ChatID: channel.ID,
 		UserID: user.ID,
 	}
 	return chatUser.InsertG(cs.C, boil.Infer())
+}
+func (cs *ChatService) LeaveChannel(user *models.User, channelId string) error {
+	if user == nil {
+		return ErrUserUndefined
+	}
+	errorWrapper := getErrorWrapper("LeaveChannel for user %q", user.ID)
+	chatUser, err := models.ChatUsers(
+		models.ChatUserWhere.ChatID.EQ(channelId),
+		models.ChatUserWhere.UserID.EQ(user.ID),
+	).OneG(cs.C)
+	if err != nil || chatUser == nil {
+		return errorWrapper(ErrChannelNotFound)
+	}
+	if _, err := chatUser.DeleteG(cs.C); err != nil {
+		return errorWrapper(err)
+	}
+	return nil
 }
 func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle string) []SearchResultItem {
 	errorWrapper := getErrorWrapper("SearchPublicChannelsByChatGroupTitle with query %q", chatGroupTitle)

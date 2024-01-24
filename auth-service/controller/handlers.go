@@ -772,10 +772,30 @@ func JoinPublicChannel(c *gin.Context) {
 			SendError(c, http.StatusBadRequest, Err400_ChatGroupIsPrivate)
 		} else if errors.Is(err, chatService.ErrSelfOwnedChatGroup) {
 			SendError(c, http.StatusBadRequest, Err400_ChatGroupIsSelfOwned)
+		} else if errors.Is(err, chatService.ErrChannelAlreadyJoined) {
+			SendError(c, http.StatusBadRequest, Err400_ChannelAlreadyJoined)
 		} else {
 			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		}
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func LeaveChannel(c *gin.Context) {
+	id := c.Param("channelId")
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	user := getUserFromContext(c)
+	if err := cs.LeaveChannel(user, id); err != nil {
+		log.Println(err)
+		if errors.Is(err, chatService.ErrChannelNotFound) {
+			SendError(c, http.StatusNotFound, Err404_ChannelNotFound)
+		} else {
+			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		}
+		return
+	}
+	c.Status(http.StatusNoContent)
 }

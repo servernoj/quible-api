@@ -46,5 +46,6 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
 	protected.POST("chat/channels", CreateChannel)
 	protected.POST("chat/channels/:channelId", JoinPublicChannel)
+	protected.DELETE("chat/channels/:channelId", LeaveChannel)
 	protected.GET("chat/capabilities", GetCapabilities)
 }

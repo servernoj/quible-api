@@ -56,6 +56,7 @@ const (
 	Err400_ChannelExists
 	Err400_ChatGroupIsPrivate
 	Err400_ChatGroupIsSelfOwned
+	Err400_ChannelAlreadyJoined
 )
 
 const (
@@ -133,6 +134,7 @@ var errorMap = c.ErrorMap[ErrorCode]{
 		Err400_ChannelExists:                 "channel with this name in the same chat group already exists",
 		Err400_ChatGroupIsPrivate:            "chat group holding the channel is private",
 		Err400_ChatGroupIsSelfOwned:          "chat group holding the channel is self-owned",
+		Err400_ChannelAlreadyJoined:          "channel already joined",
 	},
 	// 401
 	http.StatusUnauthorized: {
