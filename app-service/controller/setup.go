@@ -28,6 +28,7 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	g.GET("docs/errors", ErrorMap.GetErrorCodes)
 	// -- Public API
 	g.POST("/live-push", LivePush)
+	g.GET("/live/token", GetLiveToken)
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
 	// RSC
@@ -50,5 +51,5 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.POST("chat/channels", CreateChannel)
 	protected.POST("chat/channels/:channelId", JoinPublicChannel)
 	protected.DELETE("chat/channels/:channelId", LeaveChannel)
-	protected.GET("chat/capabilities", GetCapabilities)
+	protected.GET("chat/token", GetChatToken)
 }

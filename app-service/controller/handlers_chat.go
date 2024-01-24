@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 
+	"github.com/ably/ably-go/ably"
 	"github.com/gin-gonic/gin"
+	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/app-service/services/chatService"
 )
 
@@ -57,18 +60,28 @@ func DeleteChatGroup(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func GetCapabilities(c *gin.Context) {
+func GetChatToken(c *gin.Context) {
 	user := getUserFromContext(c)
 	cs := chatService.ChatService{
 		C: c.Request.Context(),
 	}
-	caps, err := cs.GetCapabilities(user)
+	capabilities, err := cs.GetCapabilities(user)
 	if err != nil {
 		log.Println(err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
 	}
-	c.JSON(http.StatusOK, caps)
+	marshalledCapabilities, _ := json.Marshal(&capabilities)
+	token, err := ablyService.CreateTokenRequest(&ably.TokenParams{
+		Capability: string(marshalledCapabilities),
+		ClientID:   user.ID,
+	})
+	if err != nil {
+		log.Printf("unable to generate ably TokenRequest for user %q: %q", user.ID, err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, token)
 }
 
 func ListChatGroups(c *gin.Context) {

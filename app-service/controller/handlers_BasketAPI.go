@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
+	"github.com/ably/ably-go/ably"
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/app-service/services/BasketAPI"
+	"github.com/quible-io/quible-api/app-service/services/ablyService"
 )
 
 // @Summary		Get list of games on a specific date
@@ -59,4 +62,20 @@ func GetGameDetails(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func GetLiveToken(c *gin.Context) {
+	capabilities, _ := json.Marshal(&map[string][]string{
+		"live:main": {"subscribe", "history"},
+	})
+	token, err := ablyService.CreateTokenRequest(&ably.TokenParams{
+		Capability: string(capabilities),
+		ClientID:   "nobody",
+	})
+	if err != nil {
+		log.Printf("unable to generate ably TokenRequest: %q", err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, token)
 }

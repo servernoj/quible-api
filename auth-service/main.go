@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/quible-io/quible-api/auth-service/controller"
-	"github.com/quible-io/quible-api/auth-service/realtime"
+	"github.com/quible-io/quible-api/auth-service/services/ablyService"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
@@ -47,7 +47,7 @@ func Server() {
 	}
 	defer store.Close()
 	// -- Ably realtime
-	if err := realtime.Setup(); err != nil {
+	if err := ablyService.Setup(); err != nil {
 		log.Fatalf("unable to setup Ably SDK: %s", err)
 	}
 	// -- HTTP server

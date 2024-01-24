@@ -14,7 +14,7 @@ import (
 
 	"github.com/ably/ably-go/ably"
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/auth-service/realtime"
+	"github.com/quible-io/quible-api/auth-service/services/ablyService"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
 	"github.com/quible-io/quible-api/lib/email"
@@ -433,25 +433,16 @@ func AblyToken(c *gin.Context) {
 		SendError(c, http.StatusBadRequest, Err400_InvalidClientId)
 		return
 	}
-	token, err := realtime.GetToken(user.ID)
+	capabilities, _ := json.Marshal(&map[string][]string{
+		"chat:main": {"history", "publish", "subscribe"},
+	})
+	tokenParams := &ably.TokenParams{
+		ClientID:   user.ID,
+		Capability: string(capabilities),
+	}
+	token, err := ablyService.CreateTokenRequest(tokenParams)
 	if err != nil {
 		log.Printf("unable to retrieve ably token for user %q: %q", user.ID, err)
-		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
-		return
-	}
-	c.JSON(http.StatusOK, token)
-}
-
-func AblyTokenDemo(c *gin.Context) {
-	capabilities, _ := json.Marshal(&map[string][]string{
-		"*": {"subscribe", "history"},
-	})
-	token, err := realtime.CreateTokenRequest(&ably.TokenParams{
-		Capability: string(capabilities),
-		ClientID:   "nobody",
-	})
-	if err != nil {
-		log.Printf("unable to retrieve demo ably token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 		return
 	}

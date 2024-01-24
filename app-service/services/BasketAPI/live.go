@@ -9,7 +9,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/ably/ably-go/ably"
+	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
@@ -37,14 +37,7 @@ func StartLive() (chan<- struct{}, error) {
 		logoByShortName[image.DisplayName] = &imageUrl
 	}
 	// ably
-	ablyRealTime, err := ably.NewRealtime(
-		ably.WithKey(os.Getenv("ENV_ABLY_KEY")),
-		ably.WithClientID("backend"),
-	)
-	if err != nil {
-		log.Printf("unable to initialize Ably SDK: %s", err)
-		return nil, err
-	}
+	ablyRealTime := ablyService.GetAbly()
 	ablyChannel := ablyRealTime.Channels.Get("live:main")
 	go func() {
 		for {
