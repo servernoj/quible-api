@@ -24,6 +24,8 @@ func _() {
 	_ = x[Err400_InvalidOrMalformedToken-4001013]
 	_ = x[Err400_ChatGroupExists-4001014]
 	_ = x[Err400_ChannelExists-4001015]
+	_ = x[Err400_ChatGroupIsPrivate-4001016]
+	_ = x[Err400_ChatGroupIsSelfOwned-4001017]
 	_ = x[Err401_InvalidCredentials-4011001]
 	_ = x[Err401_AuthorizationHeaderMissing-4011002]
 	_ = x[Err401_AuthorizationHeaderInvalid-4011003]
@@ -39,6 +41,7 @@ func _() {
 	_ = x[Err404_UserNotFound-4041004]
 	_ = x[Err404_UserHasNoImage-4041005]
 	_ = x[Err404_ChatGroupNotFound-4041006]
+	_ = x[Err404_ChannelNotFound-4041007]
 	_ = x[Err417_UnknownError-4171001]
 	_ = x[Err417_InvalidToken-4171002]
 	_ = x[Err417_UnableToAssociateUser-4171003]
@@ -58,10 +61,10 @@ func _() {
 
 const (
 	_ErrorCode_name_0 = "Err207_SomeDataUndeleted"
-	_ErrorCode_name_1 = "Err400_EmailNotRegisteredErr400_InvalidEmailFormatErr400_InvalidUsernameFormatErr400_InvalidPhoneFormatErr400_UserWithUsernameExistsErr400_UserWithEmailExistsErr400_IsufficientPasswordComplexityErr400_MalformedJSONErr400_InvalidRequestBodyErr400_FileTooLargeErr400_InvalidClientIdErr400_UserWithEmailOrUsernameExistsErr400_InvalidOrMalformedTokenErr400_ChatGroupExistsErr400_ChannelExists"
+	_ErrorCode_name_1 = "Err400_EmailNotRegisteredErr400_InvalidEmailFormatErr400_InvalidUsernameFormatErr400_InvalidPhoneFormatErr400_UserWithUsernameExistsErr400_UserWithEmailExistsErr400_IsufficientPasswordComplexityErr400_MalformedJSONErr400_InvalidRequestBodyErr400_FileTooLargeErr400_InvalidClientIdErr400_UserWithEmailOrUsernameExistsErr400_InvalidOrMalformedTokenErr400_ChatGroupExistsErr400_ChannelExistsErr400_ChatGroupIsPrivateErr400_ChatGroupIsSelfOwned"
 	_ErrorCode_name_2 = "Err401_InvalidCredentialsErr401_AuthorizationHeaderMissingErr401_AuthorizationHeaderInvalidErr401_AuthorizationExpiredErr401_InvalidRefreshTokenErr401_UserNotFoundErr401_UserNotActivated"
 	_ErrorCode_name_3 = "Err403_CannotToDeleteErr403_CannotEditPhone"
-	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFoundErr404_UserNotFoundErr404_UserHasNoImageErr404_ChatGroupNotFound"
+	_ErrorCode_name_4 = "Err404_PlayerStatsNotFoundErr404_UserOrPhoneNotFoundErr404_AccountNotFoundErr404_UserNotFoundErr404_UserHasNoImageErr404_ChatGroupNotFoundErr404_ChannelNotFound"
 	_ErrorCode_name_5 = "Err417_UnknownErrorErr417_InvalidTokenErr417_UnableToAssociateUser"
 	_ErrorCode_name_6 = "Err424_UnknownErrorErr424_UnableToSendEmail"
 	_ErrorCode_name_7 = "Err429_EditRequestTimedOut"
@@ -70,10 +73,10 @@ const (
 )
 
 var (
-	_ErrorCode_index_1 = [...]uint16{0, 25, 50, 78, 103, 132, 158, 194, 214, 239, 258, 280, 316, 346, 368, 388}
+	_ErrorCode_index_1 = [...]uint16{0, 25, 50, 78, 103, 132, 158, 194, 214, 239, 258, 280, 316, 346, 368, 388, 413, 440}
 	_ErrorCode_index_2 = [...]uint8{0, 25, 58, 91, 118, 144, 163, 186}
 	_ErrorCode_index_3 = [...]uint8{0, 21, 43}
-	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74, 93, 114, 138}
+	_ErrorCode_index_4 = [...]uint8{0, 26, 52, 74, 93, 114, 138, 160}
 	_ErrorCode_index_5 = [...]uint8{0, 19, 38, 66}
 	_ErrorCode_index_6 = [...]uint8{0, 19, 43}
 	_ErrorCode_index_8 = [...]uint8{0, 19, 40, 64, 87, 115, 143, 170}
@@ -84,7 +87,7 @@ func (i ErrorCode) String() string {
 	switch {
 	case i == 2071001:
 		return _ErrorCode_name_0
-	case 4001001 <= i && i <= 4001015:
+	case 4001001 <= i && i <= 4001017:
 		i -= 4001001
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	case 4011001 <= i && i <= 4011007:
@@ -93,7 +96,7 @@ func (i ErrorCode) String() string {
 	case 4031001 <= i && i <= 4031002:
 		i -= 4031001
 		return _ErrorCode_name_3[_ErrorCode_index_3[i]:_ErrorCode_index_3[i+1]]
-	case 4041001 <= i && i <= 4041006:
+	case 4041001 <= i && i <= 4041007:
 		i -= 4041001
 		return _ErrorCode_name_4[_ErrorCode_index_4[i]:_ErrorCode_index_4[i+1]]
 	case 4171001 <= i && i <= 4171003:

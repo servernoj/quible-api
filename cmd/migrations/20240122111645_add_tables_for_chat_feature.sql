@@ -10,10 +10,10 @@ create table chats (
   owner_id uuid null references users
 );
 create table chat_user (
-  id uuid primary key default gen_random_uuid (),
-  chat_id uuid not null references chats,
-  user_id uuid not null references users,
-  is_ro boolean not null default false
+  chat_id uuid references chats,
+  user_id uuid references users,
+  is_ro boolean not null default false,
+  CONSTRAINT chat_user_pkey PRIMARY KEY (chat_id,user_id)
 );
 -- +goose StatementEnd
 

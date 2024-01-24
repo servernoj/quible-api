@@ -231,24 +231,24 @@ func (cs *ChatService) GetPublicChannelsByUser(user *models.User) (models.ChatSl
 		models.ChatWhere.ParentID.IN(IDs),
 	).AllG(cs.C)
 }
-func (cs *ChatService) JoinPublicChannel(user *models.User, channel *models.Chat) error {
+func (cs *ChatService) JoinPublicChannel(user *models.User, channelId string) error {
 	if user == nil {
-		return fmt.Errorf("user is not defined")
-	}
-	if channel == nil {
-		return fmt.Errorf("channel is not defined")
+		return ErrUserUndefined
 	}
 	errorWrapper := getErrorWrapper("JoinPublicChannel for user %q", user.ID)
+	channel, err := models.FindChatG(cs.C, channelId)
+	if err != nil || channel == nil {
+		return errorWrapper(ErrChannelNotFound)
+	}
 	chatGroup, err := channel.Parent().OneG(cs.C)
 	if err != nil || chatGroup == nil {
-		return errorWrapper(
-			fmt.Errorf("unable to locate parent chat group"),
-		)
+		return errorWrapper(ErrChatGroupNotFound)
 	}
 	if chatGroup.IsPrivate.Bool {
-		return errorWrapper(
-			fmt.Errorf("channel is private"),
-		)
+		return errorWrapper(ErrPrivateChatGroup)
+	}
+	if chatGroup.OwnerID.String == user.ID {
+		return errorWrapper(ErrSelfOwnedChatGroup)
 	}
 	chatUser := models.ChatUser{
 		ChatID: channel.ID,
@@ -274,8 +274,8 @@ func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle strin
 	if len(chatGroups) == 0 {
 		return []SearchResultItem{}
 	}
-	result := make([]SearchResultItem, len(chatGroups))
-	for idx, chatGroup := range chatGroups {
+	result := []SearchResultItem{}
+	for _, chatGroup := range chatGroups {
 		channels, err := chatGroup.ParentChats().AllG(cs.C)
 		if err != nil {
 			log.Println(
@@ -285,10 +285,16 @@ func (cs *ChatService) SearchPublicChannelsByChatGroupTitle(chatGroupTitle strin
 			)
 			continue
 		}
-		result[idx] = SearchResultItem{
-			Group:    chatGroup,
-			Channels: channels,
+		if len(channels) == 0 {
+			continue
 		}
+		result = append(
+			result,
+			SearchResultItem{
+				Group:    chatGroup,
+				Channels: channels,
+			},
+		)
 	}
 	return result
 }

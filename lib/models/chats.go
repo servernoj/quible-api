@@ -1274,7 +1274,7 @@ func (o *Chat) AddChatUsers(ctx context.Context, exec boil.ContextExecutor, inse
 				strmangle.SetParamNames("\"", "\"", 1, []string{"chat_id"}),
 				strmangle.WhereClause("\"", "\"", 2, chatUserPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.ID}
+			values := []interface{}{o.ID, rel.ChatID, rel.UserID}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)

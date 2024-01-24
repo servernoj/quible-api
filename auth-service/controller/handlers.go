@@ -718,7 +718,7 @@ func ListChatGroups(c *gin.Context) {
 }
 
 func CreateChannel(c *gin.Context) {
-	id := c.Param("chatGroupId")
+	chatGroupId := c.Request.URL.Query().Get("chatGroupId")
 	var dto chatService.CreateChannelDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		log.Println(err)
@@ -729,7 +729,7 @@ func CreateChannel(c *gin.Context) {
 		C: c.Request.Context(),
 	}
 	channel, err := cs.CreateChannel(
-		id,
+		chatGroupId,
 		dto.Name,
 		dto.Title,
 		dto.Summary,
@@ -754,4 +754,28 @@ func SearchPublicChannelsByChatGroupTitle(c *gin.Context) {
 		C: c.Request.Context(),
 	}
 	c.JSON(http.StatusOK, cs.SearchPublicChannelsByChatGroupTitle(q))
+}
+
+func JoinPublicChannel(c *gin.Context) {
+	id := c.Param("channelId")
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	user := getUserFromContext(c)
+	if err := cs.JoinPublicChannel(user, id); err != nil {
+		log.Println(err)
+		if errors.Is(err, chatService.ErrChannelNotFound) {
+			SendError(c, http.StatusNotFound, Err404_ChannelNotFound)
+		} else if errors.Is(err, chatService.ErrChatGroupNotFound) {
+			SendError(c, http.StatusNotFound, Err404_ChatGroupNotFound)
+		} else if errors.Is(err, chatService.ErrPrivateChatGroup) {
+			SendError(c, http.StatusBadRequest, Err400_ChatGroupIsPrivate)
+		} else if errors.Is(err, chatService.ErrSelfOwnedChatGroup) {
+			SendError(c, http.StatusBadRequest, Err400_ChatGroupIsSelfOwned)
+		} else {
+			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		}
+		return
+	}
+	c.Status(http.StatusOK)
 }

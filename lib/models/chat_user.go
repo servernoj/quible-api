@@ -23,7 +23,6 @@ import (
 
 // ChatUser is an object representing the database table.
 type ChatUser struct {
-	ID     string `boil:"id" json:"id" toml:"id" yaml:"id"`
 	ChatID string `boil:"chat_id" json:"chat_id" toml:"chat_id" yaml:"chat_id"`
 	UserID string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	IsRo   bool   `boil:"is_ro" json:"is_ro" toml:"is_ro" yaml:"is_ro"`
@@ -33,24 +32,20 @@ type ChatUser struct {
 }
 
 var ChatUserColumns = struct {
-	ID     string
 	ChatID string
 	UserID string
 	IsRo   string
 }{
-	ID:     "id",
 	ChatID: "chat_id",
 	UserID: "user_id",
 	IsRo:   "is_ro",
 }
 
 var ChatUserTableColumns = struct {
-	ID     string
 	ChatID string
 	UserID string
 	IsRo   string
 }{
-	ID:     "chat_user.id",
 	ChatID: "chat_user.chat_id",
 	UserID: "chat_user.user_id",
 	IsRo:   "chat_user.is_ro",
@@ -95,12 +90,10 @@ func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field
 func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 var ChatUserWhere = struct {
-	ID     whereHelperstring
 	ChatID whereHelperstring
 	UserID whereHelperstring
 	IsRo   whereHelperbool
 }{
-	ID:     whereHelperstring{field: "\"chat_user\".\"id\""},
 	ChatID: whereHelperstring{field: "\"chat_user\".\"chat_id\""},
 	UserID: whereHelperstring{field: "\"chat_user\".\"user_id\""},
 	IsRo:   whereHelperbool{field: "\"chat_user\".\"is_ro\""},
@@ -144,10 +137,10 @@ func (r *chatUserR) GetUser() *User {
 type chatUserL struct{}
 
 var (
-	chatUserAllColumns            = []string{"id", "chat_id", "user_id", "is_ro"}
+	chatUserAllColumns            = []string{"chat_id", "user_id", "is_ro"}
 	chatUserColumnsWithoutDefault = []string{"chat_id", "user_id"}
-	chatUserColumnsWithDefault    = []string{"id", "is_ro"}
-	chatUserPrimaryKeyColumns     = []string{"id"}
+	chatUserColumnsWithDefault    = []string{"is_ro"}
+	chatUserPrimaryKeyColumns     = []string{"chat_id", "user_id"}
 	chatUserGeneratedColumns      = []string{}
 )
 
@@ -735,7 +728,7 @@ func (o *ChatUser) SetChat(ctx context.Context, exec boil.ContextExecutor, inser
 		strmangle.SetParamNames("\"", "\"", 1, []string{"chat_id"}),
 		strmangle.WhereClause("\"", "\"", 2, chatUserPrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.ID}
+	values := []interface{}{related.ID, o.ChatID, o.UserID}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -790,7 +783,7 @@ func (o *ChatUser) SetUser(ctx context.Context, exec boil.ContextExecutor, inser
 		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
 		strmangle.WhereClause("\"", "\"", 2, chatUserPrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.ID}
+	values := []interface{}{related.ID, o.ChatID, o.UserID}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -833,13 +826,13 @@ func ChatUsers(mods ...qm.QueryMod) chatUserQuery {
 }
 
 // FindChatUserG retrieves a single record by ID.
-func FindChatUserG(ctx context.Context, iD string, selectCols ...string) (*ChatUser, error) {
-	return FindChatUser(ctx, boil.GetContextDB(), iD, selectCols...)
+func FindChatUserG(ctx context.Context, chatID string, userID string, selectCols ...string) (*ChatUser, error) {
+	return FindChatUser(ctx, boil.GetContextDB(), chatID, userID, selectCols...)
 }
 
 // FindChatUser retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindChatUser(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*ChatUser, error) {
+func FindChatUser(ctx context.Context, exec boil.ContextExecutor, chatID string, userID string, selectCols ...string) (*ChatUser, error) {
 	chatUserObj := &ChatUser{}
 
 	sel := "*"
@@ -847,10 +840,10 @@ func FindChatUser(ctx context.Context, exec boil.ContextExecutor, iD string, sel
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"chat_user\" where \"id\"=$1", sel,
+		"select %s from \"chat_user\" where \"chat_id\"=$1 AND \"user_id\"=$2", sel,
 	)
 
-	q := queries.Raw(query, iD)
+	q := queries.Raw(query, chatID, userID)
 
 	err := q.Bind(ctx, exec, chatUserObj)
 	if err != nil {
@@ -1234,7 +1227,7 @@ func (o *ChatUser) Delete(ctx context.Context, exec boil.ContextExecutor) (int64
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), chatUserPrimaryKeyMapping)
-	sql := "DELETE FROM \"chat_user\" WHERE \"id\"=$1"
+	sql := "DELETE FROM \"chat_user\" WHERE \"chat_id\"=$1 AND \"user_id\"=$2"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1349,7 +1342,7 @@ func (o *ChatUser) ReloadG(ctx context.Context) error {
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *ChatUser) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindChatUser(ctx, exec, o.ID)
+	ret, err := FindChatUser(ctx, exec, o.ChatID, o.UserID)
 	if err != nil {
 		return err
 	}
@@ -1398,21 +1391,21 @@ func (o *ChatUserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor
 }
 
 // ChatUserExistsG checks if the ChatUser row exists.
-func ChatUserExistsG(ctx context.Context, iD string) (bool, error) {
-	return ChatUserExists(ctx, boil.GetContextDB(), iD)
+func ChatUserExistsG(ctx context.Context, chatID string, userID string) (bool, error) {
+	return ChatUserExists(ctx, boil.GetContextDB(), chatID, userID)
 }
 
 // ChatUserExists checks if the ChatUser row exists.
-func ChatUserExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+func ChatUserExists(ctx context.Context, exec boil.ContextExecutor, chatID string, userID string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"chat_user\" where \"id\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"chat_user\" where \"chat_id\"=$1 AND \"user_id\"=$2 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, iD)
+		fmt.Fprintln(writer, chatID, userID)
 	}
-	row := exec.QueryRowContext(ctx, sql, iD)
+	row := exec.QueryRowContext(ctx, sql, chatID, userID)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1424,5 +1417,5 @@ func ChatUserExists(ctx context.Context, exec boil.ContextExecutor, iD string) (
 
 // Exists checks if the ChatUser row exists.
 func (o *ChatUser) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
-	return ChatUserExists(ctx, exec, o.ID)
+	return ChatUserExists(ctx, exec, o.ChatID, o.UserID)
 }

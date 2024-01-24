@@ -41,9 +41,10 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.PUT("/user/image", UserUploadImage)
 	// -- chat service related
 	protected.POST("chat/groups", CreateChatGroup)
-	protected.POST("chat/groups/:chatGroupId/channels", CreateChannel)
-	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
-	protected.GET("chat/capabilities", GetCapabilities)
 	protected.GET("chat/groups", ListChatGroups)
 	protected.GET("chat/groups/search", SearchPublicChannelsByChatGroupTitle)
+	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
+	protected.POST("chat/channels", CreateChannel)
+	protected.POST("chat/channels/:channelId", JoinPublicChannel)
+	protected.GET("chat/capabilities", GetCapabilities)
 }
