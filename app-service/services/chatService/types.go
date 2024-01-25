@@ -14,13 +14,13 @@ type CreateChatGroupDTO struct {
 	Summary *string `json:"summary" binding:"omitempty"`
 	// Private chat groups require invitation from the owner.
 	// Public chat group can be freely joined by using `/join` endpoint
-	IsPrivate bool `json:"isPrivate" binding:"boolean,required"`
+	IsPrivate bool `json:"isPrivate" binding:"boolean"`
 }
 
 type CreateChannelDTO struct {
 	// second part of the channel resource name to be concatenated with
 	// the `chat group` name via `:`.
-	Name string `json:"name" binding:"alpha,required"`
+	Name string `json:"name" binding:"required"`
 	// human-readable "title" of the channel
 	Title string `json:"title" binding:"required"`
 	// Optional summary, potentially lengthy text
