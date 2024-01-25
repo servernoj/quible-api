@@ -115,6 +115,7 @@ func (cs *ChatService) CreateChannel(
 	return &channel, nil
 }
 func (cs *ChatService) GetChatGroups(user *models.User, extraMods ...qm.QueryMod) (models.ChatSlice, error) {
+	errorWrapper := getErrorWrapper("GetChatGroups")
 	mods := []qm.QueryMod{
 		models.ChatWhere.ParentID.IsNull(),
 	}
@@ -125,7 +126,14 @@ func (cs *ChatService) GetChatGroups(user *models.User, extraMods ...qm.QueryMod
 		)
 	}
 	mods = append(mods, extraMods...)
-	return models.Chats(mods...).AllG(cs.C)
+	chatGroups, err := models.Chats(mods...).AllG(cs.C)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	if len(chatGroups) == 0 {
+		return models.ChatSlice{}, nil
+	}
+	return chatGroups, nil
 }
 func (cs *ChatService) GetPublicChatGroups(user *models.User) (models.ChatSlice, error) {
 	return cs.GetChatGroups(
