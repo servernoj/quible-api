@@ -109,6 +109,34 @@ func GetChatToken(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
+func GetMyGroupedChannels(c *gin.Context) {
+	user := getUserFromContext(c)
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	grouppedChannels, err := cs.GetMyGroupedChannels(user)
+	if err != nil {
+		log.Printf("unable to retrieve grouped channels for user %q: %q", user.ID, err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, grouppedChannels)
+}
+
+func GetMyChannels(c *gin.Context) {
+	user := getUserFromContext(c)
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	channels, err := cs.GetMyChannels(user)
+	if err != nil {
+		log.Printf("unable to retrieve channels for user %q: %q", user.ID, err)
+		SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		return
+	}
+	c.JSON(http.StatusOK, channels)
+}
+
 // @Summary		List chat groups owned by the logged in user
 // @Tags			chat,private
 // @Produce		json

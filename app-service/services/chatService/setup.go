@@ -20,12 +20,12 @@ var (
 	AccessReadWrite = []string{"subscribe", "publish", "history"}
 )
 
-func getErrorWrapper(format string, args ...any) func(error) error {
-	return func(err error) error {
+func getErrorWrapper(format string, args ...any) func(...error) error {
+	return func(errors ...error) error {
 		return fmt.Errorf(
 			"%s: %w",
 			fmt.Sprintf(format, args...),
-			err,
+			errors,
 		)
 	}
 }
@@ -42,7 +42,7 @@ func (cs *ChatService) CreateChatGroup(
 	isPrivate bool,
 ) (*models.Chat, error) {
 	if user == nil {
-		return nil, fmt.Errorf("user is not defined")
+		return nil, ErrUserUndefined
 	}
 	userId := user.ID
 	errorWrapper := getErrorWrapper("CreateChatGroup for user %q", userId)
@@ -56,9 +56,7 @@ func (cs *ChatService) CreateChatGroup(
 		),
 	).ExistsG(cs.C)
 	if err != nil {
-		return nil, errorWrapper(
-			fmt.Errorf("unable to create chat group: %w", err),
-		)
+		return nil, errorWrapper(ErrUnableToRetrtieveChatGroup, err)
 	}
 	if chatGroupFound {
 		return nil, errorWrapper(ErrChatGroupExists)
@@ -72,9 +70,7 @@ func (cs *ChatService) CreateChatGroup(
 		Title:     title,
 	}
 	if err := chatGroup.InsertG(cs.C, boil.Infer()); err != nil {
-		return nil, errorWrapper(
-			fmt.Errorf("unable to create chat group: %w", err),
-		)
+		return nil, errorWrapper(ErrUnableToCreateChatGroup, err)
 	}
 	return &chatGroup, nil
 }
@@ -108,9 +104,7 @@ func (cs *ChatService) CreateChannel(
 		IsPrivate: null.BoolFromPtr(nil),
 	}
 	if err := channel.InsertG(cs.C, boil.Infer()); err != nil {
-		return nil, errorWrapper(
-			fmt.Errorf("unable to create channel: %w", err),
-		)
+		return nil, errorWrapper(ErrUnableToCreateChannel, err)
 	}
 	return &channel, nil
 }
@@ -149,7 +143,7 @@ func (cs *ChatService) GetPrivateChatGroups(user *models.User) (models.ChatSlice
 }
 func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, error) {
 	if user == nil {
-		return nil, fmt.Errorf("user is not defined")
+		return nil, ErrUserUndefined
 	}
 	userId := user.ID
 	errorWrapper := getErrorWrapper("GetCapabilities for user %q", userId)
@@ -158,20 +152,16 @@ func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, 
 	// -- process implied capabilities from self-owned chat groups
 	chatGroups, err := cs.GetChatGroups(user)
 	if err != nil {
-		return nil, errorWrapper(
-			fmt.Errorf("unable to retrieve chat groups owned by user: %w", err),
-		)
+		return nil, errorWrapper(ErrUnableToRetrtieveChatGroups, err)
 	}
 	for _, chatGroup := range chatGroups {
 		resource := chatGroup.Resource + ":*"
 		capabilities[resource] = AccessReadWrite
 	}
-	// -- process explicitly assigned channels
+	// -- process joined channels
 	chatUsers, err := user.ChatUsers().AllG(cs.C)
 	if err != nil {
-		return nil, errorWrapper(
-			fmt.Errorf("unable to retrieve chat-user associations: %w", err),
-		)
+		return nil, errorWrapper(ErrUnableToRetrieveChatUserRecords, err)
 	}
 	for _, item := range chatUsers {
 		chatId := item.ChatID
@@ -180,34 +170,103 @@ func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, 
 			access = AccessReadOnly
 		}
 		chat, err := models.FindChatG(cs.C, chatId)
-		if err != nil {
-			return nil, errorWrapper(
-				fmt.Errorf("unable to retrieve chat channel for chat_id %q: %w", chatId, err),
-			)
+		if err != nil || chat == nil {
+			return nil, errorWrapper(ErrUnableToRetrtieveChannel, err)
 		}
-		if chat == nil {
-			return nil, errorWrapper(
-				fmt.Errorf("chat channel for chat_id not found %q", chatId),
-			)
+		parentChatGroup, err := chat.Parent().OneG(cs.C)
+		if err != nil || parentChatGroup == nil {
+			return nil, errorWrapper(ErrUnableToRetrtieveChatGroup, err)
 		}
-		chatGroup, err := chat.Parent().OneG(cs.C)
-		if err != nil {
-			return nil, errorWrapper(
-				fmt.Errorf("unable to retrieve chat group for chat_id %q: %w", chatId, err),
-			)
-		}
-		if chatGroup == nil {
-			return nil, errorWrapper(
-				fmt.Errorf("chat group for chat_id not found %q", chatId),
-			)
-		}
-		resource := chatGroup.Resource + ":" + chat.Resource
+		resource := parentChatGroup.Resource + ":" + chat.Resource
 		if accessFound, ok := capabilities[resource]; ok && len(accessFound) > len(access) {
 			access = accessFound
 		}
 		capabilities[resource] = access
 	}
 	return capabilities, nil
+}
+func (cs *ChatService) GetMyGroupedChannels(user *models.User) ([]GroupedChannels, error) {
+	if user == nil {
+		return nil, ErrUserUndefined
+	}
+	userId := user.ID
+	errorWrapper := getErrorWrapper("GetMyChannels for user %q", userId)
+	// -- initialize empty list
+	result := []GroupedChannels{}
+	// -- process implied channels from self-owned chat groups
+	myChatGroups, err := cs.GetChatGroups(user)
+	if err != nil {
+		return nil, errorWrapper(ErrUnableToRetrtieveChatGroups)
+	}
+	for _, chatGroup := range myChatGroups {
+		result = append(
+			result,
+			GroupedChannels{
+				ID:      chatGroup.ID,
+				Title:   chatGroup.Title,
+				Summary: chatGroup.Summary.Ptr(),
+				Channels: []Channel{
+					{
+						ID:       chatGroup.ID,
+						Resource: chatGroup.Resource + ":*",
+						Title:    chatGroup.Title,
+						ReadOnly: false,
+					},
+				},
+			},
+		)
+	}
+	// -- process joined channels
+	chatUsers, err := user.ChatUsers().AllG(cs.C)
+	if err != nil {
+		return nil, errorWrapper(ErrUnableToRetrieveChatUserRecords, err)
+	}
+	groupedChannelsMap := make(map[string]GroupedChannels)
+	for _, chatUser := range chatUsers {
+		chat, err := models.FindChatG(cs.C, chatUser.ChatID)
+		if err != nil || chat == nil {
+			return nil, errorWrapper(ErrUnableToRetrtieveChannel, err)
+		}
+		parentChatGroup, err := chat.Parent().OneG(cs.C)
+		if err != nil || parentChatGroup == nil {
+			return nil, errorWrapper(ErrUnableToRetrtieveChatGroup, err)
+		}
+		if _, ok := groupedChannelsMap[parentChatGroup.ID]; !ok {
+			groupedChannelsMap[parentChatGroup.ID] = GroupedChannels{
+				ID:       parentChatGroup.ID,
+				Title:    parentChatGroup.Title,
+				Summary:  parentChatGroup.Summary.Ptr(),
+				Channels: []Channel{},
+			}
+		}
+		groupedChannels := groupedChannelsMap[parentChatGroup.ID]
+		groupedChannels.Channels = append(groupedChannels.Channels, Channel{
+			ID:       chat.ID,
+			Resource: parentChatGroup.Resource + ":" + chat.Resource,
+			Title:    chat.Title,
+			ReadOnly: chatUser.IsRo,
+		})
+	}
+	for _, groupedChannels := range groupedChannelsMap {
+		result = append(result, groupedChannels)
+	}
+	return result, nil
+}
+func (cs *ChatService) GetMyChannels(user *models.User) ([]Channel, error) {
+	if user == nil {
+		return nil, ErrUserUndefined
+	}
+	userId := user.ID
+	errorWrapper := getErrorWrapper("GetMyResources for user %q", userId)
+	groupedChannels, err := cs.GetMyGroupedChannels(user)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	result := []Channel{}
+	for idx := range groupedChannels {
+		result = append(result, groupedChannels[idx].Channels...)
+	}
+	return result, nil
 }
 func (cs *ChatService) GetPublicChannelsByUser(user *models.User) (models.ChatSlice, error) {
 	errorWrapper := getErrorWrapper("GetPublicChannels")

@@ -33,3 +33,17 @@ type SearchResultItem struct {
 	// all channels associated with the parent chat group
 	Channels models.ChatSlice `json:"channels"`
 }
+
+type GroupedChannels struct {
+	ID       string    `json:"id"`
+	Title    string    `json:"title"`
+	Summary  *string   `json:"summary"`
+	Channels []Channel `json:"resources"`
+}
+
+type Channel struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Resource string `json:"resource"`
+	ReadOnly bool   `json:"read-only"`
+}

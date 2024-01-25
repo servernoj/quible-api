@@ -50,6 +50,8 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	chatProtected.GET("groups", ListChatGroups)
 	chatProtected.DELETE("groups/:chatGroupId", DeleteChatGroup)
 	chatProtected.POST("channels", CreateChannel)
+	chatProtected.GET("channels", GetMyGroupedChannels)
+	chatProtected.GET("channels/list", GetMyChannels)
 	chatProtected.POST("channels/:channelId", JoinPublicChannel)
 	chatProtected.DELETE("channels/:channelId", LeaveChannel)
 	chatProtected.GET("token", GetChatToken)
