@@ -11,27 +11,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-type ChatService struct {
-	C context.Context
-}
-
-type CreateChatGroupDTO struct {
-	Name      string  `json:"name" binding:"alpha,required"`
-	Title     string  `json:"title" binding:"required"`
-	Summary   *string `json:"summary" binding:"omitempty"`
-	IsPrivate bool    `json:"isPrivate" binding:"boolean"`
-}
-type CreateChannelDTO struct {
-	Name    string  `json:"name" binding:"required"`
-	Title   string  `json:"title" binding:"required"`
-	Summary *string `json:"summary" binding:"omitempty"`
-}
-
-type SearchResultItem struct {
-	Group    *models.Chat     `json:"chatGroup"`
-	Channels models.ChatSlice `json:"channels"`
-}
-
 const (
 	GROUP_PREFIX string = "chat:"
 )
@@ -51,6 +30,10 @@ func getErrorWrapper(format string, args ...any) func(error) error {
 	}
 }
 
+type ChatService struct {
+	C context.Context
+}
+
 func (cs *ChatService) CreateChatGroup(
 	user *models.User,
 	name string,
@@ -66,8 +49,11 @@ func (cs *ChatService) CreateChatGroup(
 	resource := GROUP_PREFIX + name
 	chatGroupFound, err := models.Chats(
 		models.ChatWhere.OwnerID.EQ(null.StringFrom(userId)),
-		models.ChatWhere.Resource.EQ(resource),
 		models.ChatWhere.ParentID.IsNull(),
+		qm.Expr(
+			qm.Or2(models.ChatWhere.Resource.EQ(resource)),
+			qm.Or2(models.ChatWhere.Title.EQ(title)),
+		),
 	).ExistsG(cs.C)
 	if err != nil {
 		return nil, errorWrapper(

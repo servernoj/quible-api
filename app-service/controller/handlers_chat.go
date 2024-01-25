@@ -12,6 +12,16 @@ import (
 	"github.com/quible-io/quible-api/app-service/services/chatService"
 )
 
+// @Summary		Create a chat group owned by the logged in user
+// @Tags			chat,private
+// @Accept		json
+// @Produce		json
+// @Param			request	body		chatService.CreateChatGroupDTO	true	"New chat group details"
+// @Success		201		{object}	models.Chat
+// @Failure		400		{object}	ErrorResponse
+// @Failure		401		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/groups [post]
 func CreateChatGroup(c *gin.Context) {
 	var dto chatService.CreateChatGroupDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
@@ -42,6 +52,14 @@ func CreateChatGroup(c *gin.Context) {
 	c.JSON(http.StatusCreated, chatGroup)
 }
 
+// @Summary		Delete chat group (logged in user must be the owner)
+// @Tags			chat,private
+// @Param     chatGroupId path string true "Chat group ID" format(uuid)
+// @Success		204
+// @Failure		401		{object}	ErrorResponse
+// @Failure		404		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/groups/{chatGroupId} [delete]
 func DeleteChatGroup(c *gin.Context) {
 	id := c.Param("chatGroupId")
 	user := getUserFromContext(c)
@@ -60,6 +78,13 @@ func DeleteChatGroup(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// @Summary		Get new Ably TokenRequest associated with the logged in user
+// @Tags			chat,private
+// @Produce		json
+// @Success		200	{object}	AblyTokenRequest
+// @Failure		400	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/chat/token [get]
 func GetChatToken(c *gin.Context) {
 	user := getUserFromContext(c)
 	cs := chatService.ChatService{
@@ -84,6 +109,13 @@ func GetChatToken(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
+// @Summary		List chat groups owned by the logged in user
+// @Tags			chat,private
+// @Produce		json
+// @Success		200		{array}		models.Chat
+// @Failure		401		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/groups [get]
 func ListChatGroups(c *gin.Context) {
 	user := getUserFromContext(c)
 	cs := chatService.ChatService{
@@ -98,6 +130,17 @@ func ListChatGroups(c *gin.Context) {
 	c.JSON(http.StatusOK, chatGroups)
 }
 
+// @Summary		Create a channel within the specified chat group (logged in user must own that chat group)
+// @Tags			chat,private
+// @Accept		json
+// @Produce		json
+// @Param			chatGroupId	query		string	false	"ID of the parent `chat group`" format(uuid)
+// @Param			request	body		chatService.CreateChannelDTO	true	"New channel details"
+// @Success		201		{object}	models.Chat
+// @Failure		400		{object}	ErrorResponse
+// @Failure		401		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/channels [post]
 func CreateChannel(c *gin.Context) {
 	chatGroupId := c.Request.URL.Query().Get("chatGroupId")
 	var dto chatService.CreateChannelDTO
@@ -129,6 +172,13 @@ func CreateChannel(c *gin.Context) {
 	c.JSON(http.StatusCreated, channel)
 }
 
+// @Summary		Search public chat groups by partially matched title
+// @Tags			chat,public
+// @Produce		json
+// @Param			q	query		string	false	"partial match for a chat group title, if not provided returns all public results"
+// @Success		200		{array}		chatService.SearchResultItem
+// @Failure		401		{object}	ErrorResponse
+// @Router		/chat/groups/search [get]
 func SearchPublicChannelsByChatGroupTitle(c *gin.Context) {
 	q := c.Request.URL.Query().Get("q")
 	cs := chatService.ChatService{
@@ -137,6 +187,16 @@ func SearchPublicChannelsByChatGroupTitle(c *gin.Context) {
 	c.JSON(http.StatusOK, cs.SearchPublicChannelsByChatGroupTitle(q))
 }
 
+// @Summary		Join public channel (channel associated with a public chat group)
+// @Tags			chat,private
+// @Produce		json
+// @Param     channelId path string true "Channel ID" format(uuid)
+// @Success		200
+// @Failure		400		{object}	ErrorResponse
+// @Failure		401		{object}	ErrorResponse
+// @Failure		404		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/channels/{channelId} [post]
 func JoinPublicChannel(c *gin.Context) {
 	id := c.Param("channelId")
 	cs := chatService.ChatService{
@@ -163,6 +223,14 @@ func JoinPublicChannel(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// @Summary		Leave previously joined channel
+// @Tags			chat,private
+// @Param     channelId path string true "Channel ID" format(uuid)
+// @Success		204
+// @Failure		401		{object}	ErrorResponse
+// @Failure		404		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/channels/{channelId} [delete]
 func LeaveChannel(c *gin.Context) {
 	id := c.Param("channelId")
 	cs := chatService.ChatService{

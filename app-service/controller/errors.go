@@ -67,7 +67,7 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 		Err400_MalformedJSON:             "malformed JSON request",
 		Err400_InvalidRequestBody:        "invalid request body",
 		Err400_MissingRequiredQueryParam: "missing/invalid required query param",
-		Err400_ChatGroupExists:           "chat group with given name exists",
+		Err400_ChatGroupExists:           "chat group with given name or title exists",
 		Err400_ChannelExists:             "channel with this name in the same chat group already exists",
 		Err400_ChatGroupIsPrivate:        "chat group holding the channel is private",
 		Err400_ChatGroupIsSelfOwned:      "chat group holding the channel is self-owned",

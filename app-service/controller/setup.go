@@ -44,12 +44,15 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	protected.GET("/games", GetGames)
 	protected.GET("/game", GetGameDetails)
 	// Chat
-	protected.POST("chat/groups", CreateChatGroup)
-	protected.GET("chat/groups", ListChatGroups)
-	protected.GET("chat/groups/search", SearchPublicChannelsByChatGroupTitle)
-	protected.DELETE("chat/groups/:chatGroupId", DeleteChatGroup)
-	protected.POST("chat/channels", CreateChannel)
-	protected.POST("chat/channels/:channelId", JoinPublicChannel)
-	protected.DELETE("chat/channels/:channelId", LeaveChannel)
-	protected.GET("chat/token", GetChatToken)
+	chatPublic := g.Group("/chat")
+	chatProtected := protected.Group("/chat")
+	chatProtected.POST("groups", CreateChatGroup)
+	chatProtected.GET("groups", ListChatGroups)
+	chatProtected.DELETE("groups/:chatGroupId", DeleteChatGroup)
+	chatProtected.POST("channels", CreateChannel)
+	chatProtected.POST("channels/:channelId", JoinPublicChannel)
+	chatProtected.DELETE("channels/:channelId", LeaveChannel)
+	chatProtected.GET("token", GetChatToken)
+	// -- public
+	chatPublic.GET("groups/search", SearchPublicChannelsByChatGroupTitle)
 }

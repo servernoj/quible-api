@@ -64,6 +64,14 @@ func GetGameDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// @Summary		Get new `TokenRequest` for client Ably SDK
+// @Description	Returns anonymous signed Ably token
+// @Tags			BasketAPI,public
+// @Produce		json
+// @Success		200	{object}	AblyTokenRequest
+// @Failure		400	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/live/token [get]
 func GetLiveToken(c *gin.Context) {
 	capabilities, _ := json.Marshal(&map[string][]string{
 		"live:main": {"subscribe", "history"},

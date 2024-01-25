@@ -162,6 +162,7 @@ paths:
       summary: Swagger UI
       tags:
       - docs
+      - public
   /docs/errors:
     get:
       description: Renders the list of errors reported by the microservice
@@ -175,6 +176,7 @@ paths:
       summary: Error Codes UI
       tags:
       - docs
+      - public
   /docs/spec:
     get:
       description: Swagger spec in YAML format
@@ -188,6 +190,7 @@ paths:
       summary: Swagger spec
       tags:
       - docs
+      - public
   /login:
     post:
       consumes:
