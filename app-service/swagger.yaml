@@ -644,8 +644,7 @@ definitions:
       name:
         description: |-
           second part of the channel resource name to be concatenated with
-          the `chat group` name
-        example: '*'
+          the `chat group` name via `:`.
         type: string
       summary:
         description: Optional summary, potentially lengthy text
@@ -677,7 +676,6 @@ definitions:
           UI and used for searching
         type: string
     required:
-    - isPrivate
     - name
     - title
     type: object
@@ -778,6 +776,67 @@ paths:
             $ref: '#/definitions/controller.ErrorResponse'
       summary: Create a channel within the specified chat group (logged in user must
         own that chat group)
+      tags:
+      - chat
+      - private
+  /chat/channels/{channelId}:
+    delete:
+      parameters:
+      - description: Channel ID
+        format: uuid
+        in: path
+        name: channelId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Leave previously joined channel
+      tags:
+      - chat
+      - private
+    post:
+      parameters:
+      - description: Channel ID
+        format: uuid
+        in: path
+        name: channelId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Join public channel (channel associated with a public chat group)
       tags:
       - chat
       - private
