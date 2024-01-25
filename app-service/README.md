@@ -201,6 +201,6 @@ Exampled response
 ```
 
 Comments:
-- The response represents `TokenRequest` object described in [https://ably.com/docs/api/realtime-sdk/types#token-request]
+- The response represents `TokenRequest` object described in https://ably.com/docs/api/realtime-sdk/types#token-request
 - field `capability` represents a JSON object that lists all `channels` and their corresponding access rights for the authenticated user
 - this endpoint is meant to be used on the client side to initialize Ably SDK
