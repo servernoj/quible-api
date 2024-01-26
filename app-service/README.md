@@ -204,3 +204,82 @@ Comments:
 - The response represents `TokenRequest` object described in https://ably.com/docs/api/realtime-sdk/types#token-request
 - field `capability` represents a JSON object that lists all `channels` and their corresponding access rights for the authenticated user
 - this endpoint is meant to be used on the client side to initialize Ably SDK
+
+### Get my channels grouped or as a flat list
+
+The term "my channels" means those `channels` which you, as a user, can have access to. This API is needed for UI to render possible options for the user to act upon. Effectively the list reflects the same information that is encoded in `TokenRequest` object returned by `/chat/token` but is presented in a human-readable format.
+
+#### Grouped 
+
+Endpoint `GET /chat/channels`
+
+Exampled response:
+```json
+[
+  {
+    "id": "8482ba32-840b-4ccd-8d0f-ab5f6628bbcf",
+    "title": "betting only",
+    "summary": null,
+    "resources": [
+      {
+        "id": "d0d784df-092f-465f-a479-9523a61ddb53",
+        "title": "betting one",
+        "resource": "chat:BettingOnly:betting one",
+        "read-only": false
+      },
+      {
+        "id": "0ea83a0c-02a8-4415-939b-2fe1a99bbcb5",
+        "title": "betting two",
+        "resource": "chat:BettingOnly:betting two",
+        "read-only": false
+      }
+    ]
+  },
+  {
+    "id": "cd54bef3-5793-4b3f-809d-8b73fad05f4c",
+    "title": "nothing serious",
+    "summary": null,
+    "resources": [
+      {
+        "id": "f67b76ad-a313-4a6a-be6c-f389e20809f0",
+        "title": "private one",
+        "resource": "chat:NothingSerious:private one",
+        "read-only": false
+      }
+    ]
+  }
+]
+```
+
+Comments:
+- The top-level array shows `chat groups` and their corresponding `channels` if the user has permission to work with them
+- A user who owns a `chat group` will see all its channels without explicitly joining to them
+- Both **public** and **private** channels are shown as long as the user has corresponding right to work with that channels
+
+#### Flat list
+
+Endpoint `GET /chat/channels/list`
+
+Same set of channels, but without group info. Exampled response:
+```json
+[
+  {
+    "id": "d0d784df-092f-465f-a479-9523a61ddb53",
+    "title": "betting one",
+    "resource": "chat:BettingOnly:bettingOne",
+    "read-only": false
+  },
+  {
+    "id": "0ea83a0c-02a8-4415-939b-2fe1a99bbcb5",
+    "title": "betting two",
+    "resource": "chat:BettingOnly:bettingTwo",
+    "read-only": false
+  },
+  {
+    "id": "f67b76ad-a313-4a6a-be6c-f389e20809f0",
+    "title": "private one",
+    "resource": "chat:NothingSerious:privateOne",
+    "read-only": false
+  }
+]
+```
