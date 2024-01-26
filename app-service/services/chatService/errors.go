@@ -14,6 +14,7 @@ var (
 	ErrUnableToRetrtieveChatGroups     = errors.New("unable to retrieve chat groups owned by user")
 	ErrUnableToRetrtieveChatGroup      = errors.New("unable to retrieve chat group")
 	ErrUnableToRetrtieveChannel        = errors.New("unable to retrieve channel")
+	ErrUnableToRetrtieveChannels       = errors.New("unable to retrieve channels of the given chat group")
 	ErrUnableToRetrieveChatUserRecords = errors.New("unable to retrieve chat-user associations")
 	ErrUnableToCreateChatGroup         = errors.New("unable to create chat group")
 	ErrUnableToCreateChannel           = errors.New("unable to create channel")

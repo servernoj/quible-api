@@ -7,7 +7,7 @@ import (
 type CreateChatGroupDTO struct {
 	// used to form Ably resource identifier for chat group as `chat:<name>`,
 	// it should be unique across all chat groups owned by the same user
-	Name string `json:"name" binding:"alpha,required"`
+	Name string `json:"name" binding:"alphanum,required"`
 	// human-readable "title" of the chat group, will be displayed in UI and used for searching
 	Title string `json:"title" binding:"required"`
 	// Optional summary, potentially lengthy text
@@ -20,7 +20,7 @@ type CreateChatGroupDTO struct {
 type CreateChannelDTO struct {
 	// second part of the channel resource name to be concatenated with
 	// the `chat group` name via `:`.
-	Name string `json:"name" binding:"required"`
+	Name string `json:"name" binding:"alphanum,required"`
 	// human-readable "title" of the channel
 	Title string `json:"title" binding:"required"`
 	// Optional summary, potentially lengthy text

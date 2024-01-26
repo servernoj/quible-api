@@ -23,7 +23,7 @@ var (
 func getErrorWrapper(format string, args ...any) func(...error) error {
 	return func(errors ...error) error {
 		return fmt.Errorf(
-			"%s: %w",
+			"%s: %v",
 			fmt.Sprintf(format, args...),
 			errors,
 		)
@@ -191,64 +191,64 @@ func (cs *ChatService) GetMyGroupedChannels(user *models.User) ([]GroupedChannel
 	}
 	userId := user.ID
 	errorWrapper := getErrorWrapper("GetMyChannels for user %q", userId)
-	// -- initialize empty list
+	// 0. Initialize empty lists and sets
 	result := []GroupedChannels{}
-	// -- process implied channels from self-owned chat groups
-	myChatGroups, err := cs.GetChatGroups(user)
+	chatGroupsMap := make(map[string]*models.Chat)
+	myChannels := make(map[string]struct{})
+	// 1. Get all chat groups owned by the user
+	ownedChatGroups, err := cs.GetChatGroups(user)
 	if err != nil {
-		return nil, errorWrapper(ErrUnableToRetrtieveChatGroups)
+		return nil, errorWrapper(ErrUnableToRetrtieveChatGroups, err)
 	}
-	for _, chatGroup := range myChatGroups {
-		result = append(
-			result,
-			GroupedChannels{
-				ID:      chatGroup.ID,
-				Title:   chatGroup.Title,
-				Summary: chatGroup.Summary.Ptr(),
-				Channels: []Channel{
-					{
-						ID:       chatGroup.ID,
-						Resource: chatGroup.Resource + ":*",
-						Title:    chatGroup.Title,
-						ReadOnly: false,
-					},
-				},
-			},
-		)
+	for _, chatGroup := range ownedChatGroups {
+		chatGroupsMap[chatGroup.ID] = chatGroup
 	}
-	// -- process joined channels
+	// 2. Identify chat groups which user has joined
 	chatUsers, err := user.ChatUsers().AllG(cs.C)
 	if err != nil {
 		return nil, errorWrapper(ErrUnableToRetrieveChatUserRecords, err)
 	}
-	groupedChannelsMap := make(map[string]GroupedChannels)
 	for _, chatUser := range chatUsers {
 		chat, err := models.FindChatG(cs.C, chatUser.ChatID)
 		if err != nil || chat == nil {
-			return nil, errorWrapper(ErrUnableToRetrtieveChannel, err)
+			log.Println(errorWrapper(ErrUnableToRetrtieveChannel, err))
+			continue
 		}
-		parentChatGroup, err := chat.Parent().OneG(cs.C)
-		if err != nil || parentChatGroup == nil {
-			return nil, errorWrapper(ErrUnableToRetrtieveChatGroup, err)
+		myChannels[chat.ID] = struct{}{}
+		parentChatGroup, _ := chat.Parent().OneG(cs.C)
+		if parentChatGroup != nil {
+			chatGroupsMap[parentChatGroup.ID] = parentChatGroup
 		}
-		if _, ok := groupedChannelsMap[parentChatGroup.ID]; !ok {
-			groupedChannelsMap[parentChatGroup.ID] = GroupedChannels{
-				ID:       parentChatGroup.ID,
-				Title:    parentChatGroup.Title,
-				Summary:  parentChatGroup.Summary.Ptr(),
-				Channels: []Channel{},
+	}
+	// 3. For every chat group get list of associated channels
+	for _, chatGroup := range chatGroupsMap {
+		chats, err := models.Chats(
+			models.ChatWhere.ParentID.EQ(null.StringFrom(chatGroup.ID)),
+		).AllG(cs.C)
+		if err != nil {
+			log.Println(errorWrapper(ErrUnableToRetrtieveChannels, err))
+			continue
+		}
+		channels := make([]Channel, 0, len(chats))
+		for _, chat := range chats {
+			// -- we add channel to the list if
+			// a) the group is owned by user
+			// b) if not, then channelId should match on of the joined channels
+			if _, ok := myChannels[chat.ID]; ok || chatGroup.OwnerID.String == userId {
+				channels = append(channels, Channel{
+					ID:       chat.ID,
+					Title:    chat.Title,
+					Resource: chatGroup.Resource + ":" + chat.Resource,
+					ReadOnly: false,
+				})
 			}
 		}
-		groupedChannels := groupedChannelsMap[parentChatGroup.ID]
-		groupedChannels.Channels = append(groupedChannels.Channels, Channel{
-			ID:       chat.ID,
-			Resource: parentChatGroup.Resource + ":" + chat.Resource,
-			Title:    chat.Title,
-			ReadOnly: chatUser.IsRo,
+		result = append(result, GroupedChannels{
+			ID:       chatGroup.ID,
+			Title:    chatGroup.Title,
+			Summary:  chatGroup.Summary.Ptr(),
+			Channels: channels,
 		})
-	}
-	for _, groupedChannels := range groupedChannelsMap {
-		result = append(result, groupedChannels)
 	}
 	return result, nil
 }

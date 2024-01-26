@@ -639,6 +639,17 @@ definitions:
       wins:
         type: integer
     type: object
+  chatService.Channel:
+    properties:
+      id:
+        type: string
+      read-only:
+        type: boolean
+      resource:
+        type: string
+      title:
+        type: string
+    type: object
   chatService.CreateChannelDTO:
     properties:
       name:
@@ -678,6 +689,19 @@ definitions:
     required:
     - name
     - title
+    type: object
+  chatService.GroupedChannels:
+    properties:
+      id:
+        type: string
+      resources:
+        items:
+          $ref: '#/definitions/chatService.Channel'
+        type: array
+      summary:
+        type: string
+      title:
+        type: string
     type: object
   chatService.SearchResultItem:
     properties:
@@ -740,6 +764,28 @@ info:
   version: "0.1"
 paths:
   /chat/channels:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/chatService.GroupedChannels'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: List user's channels and their parent chat groups
+      tags:
+      - chat
+      - private
     post:
       consumes:
       - application/json
@@ -837,6 +883,29 @@ paths:
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
       summary: Join public channel (channel associated with a public chat group)
+      tags:
+      - chat
+      - private
+  /chat/channels/list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/chatService.Channel'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: List user's channels
       tags:
       - chat
       - private
@@ -958,8 +1027,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controller.AblyTokenRequest'
-        "400":
-          description: Bad Request
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
         "500":

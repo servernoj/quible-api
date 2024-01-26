@@ -82,7 +82,7 @@ func DeleteChatGroup(c *gin.Context) {
 // @Tags			chat,private
 // @Produce		json
 // @Success		200	{object}	AblyTokenRequest
-// @Failure		400	{object}	ErrorResponse
+// @Failure		401	{object}	ErrorResponse
 // @Failure		500	{object}	ErrorResponse
 // @Router		/chat/token [get]
 func GetChatToken(c *gin.Context) {
@@ -109,6 +109,13 @@ func GetChatToken(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
+// @Summary		List user's channels and their parent chat groups
+// @Tags			chat,private
+// @Produce		json
+// @Success		200	{array}	chatService.GroupedChannels
+// @Failure		401	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/chat/channels [get]
 func GetMyGroupedChannels(c *gin.Context) {
 	user := getUserFromContext(c)
 	cs := chatService.ChatService{
@@ -123,6 +130,13 @@ func GetMyGroupedChannels(c *gin.Context) {
 	c.JSON(http.StatusOK, grouppedChannels)
 }
 
+// @Summary		List user's channels
+// @Tags			chat,private
+// @Produce		json
+// @Success		200	{array}	chatService.Channel
+// @Failure		401	{object}	ErrorResponse
+// @Failure		500	{object}	ErrorResponse
+// @Router		/chat/channels/list [get]
 func GetMyChannels(c *gin.Context) {
 	user := getUserFromContext(c)
 	cs := chatService.ChatService{
