@@ -331,6 +331,14 @@ func InviteToPrivateChannel(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// @Summary		Accept invitation request initiated by clicking email link
+// @Tags			chat,public
+// @Param			request	body		chatService.TokenDTO	true	"authentication token"
+// @Success		200
+// @Failure		400		{object}	ErrorResponse
+// @Failure		417		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/channels/accept [post]
 func AcceptInvitationToPrivateChannel(c *gin.Context) {
 	var dto chatService.TokenDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {

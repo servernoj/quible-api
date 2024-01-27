@@ -290,9 +290,28 @@ A user owning some **private** `chat group` can invite other existing users (one
 
 Endpoint `POST /chat/channels/{channelId}/invite`
 
-Example request body:
+Exampled request body:
 ```json
 {
   "email": "abcdy@gmail.com"
 }
 ```
+
+### Accept invitation to join private channel
+
+A user invited to join private channel will receive an email with a link. Once clicked, the link will be opened in the default web browser and a request to this API will be made under the hood. The link itself contains authentication token. The token allows to **re-identify** *invitor*, *invitee*, and *channel*, which upon successful validation, will activate access to the private channel for the invitee.
+
+Endpoint `POST /chat/channels/accept`
+
+Exampled request body:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDY0MDgyODUsInVzZXJJZCI6ImM2MTc0ZThhLWUxMmYtNGQ2NC1hNGZlLWEzYjBjMDgxYmQzMSIsImFjdGlvbiI6Ikludml0YXRpb25Ub1ByaXZhdGVDaGF0IiwiZXh0cmFDbGFpbXMiOnsiY2hhbm5lbElkIjoiZjY3Yjc2YWQtYTMxMy00YTZhLWJlNmMtZjM4OWUyMDgwOWYwIiwiaW52aXRlZUlkIjoiOWJlZjQxZWQtZmIxMC00NzkxLWIwMmUtOTZiMzcyYzA5NDY2In19.-TmdBdIe132bacWphpKdXAfMrx5OEup57Fdfyi8GD1k"
+}
+```
+
+Comments:
+- The token cannot be used for anything else except to accept invitation.
+- It has expiration time of 24 hours.
+- The invitor can repeat invitation process if token is expired.
+- The original link in the email contains `token` as a query param, and it is responsibility of the web client to pass it over into POST request body, served by this API.
