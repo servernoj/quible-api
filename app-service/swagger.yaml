@@ -727,6 +727,13 @@ definitions:
         - $ref: '#/definitions/models.Chat'
         description: parent public chat group for all listed channels
     type: object
+  chatService.TokenDTO:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   controller.AblyTokenRequest:
     properties:
       capability:
@@ -936,6 +943,34 @@ paths:
       tags:
       - chat
       - private
+  /chat/channels/accept:
+    post:
+      parameters:
+      - description: authentication token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/chatService.TokenDTO'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "417":
+          description: Expectation Failed
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Accept invitation request initiated by clicking email link
+      tags:
+      - chat
+      - public
   /chat/channels/list:
     get:
       produces:
