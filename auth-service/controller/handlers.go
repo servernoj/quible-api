@@ -244,7 +244,7 @@ func UserLogin(c *gin.Context) {
 func UserGet(c *gin.Context) {
 	user := getUserFromContext(c)
 	c.JSON(
-		http.StatusCreated,
+		http.StatusOK,
 		misc.PickFields(user, UserFields...),
 	)
 }
