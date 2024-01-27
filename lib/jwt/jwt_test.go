@@ -95,7 +95,6 @@ func TestVerifyJWT(t *testing.T) {
 					ID:    "invalid.id",
 				}
 			}
-
 			// run verifyJWT function
 			claims, err := VerifyJWT(generatedToken.Token, TokenActionAccess)
 

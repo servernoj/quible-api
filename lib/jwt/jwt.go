@@ -101,7 +101,7 @@ func VerifyJWT(tokenString string, action TokenAction) (jwt.MapClaims, error) {
 			if _, ok := mapClaims["userId"].(string); !ok {
 				return nil, ErrTokenMissingUserId
 			}
-			if _, ok := mapClaims["extraClaims"].(ExtraClaims); !ok {
+			if extraClaims, ok := mapClaims["extraClaims"].(ExtraClaims); !ok && extraClaims != nil {
 				return nil, ErrTokenMissingExtraClaims
 			}
 			if action == TokenActionAccess || action == TokenActionRefresh {
