@@ -53,8 +53,10 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 	chatProtected.GET("channels", GetMyGroupedChannels)
 	chatProtected.GET("channels/list", GetMyChannels)
 	chatProtected.POST("channels/:channelId", JoinPublicChannel)
+	chatProtected.POST("channels/:channelId/invite", InviteToPrivateChannel)
 	chatProtected.DELETE("channels/:channelId", LeaveChannel)
 	chatProtected.GET("token", GetChatToken)
 	// -- public
 	chatPublic.GET("groups/search", SearchPublicChannelsByChatGroupTitle)
+	chatPublic.POST("channels/accept", AcceptInvitationToPrivateChannel)
 }

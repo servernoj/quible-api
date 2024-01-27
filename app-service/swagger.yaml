@@ -644,10 +644,15 @@ definitions:
       id:
         type: string
       read-only:
+        description: Indicates whether or not messages can be "published" into the
+          channel
         type: boolean
       resource:
+        description: value to be passed to Ably's `channels.get() method`
         type: string
       title:
+        description: Human readable version of the channel name to be used for UI
+          rendering
         type: string
     type: object
   chatService.CreateChannelDTO:
@@ -702,6 +707,13 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  chatService.InviteToPrivateChannelDTO:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   chatService.SearchResultItem:
     properties:
@@ -883,6 +895,44 @@ paths:
           schema:
             $ref: '#/definitions/controller.ErrorResponse'
       summary: Join public channel (channel associated with a public chat group)
+      tags:
+      - chat
+      - private
+  /chat/channels/{channelId}/invite:
+    post:
+      parameters:
+      - description: Channel ID
+        format: uuid
+        in: path
+        name: channelId
+        required: true
+        type: string
+      - description: Contains invitee's email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/chatService.InviteToPrivateChannelDTO'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Invite a user to join private channel
       tags:
       - chat
       - private

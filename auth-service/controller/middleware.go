@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
+	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"
 )
 
@@ -62,11 +63,11 @@ func authMiddleware(c *gin.Context) {
 		return
 	}
 	token := headerParts[1]
-	tokenClaims, err := verifyJWT(token, Access)
+	tokenClaims, err := jwt.VerifyJWT(token, jwt.TokenActionAccess)
 	if err != nil {
 		errorCode := Err401_AuthorizationHeaderInvalid
 		// -- TODO: errors.Is(err,ErrTokenExpired) should work but it doesn't
-		if err.Error() == ErrTokenExpired.Error() {
+		if err.Error() == jwt.ErrTokenExpired.Error() {
 			errorCode = Err401_AuthorizationExpired
 		}
 		log.Printf("token verification failed: %q", err)

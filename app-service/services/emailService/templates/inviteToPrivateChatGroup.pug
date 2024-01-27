@@ -1,0 +1,25 @@
+extends ../../../../assets/acorn/layout.pug
+
+block filter
+  :go:func InviteToPrivateChatGroup(invitee string, channelTitle string, groupTitle string, acceptLink string)
+
+block content
+  +container
+    h3 Hi #{invitee}, 
+
+    p 
+      | You have been invited to join channel #[strong #{channelTitle}] of the #[em private] chat group #[strong #{groupTitle}]. 
+      | Click on the link below to accept the invitation:
+
+    +link(acceptLink)= acceptLink 
+
+    p The link will expire in 24 hours. To get the new link please contact the owner of the chat group to create another invite for you. 
+      
+    p Best,
+
+    p The Quible Team 
+
+  
+    
+
+  

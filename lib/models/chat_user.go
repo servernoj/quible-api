@@ -23,32 +23,37 @@ import (
 
 // ChatUser is an object representing the database table.
 type ChatUser struct {
-	ChatID string `boil:"chat_id" json:"chat_id" toml:"chat_id" yaml:"chat_id"`
-	UserID string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	IsRo   bool   `boil:"is_ro" json:"is_ro" toml:"is_ro" yaml:"is_ro"`
+	ChatID   string `boil:"chat_id" json:"chat_id" toml:"chat_id" yaml:"chat_id"`
+	UserID   string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	IsRo     bool   `boil:"is_ro" json:"is_ro" toml:"is_ro" yaml:"is_ro"`
+	Disabled bool   `boil:"disabled" json:"disabled" toml:"disabled" yaml:"disabled"`
 
 	R *chatUserR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L chatUserL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ChatUserColumns = struct {
-	ChatID string
-	UserID string
-	IsRo   string
+	ChatID   string
+	UserID   string
+	IsRo     string
+	Disabled string
 }{
-	ChatID: "chat_id",
-	UserID: "user_id",
-	IsRo:   "is_ro",
+	ChatID:   "chat_id",
+	UserID:   "user_id",
+	IsRo:     "is_ro",
+	Disabled: "disabled",
 }
 
 var ChatUserTableColumns = struct {
-	ChatID string
-	UserID string
-	IsRo   string
+	ChatID   string
+	UserID   string
+	IsRo     string
+	Disabled string
 }{
-	ChatID: "chat_user.chat_id",
-	UserID: "chat_user.user_id",
-	IsRo:   "chat_user.is_ro",
+	ChatID:   "chat_user.chat_id",
+	UserID:   "chat_user.user_id",
+	IsRo:     "chat_user.is_ro",
+	Disabled: "chat_user.disabled",
 }
 
 // Generated where
@@ -90,13 +95,15 @@ func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field
 func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 var ChatUserWhere = struct {
-	ChatID whereHelperstring
-	UserID whereHelperstring
-	IsRo   whereHelperbool
+	ChatID   whereHelperstring
+	UserID   whereHelperstring
+	IsRo     whereHelperbool
+	Disabled whereHelperbool
 }{
-	ChatID: whereHelperstring{field: "\"chat_user\".\"chat_id\""},
-	UserID: whereHelperstring{field: "\"chat_user\".\"user_id\""},
-	IsRo:   whereHelperbool{field: "\"chat_user\".\"is_ro\""},
+	ChatID:   whereHelperstring{field: "\"chat_user\".\"chat_id\""},
+	UserID:   whereHelperstring{field: "\"chat_user\".\"user_id\""},
+	IsRo:     whereHelperbool{field: "\"chat_user\".\"is_ro\""},
+	Disabled: whereHelperbool{field: "\"chat_user\".\"disabled\""},
 }
 
 // ChatUserRels is where relationship names are stored.
@@ -137,9 +144,9 @@ func (r *chatUserR) GetUser() *User {
 type chatUserL struct{}
 
 var (
-	chatUserAllColumns            = []string{"chat_id", "user_id", "is_ro"}
+	chatUserAllColumns            = []string{"chat_id", "user_id", "is_ro", "disabled"}
 	chatUserColumnsWithoutDefault = []string{"chat_id", "user_id"}
-	chatUserColumnsWithDefault    = []string{"is_ro"}
+	chatUserColumnsWithDefault    = []string{"is_ro", "disabled"}
 	chatUserPrimaryKeyColumns     = []string{"chat_id", "user_id"}
 	chatUserGeneratedColumns      = []string{}
 )

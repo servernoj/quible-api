@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/app-service/services/chatService"
+	"github.com/quible-io/quible-api/lib/jwt"
 )
 
 // @Summary		Create a chat group owned by the logged in user
@@ -289,4 +290,83 @@ func LeaveChannel(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+// @Summary		Invite a user to join private channel
+// @Tags			chat,private
+// @Param     channelId path string true "Channel ID" format(uuid)
+// @Param			request	body		chatService.InviteToPrivateChannelDTO	true	"Contains invitee's email"
+// @Success		200
+// @Failure		400		{object}	ErrorResponse
+// @Failure		401		{object}	ErrorResponse
+// @Failure		404		{object}	ErrorResponse
+// @Failure		500		{object}	ErrorResponse
+// @Router		/chat/channels/{channelId}/invite [post]
+func InviteToPrivateChannel(c *gin.Context) {
+	channelId := c.Param("channelId")
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	user := getUserFromContext(c)
+	var dto chatService.InviteToPrivateChannelDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		log.Println(err)
+		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
+		return
+	}
+	if err := cs.InviteToPrivateChannel(dto.Email, user, channelId); err != nil {
+		log.Println(err)
+		switch {
+		case errors.Is(err, chatService.ErrChannelNotFound):
+			SendError(c, http.StatusNotFound, Err404_ChannelNotFound)
+		case errors.Is(err, chatService.ErrPublicChatGroup):
+			SendError(c, http.StatusBadRequest, Err400_ChatGroupIsPublic)
+		case errors.Is(err, chatService.ErrInvalidInviteeEmail):
+			SendError(c, http.StatusBadRequest, Err400_EmailNotFound)
+		default:
+			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		}
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func AcceptInvitationToPrivateChannel(c *gin.Context) {
+	var dto chatService.TokenDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		SendError(c, http.StatusBadRequest, Err400_InvalidOrMalformedToken)
+		return
+	}
+	tokenClaims, err := jwt.VerifyJWT(dto.Token, jwt.TokenActionInvitationToPrivateChat)
+	if err != nil {
+		log.Printf("invalid token: %q", err)
+		SendError(c, http.StatusExpectationFailed, Err417_InvalidToken)
+		return
+	}
+	userId := tokenClaims["userId"].(string)
+	extraClaims := tokenClaims["extraClaims"].(jwt.ExtraClaims)
+	inviteeId, ok := extraClaims["inviteeId"].(string)
+	if !ok {
+		log.Printf("missing inviteeId in extraClaims")
+		SendError(c, http.StatusExpectationFailed, Err417_InvalidToken)
+		return
+	}
+	channelId, ok := extraClaims["channelId"].(string)
+	if !ok {
+		log.Printf("missing channelId in extraClaims")
+		SendError(c, http.StatusExpectationFailed, Err417_InvalidToken)
+		return
+	}
+	cs := chatService.ChatService{
+		C: c.Request.Context(),
+	}
+	if err := cs.AcceptInvitationToPrivateChannel(inviteeId, userId, channelId); err != nil {
+		log.Println(err)
+		switch {
+		default:
+			SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+		}
+		return
+	}
+	c.Status(http.StatusOK)
 }

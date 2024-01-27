@@ -1,4 +1,4 @@
-package controller
+package jwt
 
 import (
 	"os"
@@ -35,7 +35,7 @@ func TestGenerateToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			token, _ := generateToken(tc.user, Access)
+			token, _ := GenerateToken(tc.user, TokenActionAccess, nil)
 			assert.NotEmpty(t, token.Token, "Token should not be empty")
 
 			// The generated token is parsed and validated using jwt.ParseWithClaims.
@@ -87,7 +87,7 @@ func TestVerifyJWT(t *testing.T) {
 			var generatedToken GeneratedToken
 			if tc.user != nil {
 				// generate useful token
-				generatedToken, _ = generateToken(tc.user, Access)
+				generatedToken, _ = GenerateToken(tc.user, TokenActionAccess, nil)
 			} else {
 				// generate unuseful token
 				generatedToken = GeneratedToken{
@@ -97,7 +97,7 @@ func TestVerifyJWT(t *testing.T) {
 			}
 
 			// run verifyJWT function
-			claims, err := verifyJWT(generatedToken.Token, Access)
+			claims, err := VerifyJWT(generatedToken.Token, TokenActionAccess)
 
 			if tc.expectError {
 				// assert should have faults

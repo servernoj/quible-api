@@ -18,6 +18,7 @@ import (
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
 	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"golang.org/x/sync/errgroup"
@@ -83,7 +84,7 @@ func UserRegister(c *gin.Context) {
 	g := new(errgroup.Group)
 	g.Go(
 		func() error {
-			token, _ := generateToken(user, Activate)
+			token, _ := jwt.GenerateToken(user, jwt.TokenActionActivate, nil)
 			var html bytes.Buffer
 			emailService.UserActivation(
 				user.FullName,
@@ -131,7 +132,7 @@ func UserActivate(c *gin.Context) {
 		SendError(c, http.StatusBadRequest, Err400_InvalidOrMalformedToken)
 		return
 	}
-	tokenClaims, err := verifyJWT(userActivateDTO.Token, Activate)
+	tokenClaims, err := jwt.VerifyJWT(userActivateDTO.Token, jwt.TokenActionActivate)
 	if err != nil {
 		log.Printf("invalid token: %q", err)
 		SendError(c, http.StatusExpectationFailed, Err417_InvalidToken)
@@ -185,20 +186,20 @@ func UserLogin(c *gin.Context) {
 
 	type TokenJob struct {
 		user   *models.User
-		action TokenAction
-		result *GeneratedToken
+		action jwt.TokenAction
+		result *jwt.GeneratedToken
 	}
-	var generatedAccessToken, generatedRefreshToken GeneratedToken
+	var generatedAccessToken, generatedRefreshToken jwt.GeneratedToken
 	jobs := map[string]TokenJob{
-		"access":  {foundUser, Access, &generatedAccessToken},
-		"refresh": {foundUser, Refresh, &generatedRefreshToken},
+		"access":  {foundUser, jwt.TokenActionAccess, &generatedAccessToken},
+		"refresh": {foundUser, jwt.TokenActionRefresh, &generatedRefreshToken},
 	}
 	g := new(errgroup.Group)
 	for name, job := range jobs {
 		job, name := job, name
 		g.Go(
 			func() error {
-				generatedToken, err := generateToken(job.user, job.action)
+				generatedToken, err := jwt.GenerateToken(job.user, job.action, nil)
 				if err != nil {
 					log.Printf("unable to generate %s token: %q", name, err)
 					return err
@@ -366,7 +367,7 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 
-	claims, err := verifyJWT(userRefreshDTO.RefreshToken, Refresh)
+	claims, err := jwt.VerifyJWT(userRefreshDTO.RefreshToken, jwt.TokenActionRefresh)
 	if err != nil {
 		log.Printf("invalid refresh token: %q", err)
 		SendError(c, http.StatusUnauthorized, Err401_InvalidRefreshToken)
@@ -388,13 +389,13 @@ func UserRefresh(c *gin.Context) {
 		return
 	}
 
-	generatedAccessToken, err := generateToken(user, Access)
+	generatedAccessToken, err := jwt.GenerateToken(user, jwt.TokenActionAccess, nil)
 	if err != nil {
 		log.Printf("unable to generate access token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
 		return
 	}
-	generatedRefreshToken, err := generateToken(user, Refresh)
+	generatedRefreshToken, err := jwt.GenerateToken(user, jwt.TokenActionRefresh, nil)
 	if err != nil {
 		log.Printf("unable to generate refresh token: %q", err)
 		SendError(c, http.StatusInternalServerError, Err500_UnableToGenerateToken)
@@ -562,7 +563,7 @@ func UserRequestNewPassword(c *gin.Context) {
 		return
 	}
 	// send password reset email
-	token, _ := generateToken(user, PasswordReset)
+	token, _ := jwt.GenerateToken(user, jwt.TokenActionPasswordReset, nil)
 	var html bytes.Buffer
 	emailService.PasswordReset(
 		user.FullName,
@@ -604,7 +605,7 @@ func UserPasswordReset(c *gin.Context) {
 		SendError(c, http.StatusBadRequest, Err400_InvalidRequestBody)
 		return
 	}
-	tokenClaims, err := verifyJWT(userResetPasswordDTO.Token, PasswordReset)
+	tokenClaims, err := jwt.VerifyJWT(userResetPasswordDTO.Token, jwt.TokenActionPasswordReset)
 	if err != nil {
 		log.Printf("invalid token: %q", err)
 		SendError(c, http.StatusExpectationFailed, Err417_InvalidToken)

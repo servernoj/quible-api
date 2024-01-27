@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"net/http"
 
 	c "github.com/quible-io/quible-api/lib/controller"
@@ -12,15 +11,6 @@ const ErrServiceId = 1000
 
 //go:generate stringer -type=ErrorCode
 type ErrorCode int
-
-var (
-	ErrTokenExpired              = errors.New("token expired")
-	ErrTokenInvalidClaims        = errors.New("unable to process token claims")
-	ErrTokenInvalidSigningMethod = errors.New("invalid signing method")
-	ErrTokenInvalidType          = errors.New("invalid token type")
-	ErrTokenMissingUserId        = errors.New("unable to extract userId from token")
-	ErrTokenMissingTokenId       = errors.New("unable to extract tokenId from token")
-)
 
 const (
 	Err207_Shift = ErrStatusGain*http.StatusMultiStatus + ErrServiceId

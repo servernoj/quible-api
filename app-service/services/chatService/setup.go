@@ -1,10 +1,15 @@
 package chatService
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/quible-io/quible-api/app-service/services/emailService"
+	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -20,13 +25,14 @@ var (
 	AccessReadWrite = []string{"subscribe", "publish", "history"}
 )
 
-func getErrorWrapper(format string, args ...any) func(...error) error {
-	return func(errors ...error) error {
-		return fmt.Errorf(
-			"%s: %v",
-			fmt.Sprintf(format, args...),
-			errors,
-		)
+func getErrorWrapper(prefixFormat string, prefixArgs ...any) func(error, ...error) error {
+	return func(mainError error, secondaryErrors ...error) error {
+		prefix := fmt.Sprintf(prefixFormat, prefixArgs...)
+		if len(secondaryErrors) > 0 {
+			return fmt.Errorf("%s:\n%w %v", prefix, mainError, secondaryErrors)
+		} else {
+			return fmt.Errorf("%s:\n%w", prefix, mainError)
+		}
 	}
 }
 
@@ -159,7 +165,9 @@ func (cs *ChatService) GetCapabilities(user *models.User) (map[string][]string, 
 		capabilities[resource] = AccessReadWrite
 	}
 	// -- process joined channels
-	chatUsers, err := user.ChatUsers().AllG(cs.C)
+	chatUsers, err := user.ChatUsers(
+		models.ChatUserWhere.Disabled.EQ(false),
+	).AllG(cs.C)
 	if err != nil {
 		return nil, errorWrapper(ErrUnableToRetrieveChatUserRecords, err)
 	}
@@ -204,7 +212,9 @@ func (cs *ChatService) GetMyGroupedChannels(user *models.User) ([]GroupedChannel
 		chatGroupsMap[chatGroup.ID] = chatGroup
 	}
 	// 2. Identify chat groups which user has joined
-	chatUsers, err := user.ChatUsers().AllG(cs.C)
+	chatUsers, err := user.ChatUsers(
+		models.ChatUserWhere.Disabled.EQ(false),
+	).AllG(cs.C)
 	if err != nil {
 		return nil, errorWrapper(ErrUnableToRetrieveChatUserRecords, err)
 	}
@@ -389,6 +399,112 @@ func (cs *ChatService) DeleteChatGroup(owner *models.User, chatGroupId string) e
 	}
 	_, err = chatGroup.DeleteG(cs.C)
 	if err != nil {
+		return errorWrapper(err)
+	}
+	return nil
+}
+func (cs *ChatService) InviteToPrivateChannel(inviteeEmail string, invitor *models.User, channelId string) error {
+	if invitor == nil {
+		return ErrUserUndefined
+	}
+	errorWrapper := getErrorWrapper("InviteToPrivateChannel %q for %q by user %q", channelId, inviteeEmail, invitor.ID)
+	// 1. Find the channel record targeted for invitation
+	channel, err := models.FindChatG(cs.C, channelId)
+	if err != nil || channel == nil {
+		return errorWrapper(ErrChannelNotFound)
+	}
+	// 2. Detect if the parent chat group is actually private
+	chatGroup, err := channel.Parent().OneG(cs.C)
+	if err != nil || chatGroup == nil {
+		return errorWrapper(ErrUnableToRetrtieveChatGroup)
+	}
+	if !chatGroup.IsPrivate.Bool {
+		return errorWrapper(ErrPublicChatGroup)
+	}
+	// 3. Find invitee user by provided email
+	invitee, err := models.Users(
+		models.UserWhere.Email.EQ(inviteeEmail),
+	).OneG(cs.C)
+	if err != nil || invitee == nil {
+		return errorWrapper(ErrInvalidInviteeEmail)
+	}
+	// 4. Test if association between user and channel already exists
+	foundChatUser, err := models.FindChatUserG(cs.C, channelId, invitee.ID)
+	if err != nil && foundChatUser != nil {
+		return errorWrapper(ErrUnableToRetrieveChatUserRecords, err)
+	}
+	if foundChatUser != nil {
+		// refresh it
+		foundChatUser.Disabled = true
+		if _, err := foundChatUser.UpdateG(cs.C, boil.Infer()); err != nil {
+			return errorWrapper(ErrUnableToRefreshChatUserAssociation, err)
+		}
+	} else {
+		// create new one
+		chatUser := models.ChatUser{
+			ChatID:   channelId,
+			UserID:   invitee.ID,
+			Disabled: true,
+		}
+		if err := chatUser.InsertG(cs.C, boil.Infer()); err != nil {
+			return errorWrapper(ErrUnableToCreateChatUser)
+		}
+	}
+	// 5. Send invitation email
+	token, _ := jwt.GenerateToken(
+		invitor,
+		jwt.TokenActionInvitationToPrivateChat,
+		jwt.ExtraClaims{
+			"inviteeId": invitee.ID,
+			"channelId": channelId,
+		},
+	)
+	var html bytes.Buffer
+	emailService.InviteToPrivateChatGroup(
+		invitee.FullName,
+		channel.Title,
+		chatGroup.Title,
+		fmt.Sprintf(
+			"%s/forms/accept-private-chat-invitation?token=%s",
+			os.Getenv("WEB_CLIENT_URL"),
+			token.Token,
+		),
+		&html,
+	)
+	if err := email.Send(cs.C, email.EmailDTO{
+		From:     "no-reply@quible.io",
+		To:       invitee.Email,
+		Subject:  "Invitation to join private chat channel",
+		HTMLBody: html.String(),
+	}); err != nil {
+		return errorWrapper(ErrUnableToSendInvitationEmail, err)
+	}
+	return nil
+}
+func (cs *ChatService) AcceptInvitationToPrivateChannel(inviteeId string, invitorId string, channelId string) error {
+	errorWrapper := getErrorWrapper(
+		"AcceptInvitationToPrivateChannel %q for %q created by user %q",
+		channelId,
+		inviteeId,
+		invitorId,
+	)
+	channel, err := models.FindChatG(cs.C, channelId)
+	if err != nil || channel == nil || channel.ParentID.Ptr() == nil {
+		return errorWrapper(ErrChannelNotFound)
+	}
+	chatGroup, err := models.FindChatG(cs.C, channel.ParentID.String)
+	if err != nil || chatGroup == nil {
+		return errorWrapper(ErrChatGroupNotFound)
+	}
+	if chatGroup.OwnerID.String != invitorId {
+		return errorWrapper(ErrWrongInvitor)
+	}
+	chatUser, err := models.FindChatUserG(cs.C, channelId, inviteeId)
+	if err != nil || chatUser == nil {
+		return errorWrapper(ErrChatUserNotFound)
+	}
+	chatUser.Disabled = false
+	if _, err := chatUser.UpdateG(cs.C, boil.Whitelist("disabled")); err != nil {
 		return errorWrapper(err)
 	}
 	return nil

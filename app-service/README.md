@@ -283,3 +283,16 @@ Same set of channels, but without group info. Exampled response:
   }
 ]
 ```
+
+### Invite user to join private channel
+
+A user owning some **private** `chat group` can invite other existing users (one by one) to join any channel associated with this group. During the invitation process an email will be sent to invitee's email address and that email will contain a link to be followed to finalize the invitation. 
+
+Endpoint `POST /chat/channels/{channelId}/invite`
+
+Example request body:
+```json
+{
+  "email": "abcdy@gmail.com"
+}
+```

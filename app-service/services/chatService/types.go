@@ -27,6 +27,10 @@ type CreateChannelDTO struct {
 	Summary *string `json:"summary" binding:"omitempty"`
 }
 
+type InviteToPrivateChannelDTO struct {
+	Email string `json:"email" binding:"email,required"`
+}
+
 type SearchResultItem struct {
 	// parent public chat group for all listed channels
 	Group *models.Chat `json:"chatGroup"`
@@ -42,8 +46,15 @@ type GroupedChannels struct {
 }
 
 type Channel struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
+	ID string `json:"id"`
+	// Human readable version of the channel name to be used for UI rendering
+	Title string `json:"title"`
+	// value to be passed to Ably's `channels.get() method`
 	Resource string `json:"resource"`
-	ReadOnly bool   `json:"read-only"`
+	// Indicates whether or not messages can be "published" into the channel
+	ReadOnly bool `json:"read-only"`
+}
+
+type TokenDTO struct {
+	Token string `json:"token" binding:"required,jwt"`
 }
