@@ -35,12 +35,18 @@ type GamePlayers struct {
 }
 
 type TeamStats struct {
-	Rebounds  uint `json:"reb"`
-	Assists   uint `json:"ast"`
-	Steals    uint `json:"stl"`
-	Blocks    uint `json:"blk"`
-	Turnovers uint `json:"to"`
-	Fouls     uint `json:"fp"`
+	Rebounds           uint `json:"reb"`
+	Assists            uint `json:"ast"`
+	Steals             uint `json:"stl"`
+	Blocks             uint `json:"blk"`
+	Turnovers          uint `json:"to"`
+	Fouls              uint `json:"fp"`
+	FieldGoalsMade     uint `json:"fgm"`
+	FieldGoalAttempts  uint `json:"fga"`
+	ThreePointsMade    uint `json:"tpm"`
+	ThreePointAttempts uint `json:"tpa"`
+	FreeThrowsMade     uint `json:"ftm"`
+	FreeThrowAttempts  uint `json:"fta"`
 }
 
 type PlayerEntity struct {
@@ -160,15 +166,23 @@ type MStat_GroupItem struct {
 	Name      MStat_GroupItemName `json:"name"`
 	HomeValue uint                `json:"homeValue"`
 	AwayValue uint                `json:"awayValue"`
+	HomeTotal *uint               `json:"homeTotal,omitempty"`
+	AwayTotal *uint               `json:"awayTotal,omitempty"`
 }
 
 type MStat_GroupItemName string
 
 const (
+	// Other
 	MStat_GroupItemName_OtherRebounds  MStat_GroupItemName = "Rebounds"
 	MStat_GroupItemName_OtherAssists   MStat_GroupItemName = "Assists"
 	MStat_GroupItemName_OtherTurnovers MStat_GroupItemName = "Turnovers"
 	MStat_GroupItemName_OtherSteals    MStat_GroupItemName = "Steals"
 	MStat_GroupItemName_OtherBlocks    MStat_GroupItemName = "Blocks"
 	MStat_GroupItemName_OtherFouls     MStat_GroupItemName = "Fouls"
+	// Scoring
+	MStat_GroupItemName_ScoringFreeThrows  MStat_GroupItemName = "Free throws"
+	MStat_GroupItemName_ScoringTwoPoints   MStat_GroupItemName = "2 pointers"
+	MStat_GroupItemName_ScoringThreePoints MStat_GroupItemName = "3 pointers"
+	MStat_GroupItemName_ScoringFieldGoals  MStat_GroupItemName = "Field goals"
 )

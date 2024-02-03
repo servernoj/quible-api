@@ -41,52 +41,84 @@ func getTeamStats(query url.Values) (*GameTeamsStats, error) {
 		return nil, fmt.Errorf("statistics groups not found")
 	}
 	var statItems []MStat_GroupItem
-	for idx := range statGroups {
-		if statGroups[idx].GroupName == MStat_GroupName_Other {
-			statItems = statGroups[idx].StatisticsItems
-			break
-		}
-	}
-	if len(statItems) == 0 {
-		return nil, fmt.Errorf("statistics group items not found")
-	}
 	var result GameTeamsStats
-	for _, item := range statItems {
-		switch item.Name {
-		case MStat_GroupItemName_OtherAssists:
-			{
-				result.HomeTeam.Assists = item.HomeValue
-				result.AwayTeam.Assists = item.AwayValue
+	for idx := range statGroups {
+		isGroupOthers := statGroups[idx].GroupName == MStat_GroupName_Other
+		isGroupScoring := statGroups[idx].GroupName == MStat_GroupName_Scoring
+		if isGroupOthers || isGroupScoring {
+			statItems = statGroups[idx].StatisticsItems
+			if len(statItems) == 0 {
+				return nil, fmt.Errorf("statistics group items not found")
 			}
-
-		case MStat_GroupItemName_OtherBlocks:
-			{
-				result.HomeTeam.Blocks = item.HomeValue
-				result.AwayTeam.Blocks = item.AwayValue
-			}
-		case MStat_GroupItemName_OtherFouls:
-			{
-				result.HomeTeam.Fouls = item.HomeValue
-				result.AwayTeam.Fouls = item.AwayValue
-			}
-		case MStat_GroupItemName_OtherRebounds:
-			{
-				result.HomeTeam.Rebounds = item.HomeValue
-				result.AwayTeam.Rebounds = item.AwayValue
-			}
-		case MStat_GroupItemName_OtherSteals:
-			{
-				result.HomeTeam.Steals = item.HomeValue
-				result.AwayTeam.Steals = item.AwayValue
-			}
-		case MStat_GroupItemName_OtherTurnovers:
-			{
-				result.HomeTeam.Turnovers = item.HomeValue
-				result.AwayTeam.Turnovers = item.AwayValue
+			for _, item := range statItems {
+				switch item.Name {
+				case MStat_GroupItemName_ScoringFieldGoals:
+					{
+						if item.HomeTotal != nil {
+							result.HomeTeam.FieldGoalAttempts = *item.HomeTotal
+						}
+						if item.AwayTotal != nil {
+							result.AwayTeam.FieldGoalAttempts = *item.AwayTotal
+						}
+						result.HomeTeam.FieldGoalsMade = item.HomeValue
+						result.AwayTeam.FieldGoalsMade = item.AwayValue
+					}
+				case MStat_GroupItemName_ScoringFreeThrows:
+					{
+						if item.HomeTotal != nil {
+							result.HomeTeam.FreeThrowAttempts = *item.HomeTotal
+						}
+						if item.AwayTotal != nil {
+							result.AwayTeam.FreeThrowAttempts = *item.AwayTotal
+						}
+						result.HomeTeam.FreeThrowsMade = item.HomeValue
+						result.AwayTeam.FreeThrowsMade = item.AwayValue
+					}
+				case MStat_GroupItemName_ScoringThreePoints:
+					{
+						if item.HomeTotal != nil {
+							result.HomeTeam.ThreePointAttempts = *item.HomeTotal
+						}
+						if item.AwayTotal != nil {
+							result.AwayTeam.ThreePointAttempts = *item.AwayTotal
+						}
+						result.HomeTeam.ThreePointsMade = item.HomeValue
+						result.AwayTeam.ThreePointsMade = item.AwayValue
+					}
+				case MStat_GroupItemName_OtherAssists:
+					{
+						result.HomeTeam.Assists = item.HomeValue
+						result.AwayTeam.Assists = item.AwayValue
+					}
+				case MStat_GroupItemName_OtherBlocks:
+					{
+						result.HomeTeam.Blocks = item.HomeValue
+						result.AwayTeam.Blocks = item.AwayValue
+					}
+				case MStat_GroupItemName_OtherFouls:
+					{
+						result.HomeTeam.Fouls = item.HomeValue
+						result.AwayTeam.Fouls = item.AwayValue
+					}
+				case MStat_GroupItemName_OtherRebounds:
+					{
+						result.HomeTeam.Rebounds = item.HomeValue
+						result.AwayTeam.Rebounds = item.AwayValue
+					}
+				case MStat_GroupItemName_OtherSteals:
+					{
+						result.HomeTeam.Steals = item.HomeValue
+						result.AwayTeam.Steals = item.AwayValue
+					}
+				case MStat_GroupItemName_OtherTurnovers:
+					{
+						result.HomeTeam.Turnovers = item.HomeValue
+						result.AwayTeam.Turnovers = item.AwayValue
+					}
+				}
 			}
 		}
 	}
-
 	return &result, nil
 }
 
