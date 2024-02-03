@@ -16,7 +16,7 @@ import (
 )
 
 //	@title			Quible app-service
-//	@description	Wrapper to RSC API
+//	@description	Collection of APIs to serve game data
 //	@version		0.1
 //	@host			www.quible.io
 //	@BasePath		/api/v1

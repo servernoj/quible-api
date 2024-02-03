@@ -27,19 +27,9 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 
 	g.GET("docs/errors", ErrorMap.GetErrorCodes)
 	// -- Public API
-	g.POST("/live-push", LivePush)
 	g.GET("/live/token", GetLiveToken)
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
-	// RSC
-	protected.GET("/schedule-season", ScheduleSeason)
-	protected.GET("/daily-schedule", DailySchedule)
-	protected.GET("/team-info", TeamInfo)
-	protected.GET("/team-stats", TeamStats)
-	protected.GET("/player-info", PlayerInfo)
-	protected.GET("/player-stats", PlayerStats)
-	protected.GET("/injuries", Injuries)
-	protected.GET("/live", LiveFeed)
 	// BasketAPI
 	protected.GET("/games", GetGames)
 	protected.GET("/game", GetGameDetails)

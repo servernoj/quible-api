@@ -105,14 +105,6 @@ var ErrorMap = c.ErrorMap[ErrorCode]{
 	// 424
 	http.StatusFailedDependency: {
 		Err424_UnknownError:            "unknown error",
-		Err424_ScheduleSeason:          "unexpected problem with /schedule-season RSC API",
-		Err424_DailySchedule:           "unexpected problem with /schedule RSC API",
-		Err424_TeamInfo:                "unexpected problem with /team-info RSC API",
-		Err424_TeamStats:               "unexpected problem with /team-stats RSC API",
-		Err424_PlayerInfo:              "unexpected problem with /player-info RSC API",
-		Err424_PlayerStats:             "unexpected problem with /player-stats RSC API",
-		Err424_Injuries:                "unexpected problem with /injuries RSC API",
-		Err424_LiveFeed:                "unexpected problem with /live RSC API",
 		Err424_BasketAPIGetGames:       "unexpected problem with MatchSchedules from BasketAPI",
 		Err424_BasketAPIGetGameDetails: "unexpected problem with (Match|MatchStatistics|MatchLineups) API from BasketAPI",
 		Err424_UnableToSendEmail:       "unable to send email",
