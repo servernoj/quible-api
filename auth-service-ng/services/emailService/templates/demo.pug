@@ -1,0 +1,41 @@
+extends ../../../../assets/acorn/layout.pug
+
+block filter
+  :go:func Demo(imageURL string, name string)
+
+block content
+  +container
+    img(src=imageURL, width='100%')
+    h1 Hi #{name},
+    p A long paragraph... Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati reprehenderit sed voluptatum nulla ipsa. Necessitatibus, fuga. Animi quod ab dolores corrupti similique incidunt? Aperiam deserunt non cumque veritatis excepturi voluptatibus!
+  +spacer
+
+  +container
+    h2(style='color: rgb(6,144,250);') New Tools
+    - 
+      data := []struct{
+        title string
+        description string 
+        imageUrl string
+      }{ 
+        {
+          "SuperDuperDB",
+          "Open-source framework for integrating AI with databases", 
+          "https://img.stackshare.io/service/145319/default_757ebbcea223c42d3133167ba630eac290704cad.jpg",
+        },
+        {
+          "WarpBuild",
+          "x86-64 and arm GitHub Action runners for 30% faster builds", 
+          "https://img.stackshare.io/service/145320/default_50c6f1b1e1e030ad80920774a4bb9030d5ba7a96.png",
+        },
+      }
+    ul(style='list-style: none; padding: 0;')
+      for item in data
+        li 
+          +row('0 0')
+            td(width='138', align='left', style='vertical-align: top;')
+              img(src=item.imageUrl, width='75%', style='max-width: 100px')
+            +c3-of-4
+              h3(style='color: rgb(6,144,250); padding: 0; margin: 0;')= item.title 
+              p= item.description 
+          +spacer

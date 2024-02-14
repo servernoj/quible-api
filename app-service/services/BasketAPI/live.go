@@ -12,7 +12,6 @@ import (
 	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/misc"
-	"github.com/quible-io/quible-api/lib/models"
 )
 
 const ERRORS_IN_A_ROW_TO_SET_ALERT = 10
@@ -26,15 +25,9 @@ func StartLive() (chan<- struct{}, error) {
 	countOK := uint(0)
 	isInError := false
 	states := map[uint]string{}
-	// logos
-	images, err := models.Images(models.ImageWhere.ParentID.IsNull()).AllG(ctx)
+	teamEnhancer, err := getTeamEnhancer(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve logos for all teams: %w", err)
-	}
-	logoByShortName := make(map[string]*string, len(images))
-	for _, image := range images {
-		imageUrl := image.ImageURL
-		logoByShortName[image.DisplayName] = &imageUrl
+		return nil, fmt.Errorf("unable to initialize team entity enhancer: %w", err)
 	}
 	// ably
 	ablyRealTime := ablyService.GetAbly()
@@ -91,19 +84,34 @@ func StartLive() (chan<- struct{}, error) {
 						if ok && value == state {
 							continue
 						}
-						ev.HomeTeam.Logo = logoByShortName[ev.HomeTeam.ShortName]
-						ev.AwayTeam.Logo = logoByShortName[ev.AwayTeam.ShortName]
-						liveMessage.Events = append(liveMessage.Events, ev)
+						liveEvent := LiveEvent{
+							ID:             ev.ID,
+							Status:         ev.Status,
+							HomeTeam:       teamEnhancer(ev.HomeTeam.TeamId),
+							AwayTeam:       teamEnhancer(ev.AwayTeam.TeamId),
+							HomeScore:      ev.HomeScore,
+							AwayScore:      ev.AwayScore,
+							Time:           ev.Time,
+							StartTimestamp: ev.StartTimestamp,
+						}
+						liveMessage.Events = append(liveMessage.Events, liveEvent)
 						states[ev.ID] = state
 						log.Printf(
-							"[%d] %s: %d:%d (%s)\n",
+							"[%d %s %s %d] %s (%d) vs. %s (%d)\n",
 							ev.ID,
-							ev.Slug,
-							ev.AwayScore.Current,
-							ev.HomeScore.Current,
 							ev.Status.Description,
+							ev.Status.Type,
+							ev.Status.Code,
+							liveEvent.AwayTeam.Abbr,
+							liveEvent.AwayScore.Current,
+							liveEvent.HomeTeam.Abbr,
+							liveEvent.HomeScore.Current,
 						)
 					}
+				}
+				if len(liveMessage.IDs) == 0 && len(states) > 0 {
+					log.Println("no events in qualified tournaments...")
+					states = map[uint]string{}
 				}
 				if len(liveMessage.Events) > 0 {
 					if err := ablyChannel.Publish(ctx, "message", liveMessage); err != nil {

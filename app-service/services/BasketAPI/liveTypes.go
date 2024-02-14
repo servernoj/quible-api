@@ -1,8 +1,19 @@
 package BasketAPI
 
 type LiveMessage struct {
-	IDs    []uint     `json:"eventIDs"`
-	Events []LM_Event `json:"events"`
+	IDs    []uint      `json:"eventIDs"`
+	Events []LiveEvent `json:"events"`
+}
+
+type LiveEvent struct {
+	ID             uint      `json:"id"`
+	Status         LM_Status `json:"status"`
+	HomeTeam       TeamInfo  `json:"homeTeam"`
+	AwayTeam       TeamInfo  `json:"awayTeam"`
+	HomeScore      LM_Score  `json:"homeScore"`
+	AwayScore      LM_Score  `json:"awayScore"`
+	Time           LM_Time   `json:"time"`
+	StartTimestamp uint      `json:"startTimestamp"`
 }
 
 // -- LiveMatches (LM) API
@@ -33,11 +44,11 @@ type LM_Score struct {
 	Overtime *uint `json:"overtime,omitempty"`
 }
 type LM_Team struct {
+	TeamId
 	Name      string  `json:"name"`
 	Slug      string  `json:"slug"`
 	ShortName string  `json:"shortName"`
 	NameCode  string  `json:"nameCode"`
-	ID        uint    `json:"id"`
 	Logo      *string `json:"logoUrl"`
 }
 type LM_Time struct {
