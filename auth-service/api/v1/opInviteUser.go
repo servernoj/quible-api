@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service/api"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/models"
 )
@@ -24,7 +24,7 @@ type InviteUserInput struct {
 type InviteUserOutput struct {
 }
 
-func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc api.VersionConfig) {
+func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(

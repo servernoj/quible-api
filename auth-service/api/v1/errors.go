@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/quible-io/quible-api/auth-service/api"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 )
 
 const ErrServiceId = 1000
@@ -13,17 +13,17 @@ const ErrServiceId = 1000
 type ErrorCode int
 
 const (
-	Err207_Shift = api.ErrStatusGain*http.StatusMultiStatus + ErrServiceId
-	Err400_Shift = api.ErrStatusGain*http.StatusBadRequest + ErrServiceId
-	Err401_Shift = api.ErrStatusGain*http.StatusUnauthorized + ErrServiceId
-	Err403_Shift = api.ErrStatusGain*http.StatusForbidden + ErrServiceId
-	Err404_Shift = api.ErrStatusGain*http.StatusNotFound + ErrServiceId
-	Err417_Shift = api.ErrStatusGain*http.StatusExpectationFailed + ErrServiceId
-	Err422_Shift = api.ErrStatusGain*http.StatusUnprocessableEntity + ErrServiceId
-	Err424_Shift = api.ErrStatusGain*http.StatusFailedDependency + ErrServiceId
-	Err429_Shift = api.ErrStatusGain*http.StatusTooManyRequests + ErrServiceId
-	Err500_Shift = api.ErrStatusGain*http.StatusInternalServerError + ErrServiceId
-	Err503_Shift = api.ErrStatusGain*http.StatusServiceUnavailable + ErrServiceId
+	Err207_Shift = libAPI.ErrStatusGain*http.StatusMultiStatus + ErrServiceId
+	Err400_Shift = libAPI.ErrStatusGain*http.StatusBadRequest + ErrServiceId
+	Err401_Shift = libAPI.ErrStatusGain*http.StatusUnauthorized + ErrServiceId
+	Err403_Shift = libAPI.ErrStatusGain*http.StatusForbidden + ErrServiceId
+	Err404_Shift = libAPI.ErrStatusGain*http.StatusNotFound + ErrServiceId
+	Err417_Shift = libAPI.ErrStatusGain*http.StatusExpectationFailed + ErrServiceId
+	Err422_Shift = libAPI.ErrStatusGain*http.StatusUnprocessableEntity + ErrServiceId
+	Err424_Shift = libAPI.ErrStatusGain*http.StatusFailedDependency + ErrServiceId
+	Err429_Shift = libAPI.ErrStatusGain*http.StatusTooManyRequests + ErrServiceId
+	Err500_Shift = libAPI.ErrStatusGain*http.StatusInternalServerError + ErrServiceId
+	Err503_Shift = libAPI.ErrStatusGain*http.StatusServiceUnavailable + ErrServiceId
 )
 const (
 	Err207_SomeDataUndeleted ErrorCode = Err207_Shift + iota + 1
@@ -102,7 +102,7 @@ const (
 	Err503_DataBaseOnPhoneEdit
 )
 
-var ErrorMap = api.ErrorMap[ErrorCode]{
+var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	// -- 400
 	Err400_EmailNotRegistered:             "email is not registered",
 	Err400_InvalidEmailFormat:             "invalid email address format",

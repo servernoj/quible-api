@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service/api"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/models"
 )
 
@@ -17,7 +17,7 @@ type GetUserOutput struct {
 	Body UserSimplified
 }
 
-func (impl *VersionedImpl) RegisterGetUser(api huma.API, vc api.VersionConfig) {
+func (impl *VersionedImpl) RegisterGetUser(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(

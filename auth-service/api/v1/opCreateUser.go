@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service/api"
 	"github.com/quible-io/quible-api/auth-service/services/emailService"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"
@@ -34,7 +34,7 @@ type CreateUserOutput struct {
 	Body UserSimplified
 }
 
-func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc api.VersionConfig) {
+func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(

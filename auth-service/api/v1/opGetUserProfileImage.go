@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service/api"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/models"
 )
 
@@ -19,7 +19,7 @@ type GetUserProfileImageOutput struct {
 	Body        []byte `doc:"binary content of the user's profile image"`
 }
 
-func (impl *VersionedImpl) RegisterGetUserProfileImage(api huma.API, vc api.VersionConfig) {
+func (impl *VersionedImpl) RegisterGetUserProfileImage(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(
