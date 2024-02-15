@@ -25,7 +25,8 @@ func WithErrorMap(errorMap any) WithOption {
 			vc.Prefixer(
 				huma.Operation{
 					OperationID: "get-error-map-json",
-					Summary:     "Returns error codes as JSON object",
+					Summary:     "List of errors",
+					Description: "Returns error codes as JSON object",
 					Method:      http.MethodGet,
 					Tags:        []string{"service", "public"},
 					Path:        "/docs/errors",
@@ -47,7 +48,8 @@ func WithVersion() WithOption {
 			vc.Prefixer(
 				huma.Operation{
 					OperationID: "get-version",
-					Summary:     "Returns version of the called API",
+					Summary:     "API Version",
+					Description: "Returns version of the API",
 					Method:      http.MethodGet,
 					Tags:        []string{"service", "public"},
 					Path:        "/version",
@@ -70,7 +72,8 @@ func WithHealth() WithOption {
 			vc.Prefixer(
 				huma.Operation{
 					OperationID:   "get-heath",
-					Summary:       "Returns health status, no response body",
+					Summary:       "Health status",
+					Description:   "Returns health status, no response body",
 					Method:        http.MethodGet,
 					DefaultStatus: http.StatusOK,
 					Tags:          []string{"service", "public"},
