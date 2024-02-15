@@ -1,0 +1,3 @@
+# Purpose
+
+The `app-service` provides for...

@@ -6,7 +6,7 @@ import (
 	"github.com/quible-io/quible-api/auth-service/api"
 )
 
-const ErrServiceId = 1010
+const ErrServiceId = 1000
 
 //go:generate stringer -type=ErrorCode
 

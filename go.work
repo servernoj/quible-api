@@ -4,6 +4,7 @@ use (
 	./lib
 	./cmd
 	./app-service
+	./app-service-ng
 	./auth-service
 )
 
