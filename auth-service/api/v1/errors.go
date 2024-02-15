@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/quible-io/quible-api/auth-service-ng/api"
+	"github.com/quible-io/quible-api/auth-service/api"
 )
 
 const ErrServiceId = 1010

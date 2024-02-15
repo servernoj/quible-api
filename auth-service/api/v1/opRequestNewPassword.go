@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service-ng/api"
-	"github.com/quible-io/quible-api/auth-service-ng/services/emailService"
+	"github.com/quible-io/quible-api/auth-service/api"
+	"github.com/quible-io/quible-api/auth-service/services/emailService"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"

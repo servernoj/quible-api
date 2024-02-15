@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service-ng/api"
+	"github.com/quible-io/quible-api/auth-service/api"
 	"github.com/quible-io/quible-api/lib/models"
 )
 
