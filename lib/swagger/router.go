@@ -26,7 +26,7 @@ func Register(r *gin.RouterGroup, spec, path string) {
 
 // @Summary		Swagger spec
 // @Description	Swagger spec in YAML format
-// @Tags			docs
+// @Tags			docs,public
 // @Produce		application/yaml
 // @Success		200	{string}	string
 // @Router			/docs/spec [get]
@@ -39,7 +39,7 @@ func swaggerSpec(spec string) gin.HandlerFunc {
 
 // @Summary		Swagger UI
 // @Description	Render Swagger UI page
-// @Tags			docs
+// @Tags			docs,public
 // @Produce		text/html
 // @Param			ui	query		string	false	"UI template"	Enums(swagger,rapidoc,redoc),	default(swagger)
 // @Success		200	{string}	string

@@ -16,7 +16,7 @@ var (
 // terminator for "protected" group
 func terminator(c *gin.Context, fmt string, args ...any) {
 	log.Printf(fmt, args...)
-	ErrorMap.SendError(c, http.StatusInternalServerError, Err500_UnknownError)
+	SendError(c, http.StatusInternalServerError, Err500_UnknownError)
 }
 
 // Setup the controller and all handlers
@@ -27,19 +27,26 @@ func Setup(g *gin.RouterGroup, options ...c.Option) {
 
 	g.GET("docs/errors", ErrorMap.GetErrorCodes)
 	// -- Public API
-	g.POST("/live-push", LivePush)
+	g.GET("/live/token", GetLiveToken)
 	//-- Protected API
 	protected := g.Group("", c.InjectUserIdOrFail(terminator))
-	// RSC
-	protected.GET("/schedule-season", ScheduleSeason)
-	protected.GET("/daily-schedule", DailySchedule)
-	protected.GET("/team-info", TeamInfo)
-	protected.GET("/team-stats", TeamStats)
-	protected.GET("/player-info", PlayerInfo)
-	protected.GET("/player-stats", PlayerStats)
-	protected.GET("/injuries", Injuries)
-	protected.GET("/live", LiveFeed)
 	// BasketAPI
 	protected.GET("/games", GetGames)
 	protected.GET("/game", GetGameDetails)
+	// Chat
+	chatPublic := g.Group("/chat")
+	chatProtected := protected.Group("/chat")
+	chatProtected.POST("groups", CreateChatGroup)
+	chatProtected.GET("groups", ListChatGroups)
+	chatProtected.DELETE("groups/:chatGroupId", DeleteChatGroup)
+	chatProtected.POST("channels", CreateChannel)
+	chatProtected.GET("channels", GetMyGroupedChannels)
+	chatProtected.GET("channels/list", GetMyChannels)
+	chatProtected.POST("channels/:channelId", JoinPublicChannel)
+	chatProtected.POST("channels/:channelId/invite", InviteToPrivateChannel)
+	chatProtected.DELETE("channels/:channelId", LeaveChannel)
+	chatProtected.GET("token", GetChatToken)
+	// -- public
+	chatPublic.GET("groups/search", SearchPublicChannelsByChatGroupTitle)
+	chatPublic.POST("channels/accept", AcceptInvitationToPrivateChannel)
 }

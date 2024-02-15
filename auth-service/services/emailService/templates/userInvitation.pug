@@ -1,0 +1,25 @@
+extends ../../../../assets/acorn/layout.pug
+
+block filter
+  :go:func UserInvitation(name string, link string)
+
+block content
+  +container
+    h3 Hi #{name}, 
+
+    p You have been invited to create a Quible account. Please follow the link below to proceed.
+
+    +link(link)= link 
+
+    p The link has no expiration and can be used at any time. 
+      
+    p You can safely ignore this email without comitting any action. 
+
+    p Best,
+
+    p The Quible Team 
+
+  
+    
+
+  
