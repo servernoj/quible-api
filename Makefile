@@ -13,11 +13,11 @@ $(docs): deps
 		--outputTypes yaml \
 		--dir ./,../lib/swagger,./controller,../lib/models,../lib/controller
 
-build: docs	
+build:
 	go mod download
 	go build .
 
-run: docs	
+run:
 	go mod download
 	go run .	
 
