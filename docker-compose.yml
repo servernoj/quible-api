@@ -8,6 +8,7 @@ x-environment: &env
   ENV_POSTMARK_API_KEY: ${ENV_POSTMARK_API_KEY}
   ENV_URL_AUTH_SERVICE: "http://auth:${AUTH_PORT}"
   ENV_URL_APP_SERVICE: "http://app:${APP_PORT}"
+  IS_DEV: ${IS_DEV}
   IS_DOCKER: 1
 x-context: &context
   lib: ./lib

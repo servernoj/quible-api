@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/quible-io/quible-api/auth-service/api"
@@ -13,12 +14,14 @@ import (
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 type CreateUserInput struct {
-	Body struct {
+	AutoActivate bool `query:"auto-activation" default:"false"`
+	Body         struct {
 		PasswordResolver
 		Username string `json:"username"`
 		Email    string `json:"email" format:"email"`
@@ -78,25 +81,34 @@ func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc api.VersionConfig
 					return nil, ErrorMap.GetErrorResponse(Err500_UnableToRegister, err)
 				}
 			}
-			// 3. Generate activation token and send activation email
-			token, _ := jwt.GenerateToken(user, jwt.TokenActionActivate, nil)
-			var html bytes.Buffer
-			emailService.UserActivation(
-				user.FullName,
-				fmt.Sprintf(
-					"%s/forms/activation?token=%s",
-					os.Getenv("WEB_CLIENT_URL"),
-					token.String(),
-				),
-				&html,
-			)
-			if err := email.Send(ctx, email.EmailDTO{
-				From:     "no-reply@quible.io",
-				To:       user.Email,
-				Subject:  "Activate your Quible account",
-				HTMLBody: html.String(),
-			}); err != nil {
-				return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+			// 3. Branching...
+			if input.AutoActivate && os.Getenv("IS_DEV") == "1" {
+				// 3a. Auto-generate if requested on `dev` (and `local`) environments
+				user.ActivatedAt = null.TimeFrom(time.Now())
+				if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+					return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
+				}
+			} else {
+				// 3b. Send activation email otherwise
+				token, _ := jwt.GenerateToken(user, jwt.TokenActionActivate, nil)
+				var html bytes.Buffer
+				emailService.UserActivation(
+					user.FullName,
+					fmt.Sprintf(
+						"%s/forms/activation?token=%s",
+						os.Getenv("WEB_CLIENT_URL"),
+						token.String(),
+					),
+					&html,
+				)
+				if err := email.Send(ctx, email.EmailDTO{
+					From:     "no-reply@quible.io",
+					To:       user.Email,
+					Subject:  "Activate your Quible account",
+					HTMLBody: html.String(),
+				}); err != nil {
+					return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+				}
 			}
 			// 4. Prepare and return the response
 			response := &CreateUserOutput{
