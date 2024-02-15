@@ -17,7 +17,6 @@ Install other CLI dependencies:
 Create `.env` file based on content from `.env.sample` and edit it to define values of the listed variables:
 
 - `ENV_JWT_SECRET` passphrase for JWT signing/verification
-- `ENV_RSC_TOKEN` API key for RSC API (sport data retrieval)
 - `ENV_ABLY_KEY` API key for Ably service
 - `ENV_POSTMARK_API_KEY` API key for Postmark email delivery service (server key)
 - `WEB_CLIENT_URL` holds the URL of the associated web client

@@ -1,0 +1,114 @@
+package v1
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/quible-io/quible-api/auth-service/api"
+	"github.com/quible-io/quible-api/auth-service/services/emailService"
+	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/jwt"
+	"github.com/quible-io/quible-api/lib/models"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+)
+
+type CreateUserInput struct {
+	Body struct {
+		PasswordResolver
+		Username string `json:"username"`
+		Email    string `json:"email" format:"email"`
+		FullName string `json:"full_name" minLength:"1"`
+		Phone    string `json:"phone" pattern:"^[0-9() +-]{10,}$"`
+	}
+}
+
+type CreateUserOutput struct {
+	Body UserSimplified
+}
+
+func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc api.VersionConfig) {
+	huma.Register(
+		api,
+		vc.Prefixer(
+			huma.Operation{
+				OperationID: "post-create-user",
+				Summary:     "Create new user",
+				Description: "Register new non-activated user record based on provided information",
+				Method:      http.MethodPost,
+				Errors: []int{
+					http.StatusBadRequest,
+				},
+				DefaultStatus: http.StatusCreated,
+				Tags:          []string{"user", "public"},
+				Path:          "/user",
+			},
+		),
+		func(ctx context.Context, input *CreateUserInput) (*CreateUserOutput, error) {
+			// 1. Check if an activated user with the same username or email exists
+			foundUser, _ := models.Users(
+				qm.Or2(models.UserWhere.Email.EQ(input.Body.Email)),
+				qm.Or2(models.UserWhere.Username.EQ(input.Body.Username)),
+			).OneG(ctx)
+			if foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
+				return nil, ErrorMap.GetErrorResponse(Err400_UserWithEmailOrUsernameExists)
+			}
+			// 2. Depending of whether [non-activated] user exists
+			user := &models.User{}
+			if foundUser != nil {
+				user = foundUser
+			}
+			user.Email = input.Body.Email
+			user.Phone = input.Body.Phone
+			user.Username = input.Body.Username
+			user.FullName = input.Body.FullName
+			user.HashedPassword = input.Body.hashedPassword
+			if len(user.ID) > 0 {
+				// 2a. We update existing DB record
+				if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+					return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
+				}
+			} else {
+				// 2b. We create new DB record
+				if err := user.InsertG(ctx, boil.Infer()); err != nil {
+					return nil, ErrorMap.GetErrorResponse(Err500_UnableToRegister, err)
+				}
+			}
+			// 3. Generate activation token and send activation email
+			token, _ := jwt.GenerateToken(user, jwt.TokenActionActivate, nil)
+			var html bytes.Buffer
+			emailService.UserActivation(
+				user.FullName,
+				fmt.Sprintf(
+					"%s/forms/activation?token=%s",
+					os.Getenv("WEB_CLIENT_URL"),
+					token.String(),
+				),
+				&html,
+			)
+			if err := email.Send(ctx, email.EmailDTO{
+				From:     "no-reply@quible.io",
+				To:       user.Email,
+				Subject:  "Activate your Quible account",
+				HTMLBody: html.String(),
+			}); err != nil {
+				return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+			}
+			// 4. Prepare and return the response
+			response := &CreateUserOutput{
+				Body: UserSimplified{
+					ID:       user.ID,
+					Username: user.Username,
+					Email:    user.Email,
+					Phone:    user.Phone,
+					FullName: user.FullName,
+				},
+			}
+			return response, nil
+		},
+	)
+}

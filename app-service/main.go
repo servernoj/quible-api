@@ -8,14 +8,15 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/app-service/BasketAPI"
 	"github.com/quible-io/quible-api/app-service/controller"
+	"github.com/quible-io/quible-api/app-service/services/BasketAPI"
+	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
 )
 
 //	@title			Quible app-service
-//	@description	Wrapper to RSC API
+//	@description	Collection of APIs to serve game data
 //	@version		0.1
 //	@host			www.quible.io
 //	@BasePath		/api/v1
@@ -37,6 +38,10 @@ func Server() {
 		log.Fatalf("unable to setup DB connection: %s", err)
 	}
 	defer store.Close()
+	// -- Ably
+	if err := ablyService.Setup(); err != nil {
+		log.Fatalf("unable to setup Ably SDK: %s", err)
+	}
 	// -- Live data BasketAPI
 	quit, err := BasketAPI.StartLive()
 	if err != nil {

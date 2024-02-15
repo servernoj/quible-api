@@ -3,9 +3,9 @@ package email
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/quible-io/quible-api/lib/email/postmark"
+	"github.com/rs/zerolog/log"
 )
 
 type EmailDTO = postmark.EmailDTO
@@ -20,6 +20,6 @@ func Send(ctx context.Context, email EmailDTO) error {
 		return fmt.Errorf("unable to send email via Postmark: %w", err)
 	}
 
-	log.Printf("Email sent: %s", response.MessageID)
+	log.Info().Msgf("Email sent: %s", response.MessageID)
 	return nil
 }

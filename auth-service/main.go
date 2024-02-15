@@ -1,75 +1,82 @@
 package main
 
 import (
-	_ "embed"
-	"log"
+	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
-	"github.com/quible-io/quible-api/auth-service/controller"
-	"github.com/quible-io/quible-api/auth-service/realtime"
+	"github.com/quible-io/quible-api/auth-service/api"
+	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/lib/env"
-	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-//	@title			Quible auth-service
-//	@description	Authentication and authorization service of Quible.io
-//	@version		0.1
-//	@host			www.quible.io
-//	@BasePath		/api/v1
-
-const DefaultPort = 8001
-
-//go:embed swagger.yaml
-var swaggerSpec string
+type ServiceOptions struct {
+	Port int `help:"Port to listen on" short:"p" default:"8001"`
+}
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	Server()
 }
 
 func Server() {
 	// -- Environment vars from .env file
 	env.Setup()
-	// -- Custom validators
-	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		misc.RegisterValidators(validate)
-	} else {
-		log.Println("unable to attach custom validators")
-	}
 	// -- Store + ORM
 	if err := store.Setup(os.Getenv("ENV_DSN")); err != nil {
-		log.Fatalf("unable to setup DB connection: %s", err)
+		log.Error().Msgf("unable to setup DB connection: %s", err)
+		os.Exit(1)
 	}
 	defer store.Close()
-	// -- Ably realtime
-	if err := realtime.Setup(); err != nil {
-		log.Fatalf("unable to setup Ably SDK: %s", err)
-	}
-	// -- HTTP server
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
-	// CORS
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowAllOrigins = true
-	corsConfig.AllowCredentials = true
-	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "authorization")
-	r.Use(cors.New(corsConfig))
-	// API group
-	g := r.Group("/api/v1")
-	controller.Setup(
-		g,
-		controller.WithSwagger(swaggerSpec),
-		controller.WithHealth(),
-	)
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = strconv.Itoa(DefaultPort)
-	}
-	log.Printf("starting server on port: %s\n", port)
-	log.Fatalf("%v", r.Run(":"+port))
+	// -- Huma CLI
+	cli := huma.NewCLI(func(hooks huma.Hooks, options *ServiceOptions) {
+		gin.SetMode(gin.ReleaseMode)
+		router := gin.Default()
+		corsConfig := cors.DefaultConfig()
+		corsConfig.AllowAllOrigins = true
+		corsConfig.AllowCredentials = true
+		corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "authorization")
+		router.Use(cors.New(corsConfig))
+		// http server based on Gin router
+		port, _ := strconv.Atoi(os.Getenv("PORT"))
+		if port == 0 {
+			port = options.Port
+		}
+		server := &http.Server{
+			Addr:    fmt.Sprintf(":%d", port),
+			Handler: router,
+		}
+		// -- V1
+		api.Setup[v1.VersionedImpl](
+			router,
+			api.VersionConfig{
+				Tag:    "v1",
+				SemVer: "1.0.0",
+			},
+			api.WithErrorMap(v1.ErrorMap),
+			api.WithVersion(),
+			api.WithHealth(),
+		)
+		// Hooks
+		hooks.OnStart(func() {
+			log.Info().Msgf("starting server on port: %d", port)
+			log.Error().Err(server.ListenAndServe()).Send()
+			os.Exit(10)
+		})
+		hooks.OnStop(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = server.Shutdown(ctx)
+		})
+	})
+	cli.Run()
 }

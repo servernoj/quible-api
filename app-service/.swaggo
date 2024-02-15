@@ -1,0 +1,2 @@
+replace null.String string
+replace null.Bool bool
