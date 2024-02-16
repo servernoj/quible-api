@@ -87,8 +87,8 @@ func StartLive() (chan<- struct{}, error) {
 						liveEvent := LiveEvent{
 							ID:             ev.ID,
 							Status:         ev.Status,
-							HomeTeam:       teamEnhancer(ev.HomeTeam.TeamId),
-							AwayTeam:       teamEnhancer(ev.AwayTeam.TeamId),
+							HomeTeam:       teamEnhancer(ev.HomeTeam),
+							AwayTeam:       teamEnhancer(ev.AwayTeam),
 							HomeScore:      ev.HomeScore,
 							AwayScore:      ev.AwayScore,
 							Time:           ev.Time,
@@ -97,11 +97,12 @@ func StartLive() (chan<- struct{}, error) {
 						liveMessage.Events = append(liveMessage.Events, liveEvent)
 						states[ev.ID] = state
 						log.Printf(
-							"[%d %s %s %d] %s (%d) vs. %s (%d)\n",
+							"[%d %s %s %d] played %d: %s (%d) vs. %s (%d)\n",
 							ev.ID,
 							ev.Status.Description,
 							ev.Status.Type,
 							ev.Status.Code,
+							ev.Time.Played,
 							liveEvent.AwayTeam.Abbr,
 							liveEvent.AwayScore.Current,
 							liveEvent.HomeTeam.Abbr,

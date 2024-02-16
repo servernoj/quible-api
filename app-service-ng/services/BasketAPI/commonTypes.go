@@ -41,6 +41,7 @@ type Tournament struct {
 	Name string `json:"name"`
 }
 type Status struct {
+	Code        uint       `json:"code"`
 	Description string     `json:"description"`
 	Type        StatusType `json:"type"`
 }
