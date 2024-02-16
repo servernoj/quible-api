@@ -23,6 +23,7 @@ func _() {
 	_ = x[Err401_UnknownError-4012001]
 	_ = x[Err401_UserIdNotFound-4012002]
 	_ = x[Err401_UserNotFound-4012003]
+	_ = x[Err401_InvalidAccessToken-4012004]
 	_ = x[Err404_UnknownError-4042001]
 	_ = x[Err404_ChatGroupNotFound-4042002]
 	_ = x[Err404_ChannelNotFound-4042003]
@@ -46,7 +47,7 @@ func _() {
 
 const (
 	_ErrorCode_name_0 = "Err400_UnknownErrorErr400_MalformedJSONErr400_InvalidRequestBodyErr400_MissingRequiredQueryParamErr400_ChatGroupExistsErr400_ChannelExistsErr400_ChatGroupIsPrivateErr400_ChatGroupIsPublicErr400_ChatGroupIsSelfOwnedErr400_ChannelAlreadyJoinedErr400_EmailNotFoundErr400_InvalidOrMalformedToken"
-	_ErrorCode_name_1 = "Err401_UnknownErrorErr401_UserIdNotFoundErr401_UserNotFound"
+	_ErrorCode_name_1 = "Err401_UnknownErrorErr401_UserIdNotFoundErr401_UserNotFoundErr401_InvalidAccessToken"
 	_ErrorCode_name_2 = "Err404_UnknownErrorErr404_ChatGroupNotFoundErr404_ChannelNotFound"
 	_ErrorCode_name_3 = "Err417_UnknownErrorErr417_InvalidToken"
 	_ErrorCode_name_4 = "Err424_UnknownErrorErr424_ScheduleSeasonErr424_DailyScheduleErr424_TeamInfoErr424_TeamStatsErr424_PlayerInfoErr424_PlayerStatsErr424_InjuriesErr424_LiveFeedErr424_BasketAPIGetGamesErr424_BasketAPIGetGameDetailsErr424_UnableToSendEmail"
@@ -55,7 +56,7 @@ const (
 
 var (
 	_ErrorCode_index_0 = [...]uint16{0, 19, 39, 64, 96, 118, 138, 163, 187, 214, 241, 261, 291}
-	_ErrorCode_index_1 = [...]uint8{0, 19, 40, 59}
+	_ErrorCode_index_1 = [...]uint8{0, 19, 40, 59, 84}
 	_ErrorCode_index_2 = [...]uint8{0, 19, 43, 65}
 	_ErrorCode_index_3 = [...]uint8{0, 19, 38}
 	_ErrorCode_index_4 = [...]uint8{0, 19, 40, 60, 75, 91, 108, 126, 141, 156, 180, 210, 234}
@@ -67,7 +68,7 @@ func (i ErrorCode) String() string {
 	case 4002001 <= i && i <= 4002012:
 		i -= 4002001
 		return _ErrorCode_name_0[_ErrorCode_index_0[i]:_ErrorCode_index_0[i+1]]
-	case 4012001 <= i && i <= 4012003:
+	case 4012001 <= i && i <= 4012004:
 		i -= 4012001
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	case 4042001 <= i && i <= 4042003:

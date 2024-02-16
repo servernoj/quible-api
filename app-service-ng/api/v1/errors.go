@@ -39,6 +39,7 @@ const (
 	Err401_UnknownError ErrorCode = Err401_Shift + iota + 1
 	Err401_UserIdNotFound
 	Err401_UserNotFound
+	Err401_InvalidAccessToken
 )
 const (
 	Err404_UnknownError ErrorCode = Err404_Shift + iota + 1
@@ -83,9 +84,10 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err400_EmailNotFound:             "email not found",
 	Err400_InvalidOrMalformedToken:   "activation token is missing or malformed",
 	// 401
-	Err401_UnknownError:   "unknown error",
-	Err401_UserIdNotFound: "userId not present",
-	Err401_UserNotFound:   "user not found",
+	Err401_UnknownError:       "unknown error",
+	Err401_UserIdNotFound:     "userId not present",
+	Err401_UserNotFound:       "user not found",
+	Err401_InvalidAccessToken: "invalid or missing access token",
 	// 404
 	Err404_UnknownError:      "unknown error",
 	Err404_ChatGroupNotFound: "chat group not found",

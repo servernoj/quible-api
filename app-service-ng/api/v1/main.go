@@ -11,7 +11,9 @@ type VersionedImpl struct{}
 
 func (impl VersionedImpl) NewError(status int, message string, errs ...error) huma.StatusError {
 	if status == http.StatusUnprocessableEntity && message == "validation failed" {
-		locationToErrorCode := map[string]ErrorCode{}
+		locationToErrorCode := map[string]ErrorCode{
+			"header.authorization": Err401_InvalidAccessToken,
+		}
 		for i := 0; i < len(errs); i++ {
 			if converted, ok := errs[i].(huma.ErrorDetailer); ok {
 				location := converted.ErrorDetail().Location
