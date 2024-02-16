@@ -15,10 +15,16 @@ type RawBody struct {
 }
 
 type ErrorMapOutput struct {
-	Body any
+	Body []ErrorMapEntry
 }
 
-func WithErrorMap(errorMap any) WithOption {
+type ErrorMapEntry struct {
+	Code        int
+	Notation    string
+	Description string
+}
+
+func WithErrorMap[T ErrorCodeConstraints](errorMap ErrorMap[T]) WithOption {
 	return func(api huma.API, vc VersionConfig) {
 		huma.Register(
 			api,
@@ -33,8 +39,18 @@ func WithErrorMap(errorMap any) WithOption {
 				},
 			),
 			func(ctx context.Context, input *struct{}) (*ErrorMapOutput, error) {
+				response := make([]ErrorMapEntry, len(errorMap))
+				idx := 0
+				for k, v := range errorMap {
+					response[idx] = ErrorMapEntry{
+						Code:        int(k),
+						Notation:    k.String(),
+						Description: v,
+					}
+					idx++
+				}
 				return &ErrorMapOutput{
-					Body: errorMap,
+					Body: response,
 				}, nil
 			},
 		)
