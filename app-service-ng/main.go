@@ -13,6 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	srvAPI "github.com/quible-io/quible-api/app-service-ng/api"
 	v1 "github.com/quible-io/quible-api/app-service-ng/api/v1"
+	"github.com/quible-io/quible-api/app-service-ng/services/BasketAPI"
+	"github.com/quible-io/quible-api/app-service-ng/services/ablyService"
 	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
@@ -38,6 +40,18 @@ func Server() {
 		os.Exit(1)
 	}
 	defer store.Close()
+	// -- Ably
+	if err := ablyService.Setup(); err != nil {
+		log.Fatal().Msgf("unable to setup Ably SDK: %s", err)
+	}
+	// -- Live data BasketAPI
+	quit, err := BasketAPI.StartLive()
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	defer func() {
+		quit <- struct{}{}
+	}()
 	// -- Huma CLI
 	cli := huma.NewCLI(func(hooks huma.Hooks, options *ServiceOptions) {
 		gin.SetMode(gin.ReleaseMode)
@@ -76,7 +90,10 @@ func Server() {
 		hooks.OnStop(func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			_ = server.Shutdown(ctx)
+			err := server.Shutdown(ctx)
+			if err != nil {
+				log.Error().Err(err).Send()
+			}
 		})
 	})
 	cli.Run()

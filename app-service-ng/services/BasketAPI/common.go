@@ -7,28 +7,11 @@ import (
 	"github.com/quible-io/quible-api/lib/models"
 )
 
-type TeamId struct {
-	ID uint `json:"id"`
-}
-
-type TeamInfo struct {
-	ID             int     `json:"id"`
-	Name           string  `json:"name"`
-	Slug           string  `json:"slug"`
-	ShortName      string  `json:"shortName"`
-	Abbr           string  `json:"abbr"`
-	ArenaName      string  `json:"arenaName"`
-	ArenaSize      int     `json:"arenaSize"`
-	Color          string  `json:"color"`
-	SecondaryColor string  `json:"secondaryColor"`
-	Logo           *string `json:"logo"`
-}
-
 const (
 	Host = "basketapi1.p.rapidapi.com"
 )
 
-func getTeamEnhancer(ctx context.Context) (func(TeamId) TeamInfo, error) {
+func GetTeamEnhancer(ctx context.Context) (func(TeamId) TeamInfo, error) {
 	teamsInfo, err := models.TeamInfos().AllG(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve combined team info (for all teams): %w", err)
@@ -52,12 +35,4 @@ func getTeamEnhancer(ctx context.Context) (func(TeamId) TeamInfo, error) {
 			Logo:           teamInfo.Logo.Ptr(),
 		}
 	}, nil
-}
-
-func ApplyMapper[F any, T any](s []F, m func(F) T) []T {
-	result := make([]T, len(s))
-	for idx := range s {
-		result[idx] = m(s[idx])
-	}
-	return result
 }

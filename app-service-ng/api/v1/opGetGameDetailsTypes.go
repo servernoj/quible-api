@@ -1,16 +1,18 @@
-package BasketAPI
+package v1
+
+import "github.com/quible-io/quible-api/app-service-ng/services/BasketAPI"
 
 type GetGameDetailsDTO struct {
 	GameId uint `form:"gameId" binding:"required,gt=0"`
 }
 
 type MatchDetails struct {
-	ID         uint      `json:"id"`
-	GameStatus string    `json:"gameStatus"`
-	HomeScore  *uint     `json:"homeScore"`
-	AwayScore  *uint     `json:"awayScore"`
-	Date       string    `json:"date"`
-	Event      *MD_Event `json:"-"`
+	ID         uint             `json:"id"`
+	GameStatus string           `json:"gameStatus"`
+	HomeScore  *uint            `json:"homeScore"`
+	AwayScore  *uint            `json:"awayScore"`
+	Date       string           `json:"date"`
+	Event      *BasketAPI.Event `json:"-"`
 }
 
 type GameDetails struct {
@@ -20,7 +22,7 @@ type GameDetails struct {
 }
 
 type TeamInfoExtended struct {
-	TeamInfo
+	BasketAPI.TeamInfo
 	Stats   *TeamStats     `json:"stats"`
 	Players []PlayerEntity `json:"players"`
 }
@@ -126,17 +128,8 @@ type ML_Statistics struct {
 // -- Match (MD) API
 
 type MD_Data struct {
-	Event MD_Event `json:"event"`
+	Event BasketAPI.Event `json:"event"`
 }
-
-type MD_Event = MS_Event
-
-const (
-	MD_StatusType_Finished      = MS_StatusType_Finished
-	MD_StatusType_Inprogress    = MS_StatusType_Inprogress
-	MD_StatusType_Notstarted    = MS_StatusType_Notstarted
-	MD_StatusType_TypePostponed = MS_StatusType_TypePostponed
-)
 
 // -- MatchStatistics (MStat) API
 

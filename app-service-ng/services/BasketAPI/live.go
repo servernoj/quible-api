@@ -25,7 +25,7 @@ func StartLive() (chan<- struct{}, error) {
 	countOK := uint(0)
 	isInError := false
 	states := map[uint]string{}
-	teamEnhancer, err := getTeamEnhancer(ctx)
+	teamEnhancer, err := GetTeamEnhancer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize team entity enhancer: %w", err)
 	}
