@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 type _resolved struct {
@@ -50,7 +51,7 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		errs = append(errs, &huma.ErrorDetail{
 			Message:  "unable to parse response from auth-service",
-			Location: "header.authorization.response",
+			Location: "auth-service.getUser.body",
 			Value:    err,
 		})
 		return
@@ -58,19 +59,27 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 	if response.StatusCode == http.StatusUnauthorized {
 		errs = append(errs, &huma.ErrorDetail{
 			Message:  "insufficient privilege",
-			Location: "header.authorization.status",
-			Value:    data,
+			Location: "auth-service.getUser.status",
+			Value:    response.StatusCode,
 		})
 		return
 	}
 	if userId, ok := data["id"].(string); !ok {
 		errs = append(errs, &huma.ErrorDetail{
-			Message:  "field `id` is not present in the returned user object",
-			Location: "header.authorization.data",
+			Message:  "field `id` is not present in the returned object",
+			Location: "auth-service.getUser.data",
 			Value:    data,
 		})
 		return
 	} else {
+		if exists, err := models.UserExistsG(ctx.Context(), userId); err != nil || !exists {
+			errs = append(errs, &huma.ErrorDetail{
+				Message:  "user not found",
+				Location: "db.users",
+				Value:    err,
+			})
+			return
+		}
 		input.UserId = userId
 	}
 	return

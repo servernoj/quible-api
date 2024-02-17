@@ -14,17 +14,17 @@ import (
 	"github.com/quible-io/quible-api/lib/misc"
 )
 
-type GetGamesInput struct {
+type ListGamesInput struct {
 	AuthorizationHeaderResolver
 	Date               string `query:"date" format:"date"`
 	LocalTimeZoneShift int    `query:"localTimeZoneShift" exclusiveMaximum:"0"`
 }
 
-type GetGamesOutput struct {
+type ListGamesOutput struct {
 	Body []Game
 }
 
-func (impl *VersionedImpl) RegisterGetGames(api huma.API, vc libAPI.VersionConfig) {
+func (impl *VersionedImpl) RegisterListGames(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(
@@ -42,7 +42,7 @@ func (impl *VersionedImpl) RegisterGetGames(api huma.API, vc libAPI.VersionConfi
 				Path: "/games",
 			},
 		),
-		func(ctx context.Context, input *GetGamesInput) (*GetGamesOutput, error) {
+		func(ctx context.Context, input *ListGamesInput) (*ListGamesOutput, error) {
 			// 1. Adjust client location to narrow down list of games
 			loc, _ := time.LoadLocation("America/New_York")
 			if input.LocalTimeZoneShift < 0 {
@@ -67,7 +67,7 @@ func (impl *VersionedImpl) RegisterGetGames(api huma.API, vc libAPI.VersionConfi
 			}.Do()
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
-					Err424_BasketAPIGetGames,
+					Err424_BasketAPIListGames,
 					errors.New("unable to retrieve matches"),
 					err,
 				)
@@ -112,7 +112,7 @@ func (impl *VersionedImpl) RegisterGetGames(api huma.API, vc libAPI.VersionConfi
 				games = append(games, game)
 			}
 			// 5. Send response with the list of games
-			return &GetGamesOutput{
+			return &ListGamesOutput{
 				Body: games,
 			}, nil
 		},

@@ -13,6 +13,8 @@ func (impl VersionedImpl) NewError(status int, message string, errs ...error) hu
 	if status == http.StatusUnprocessableEntity && message == "validation failed" {
 		locationToErrorCode := map[string]ErrorCode{
 			"header.authorization": Err401_InvalidAccessToken,
+			"auth-service":         Err401_AuthServiceError,
+			"db.users":             Err401_UserNotFound,
 		}
 		for i := 0; i < len(errs); i++ {
 			if converted, ok := errs[i].(huma.ErrorDetailer); ok {

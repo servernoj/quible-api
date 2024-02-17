@@ -2,8 +2,10 @@ package v1
 
 import "github.com/quible-io/quible-api/app-service-ng/services/BasketAPI"
 
-type GetGameDetailsDTO struct {
-	GameId uint `form:"gameId" binding:"required,gt=0"`
+type GameDetails struct {
+	MatchDetails
+	HomeTeam TeamInfoExtended `json:"homeTeam"`
+	AwayTeam TeamInfoExtended `json:"awayTeam"`
 }
 
 type MatchDetails struct {
@@ -13,12 +15,6 @@ type MatchDetails struct {
 	AwayScore  *uint            `json:"awayScore"`
 	Date       string           `json:"date"`
 	Event      *BasketAPI.Event `json:"-"`
-}
-
-type GameDetails struct {
-	MatchDetails
-	HomeTeam TeamInfoExtended `json:"homeTeam"`
-	AwayTeam TeamInfoExtended `json:"awayTeam"`
 }
 
 type TeamInfoExtended struct {

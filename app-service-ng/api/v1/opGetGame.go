@@ -14,12 +14,12 @@ import (
 	"github.com/quible-io/quible-api/lib/misc"
 )
 
-type GetGameDetailsInput struct {
+type GetGameInput struct {
 	AuthorizationHeaderResolver
 	GameId uint `query:"gameId"`
 }
 
-type GetGameDetailsOutput struct {
+type GetGameOutput struct {
 	Body GameDetails
 }
 
@@ -230,13 +230,13 @@ func getMatchDetails(gameId uint) (*MatchDetails, error) {
 	}, nil
 }
 
-func (impl *VersionedImpl) RegisterGetGameDetails(api huma.API, vc libAPI.VersionConfig) {
+func (impl *VersionedImpl) RegisterGetGame(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(
 			huma.Operation{
-				OperationID: "get-game-details",
-				Summary:     "Get game details",
+				OperationID: "get-game",
+				Summary:     "Get game",
 				Description: "Return details/stats for a single game",
 				Method:      http.MethodGet,
 				Errors: []int{
@@ -248,7 +248,7 @@ func (impl *VersionedImpl) RegisterGetGameDetails(api huma.API, vc libAPI.Versio
 				Path: "/game",
 			},
 		),
-		func(ctx context.Context, input *GetGameDetailsInput) (*GetGameDetailsOutput, error) {
+		func(ctx context.Context, input *GetGameInput) (*GetGameOutput, error) {
 			teamEnhancer, err := BasketAPI.GetTeamEnhancer(ctx)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
@@ -260,7 +260,7 @@ func (impl *VersionedImpl) RegisterGetGameDetails(api huma.API, vc libAPI.Versio
 			matchDetails, err := getMatchDetails(input.GameId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
-					Err424_BasketAPIGetGameDetails,
+					Err424_BasketAPIGetGame,
 					errors.New("unable to retrieve match details"),
 					err,
 				)
@@ -268,7 +268,7 @@ func (impl *VersionedImpl) RegisterGetGameDetails(api huma.API, vc libAPI.Versio
 			playersStats, err := getPlayersStats(input.GameId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
-					Err424_BasketAPIGetGameDetails,
+					Err424_BasketAPIGetGame,
 					errors.New("unable to retrieve players stats"),
 					err,
 				)
@@ -276,7 +276,7 @@ func (impl *VersionedImpl) RegisterGetGameDetails(api huma.API, vc libAPI.Versio
 			teamsStats, err := getTeamStats(input.GameId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
-					Err424_BasketAPIGetGameDetails,
+					Err424_BasketAPIGetGame,
 					errors.New("unable to retrieve teams stats"),
 					err,
 				)
@@ -296,7 +296,7 @@ func (impl *VersionedImpl) RegisterGetGameDetails(api huma.API, vc libAPI.Versio
 				result.HomeTeam.Stats = &teamsStats.HomeTeam
 				result.AwayTeam.Stats = &teamsStats.AwayTeam
 			}
-			return &GetGameDetailsOutput{
+			return &GetGameOutput{
 				Body: result,
 			}, nil
 		},

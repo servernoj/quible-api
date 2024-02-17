@@ -17,16 +17,17 @@ func _() {
 	_ = x[Err400_ChatGroupIsPrivate-4002007]
 	_ = x[Err400_ChatGroupIsPublic-4002008]
 	_ = x[Err400_ChatGroupIsSelfOwned-4002009]
-	_ = x[Err400_ChannelAlreadyJoined-4002010]
+	_ = x[Err400_ChatChannelAlreadyJoined-4002010]
 	_ = x[Err400_EmailNotFound-4002011]
 	_ = x[Err400_InvalidOrMalformedToken-4002012]
 	_ = x[Err401_UnknownError-4012001]
 	_ = x[Err401_UserIdNotFound-4012002]
 	_ = x[Err401_UserNotFound-4012003]
-	_ = x[Err401_InvalidAccessToken-4012004]
+	_ = x[Err401_AuthServiceError-4012004]
+	_ = x[Err401_InvalidAccessToken-4012005]
 	_ = x[Err404_UnknownError-4042001]
 	_ = x[Err404_ChatGroupNotFound-4042002]
-	_ = x[Err404_ChannelNotFound-4042003]
+	_ = x[Err404_ChatChannelNotFound-4042003]
 	_ = x[Err417_UnknownError-4172001]
 	_ = x[Err417_InvalidToken-4172002]
 	_ = x[Err424_UnknownError-4242001]
@@ -38,28 +39,28 @@ func _() {
 	_ = x[Err424_PlayerStats-4242007]
 	_ = x[Err424_Injuries-4242008]
 	_ = x[Err424_LiveFeed-4242009]
-	_ = x[Err424_BasketAPIGetGames-4242010]
-	_ = x[Err424_BasketAPIGetGameDetails-4242011]
+	_ = x[Err424_BasketAPIListGames-4242010]
+	_ = x[Err424_BasketAPIGetGame-4242011]
 	_ = x[Err424_UnableToSendEmail-4242012]
 	_ = x[Err500_UnknownError-5002001]
 	_ = x[Err500_UnknownHumaError-5002002]
 }
 
 const (
-	_ErrorCode_name_0 = "Err400_UnknownErrorErr400_MalformedJSONErr400_InvalidRequestBodyErr400_MissingRequiredQueryParamErr400_ChatGroupExistsErr400_ChannelExistsErr400_ChatGroupIsPrivateErr400_ChatGroupIsPublicErr400_ChatGroupIsSelfOwnedErr400_ChannelAlreadyJoinedErr400_EmailNotFoundErr400_InvalidOrMalformedToken"
-	_ErrorCode_name_1 = "Err401_UnknownErrorErr401_UserIdNotFoundErr401_UserNotFoundErr401_InvalidAccessToken"
-	_ErrorCode_name_2 = "Err404_UnknownErrorErr404_ChatGroupNotFoundErr404_ChannelNotFound"
+	_ErrorCode_name_0 = "Err400_UnknownErrorErr400_MalformedJSONErr400_InvalidRequestBodyErr400_MissingRequiredQueryParamErr400_ChatGroupExistsErr400_ChannelExistsErr400_ChatGroupIsPrivateErr400_ChatGroupIsPublicErr400_ChatGroupIsSelfOwnedErr400_ChatChannelAlreadyJoinedErr400_EmailNotFoundErr400_InvalidOrMalformedToken"
+	_ErrorCode_name_1 = "Err401_UnknownErrorErr401_UserIdNotFoundErr401_UserNotFoundErr401_AuthServiceErrorErr401_InvalidAccessToken"
+	_ErrorCode_name_2 = "Err404_UnknownErrorErr404_ChatGroupNotFoundErr404_ChatChannelNotFound"
 	_ErrorCode_name_3 = "Err417_UnknownErrorErr417_InvalidToken"
-	_ErrorCode_name_4 = "Err424_UnknownErrorErr424_ScheduleSeasonErr424_DailyScheduleErr424_TeamInfoErr424_TeamStatsErr424_PlayerInfoErr424_PlayerStatsErr424_InjuriesErr424_LiveFeedErr424_BasketAPIGetGamesErr424_BasketAPIGetGameDetailsErr424_UnableToSendEmail"
+	_ErrorCode_name_4 = "Err424_UnknownErrorErr424_ScheduleSeasonErr424_DailyScheduleErr424_TeamInfoErr424_TeamStatsErr424_PlayerInfoErr424_PlayerStatsErr424_InjuriesErr424_LiveFeedErr424_BasketAPIListGamesErr424_BasketAPIGetGameErr424_UnableToSendEmail"
 	_ErrorCode_name_5 = "Err500_UnknownErrorErr500_UnknownHumaError"
 )
 
 var (
-	_ErrorCode_index_0 = [...]uint16{0, 19, 39, 64, 96, 118, 138, 163, 187, 214, 241, 261, 291}
-	_ErrorCode_index_1 = [...]uint8{0, 19, 40, 59, 84}
-	_ErrorCode_index_2 = [...]uint8{0, 19, 43, 65}
+	_ErrorCode_index_0 = [...]uint16{0, 19, 39, 64, 96, 118, 138, 163, 187, 214, 245, 265, 295}
+	_ErrorCode_index_1 = [...]uint8{0, 19, 40, 59, 82, 107}
+	_ErrorCode_index_2 = [...]uint8{0, 19, 43, 69}
 	_ErrorCode_index_3 = [...]uint8{0, 19, 38}
-	_ErrorCode_index_4 = [...]uint8{0, 19, 40, 60, 75, 91, 108, 126, 141, 156, 180, 210, 234}
+	_ErrorCode_index_4 = [...]uint8{0, 19, 40, 60, 75, 91, 108, 126, 141, 156, 181, 204, 228}
 	_ErrorCode_index_5 = [...]uint8{0, 19, 42}
 )
 
@@ -68,7 +69,7 @@ func (i ErrorCode) String() string {
 	case 4002001 <= i && i <= 4002012:
 		i -= 4002001
 		return _ErrorCode_name_0[_ErrorCode_index_0[i]:_ErrorCode_index_0[i+1]]
-	case 4012001 <= i && i <= 4012004:
+	case 4012001 <= i && i <= 4012005:
 		i -= 4012001
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	case 4042001 <= i && i <= 4042003:
