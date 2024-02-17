@@ -13,6 +13,14 @@ type ListChatChannelsGroupedInput struct {
 }
 
 type ListChatChannelsGroupedOutput struct {
+	Body []ChatChannelsGroup
+}
+
+type ChatChannelsGroup struct {
+	ID           string        `json:"id"`
+	Title        string        `json:"title"`
+	Summary      *string       `json:"summary"`
+	ChatChannels []ChatChannel `json:"chatChannels"`
 }
 
 func (impl *VersionedImpl) RegisterListChatChannelsGrouped(api huma.API, vc libAPI.VersionConfig) {
@@ -33,7 +41,37 @@ func (impl *VersionedImpl) RegisterListChatChannelsGrouped(api huma.API, vc libA
 			},
 		),
 		func(ctx context.Context, input *ListChatChannelsGroupedInput) (*ListChatChannelsGroupedOutput, error) {
-			return nil, nil
+			// 1. Get all user's chat channels
+			chatChannels, err := chatChannelsForUser(ctx, input.UserId)
+			if err != nil {
+				return nil, err
+			}
+			// 2. Group chat channels based on `Parent` field in each record
+			chatChannelsGroupMap := map[string]*ChatChannelsGroup{}
+			for _, chatChannel := range chatChannels {
+				chatGroup := chatChannel.Parent
+				if _, ok := chatChannelsGroupMap[chatGroup.ID]; !ok {
+					chatChannelsGroupMap[chatGroup.ID] = &ChatChannelsGroup{
+						ID:           chatGroup.ID,
+						Title:        chatGroup.Title,
+						Summary:      chatGroup.Summary.Ptr(),
+						ChatChannels: []ChatChannel{},
+					}
+				}
+				chatChannelsGroup := chatChannelsGroupMap[chatGroup.ID]
+				chatChannelsGroup.ChatChannels = append(
+					chatChannelsGroup.ChatChannels,
+					chatChannel,
+				)
+			}
+			// 3. Prepare and return the response
+			chatChannelsGroupSlice := []ChatChannelsGroup{}
+			for _, chatChannelsGroup := range chatChannelsGroupMap {
+				chatChannelsGroupSlice = append(chatChannelsGroupSlice, *chatChannelsGroup)
+			}
+			return &ListChatChannelsGroupedOutput{
+				Body: chatChannelsGroupSlice,
+			}, nil
 		},
 	)
 }

@@ -6,10 +6,12 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	libAPI "github.com/quible-io/quible-api/lib/api"
+	"github.com/quible-io/quible-api/lib/models"
 )
 
 type LeaveChatChannelInput struct {
 	AuthorizationHeaderResolver
+	ChatChannelId string `path:"chatChannelId" format:"uuid"`
 }
 
 type LeaveChatChannelOutput struct {
@@ -30,10 +32,26 @@ func (impl *VersionedImpl) RegisterLeaveChatChannel(api huma.API, vc libAPI.Vers
 					http.StatusNotFound,
 				},
 				Tags: []string{"chat", "protected"},
-				Path: "/chat/channels/{channelId}",
+				Path: "/chat/channels/{chatChannelId}",
 			},
 		),
 		func(ctx context.Context, input *LeaveChatChannelInput) (*LeaveChatChannelOutput, error) {
+			chatUser, err := models.ChatUsers(
+				models.ChatUserWhere.ChatID.EQ(input.ChatChannelId),
+				models.ChatUserWhere.UserID.EQ(input.UserId),
+			).OneG(ctx)
+			if err != nil {
+				return nil, ErrorMap.GetErrorResponse(
+					Err404_ChatChannelNotFound,
+					err,
+				)
+			}
+			if _, err := chatUser.DeleteG(ctx); err != nil {
+				return nil, ErrorMap.GetErrorResponse(
+					Err500_UnknownError,
+					err,
+				)
+			}
 			return nil, nil
 		},
 	)

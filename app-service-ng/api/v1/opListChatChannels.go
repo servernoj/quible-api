@@ -13,6 +13,7 @@ type ListChatChannelsInput struct {
 }
 
 type ListChatChannelsOutput struct {
+	Body any
 }
 
 func (impl *VersionedImpl) RegisterListChatChannels(api huma.API, vc libAPI.VersionConfig) {
@@ -33,7 +34,13 @@ func (impl *VersionedImpl) RegisterListChatChannels(api huma.API, vc libAPI.Vers
 			},
 		),
 		func(ctx context.Context, input *ListChatChannelsInput) (*ListChatChannelsOutput, error) {
-			return nil, nil
+			chatChannels, err := chatChannelsForUser(ctx, input.UserId)
+			if err != nil {
+				return nil, err
+			}
+			return &ListChatChannelsOutput{
+				Body: chatChannels,
+			}, nil
 		},
 	)
 }
