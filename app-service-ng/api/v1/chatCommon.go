@@ -22,7 +22,7 @@ type ChatChannel struct {
 	ID       string       `json:"id"`
 	Title    string       `json:"title"`
 	Resource string       `json:"resource"`
-	ReadOnly bool         `json:"readOnly"`
+	ReadOnly *bool        `json:"readOnly,omitempty"`
 	Parent   *models.Chat `json:"-"`
 }
 
@@ -50,12 +50,13 @@ func chatChannelsForUser(ctx context.Context, userId string) ([]ChatChannel, err
 	for _, chatGroup := range ownedChatGroups {
 		for _, chat := range chatGroup.R.ParentChats {
 			chatId := chat.ID
+			readOnly := false
 			if _, ok := chatChannelByChatId[chatId]; !ok {
 				chatChannelByChatId[chatId] = ChatChannel{
 					ID:       chatId,
 					Title:    chat.Title,
 					Resource: chat.R.Parent.Resource + ":" + chat.Resource,
-					ReadOnly: false,
+					ReadOnly: &readOnly,
 					Parent:   chat.R.Parent,
 				}
 			}
@@ -87,7 +88,7 @@ func chatChannelsForUser(ctx context.Context, userId string) ([]ChatChannel, err
 				ID:       chatId,
 				Title:    chat.Title,
 				Resource: chat.R.Parent.Resource + ":" + chat.Resource,
-				ReadOnly: chatUser.IsRo,
+				ReadOnly: &chatUser.IsRo,
 				Parent:   chat.R.Parent,
 			}
 		}
