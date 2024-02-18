@@ -34,6 +34,8 @@ const (
 	Err400_ChatChannelAlreadyJoined
 	Err400_EmailNotFound
 	Err400_InvalidOrMalformedToken
+	Err400_ChatChannelInviteeNotUser
+	Err400_ChatChannelInviteeOwnsChatGroup
 )
 const (
 	Err401_UnknownError ErrorCode = Err401_Shift + iota + 1
@@ -68,22 +70,26 @@ const (
 const (
 	Err500_UnknownError ErrorCode = Err500_Shift + iota + 1
 	Err500_UnknownHumaError
+	Err500_UnableCreateChatUser
+	Err500_UnableUpdateChatUser
 )
 
 var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	// 400
-	Err400_UnknownError:              "unknown error",
-	Err400_MalformedJSON:             "malformed JSON request",
-	Err400_InvalidRequestBody:        "invalid request body",
-	Err400_MissingRequiredQueryParam: "missing/invalid required query param",
-	Err400_ChatGroupExists:           "chat group with given name or title exists",
-	Err400_ChannelExists:             "channel with this name in the same chat group already exists",
-	Err400_ChatGroupIsPrivate:        "chat group holding the channel is private",
-	Err400_ChatGroupIsSelfOwned:      "chat group holding the channel is self-owned",
-	Err400_ChatChannelAlreadyJoined:  "channel already joined",
-	Err400_ChatGroupIsPublic:         "chat group holding the channel is public",
-	Err400_EmailNotFound:             "email not found",
-	Err400_InvalidOrMalformedToken:   "activation token is missing or malformed",
+	Err400_UnknownError:                    "unknown error",
+	Err400_MalformedJSON:                   "malformed JSON request",
+	Err400_InvalidRequestBody:              "invalid request body",
+	Err400_MissingRequiredQueryParam:       "missing/invalid required query param",
+	Err400_ChatGroupExists:                 "chat group with given name or title exists",
+	Err400_ChannelExists:                   "chat channel with this name in the same chat group already exists",
+	Err400_ChatGroupIsPrivate:              "chat group holding the channel is private",
+	Err400_ChatGroupIsSelfOwned:            "chat group holding the channel is self-owned",
+	Err400_ChatChannelAlreadyJoined:        "chat channel already joined",
+	Err400_ChatGroupIsPublic:               "chat group holding the channel is public",
+	Err400_EmailNotFound:                   "email not found",
+	Err400_InvalidOrMalformedToken:         "activation token is missing or malformed",
+	Err400_ChatChannelInviteeNotUser:       "chat channel invitee doesn't have an account",
+	Err400_ChatChannelInviteeOwnsChatGroup: "chat group owner cannot be an invitee",
 	// 401
 	Err401_UnknownError:       "unknown error",
 	Err401_UserIdNotFound:     "userId not present",
@@ -103,6 +109,8 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err424_BasketAPIGetGame:   "unexpected problem with (Match|MatchStatistics|MatchLineups) API from BasketAPI",
 	Err424_UnableToSendEmail:  "unable to send email",
 	// 500
-	Err500_UnknownError:     "internal server error",
-	Err500_UnknownHumaError: "unidentified upstream Huma error",
+	Err500_UnknownError:         "internal server error",
+	Err500_UnknownHumaError:     "unidentified upstream Huma error",
+	Err500_UnableCreateChatUser: "unable to create chat to user association",
+	Err500_UnableUpdateChatUser: "unable to update chat to user association",
 }
