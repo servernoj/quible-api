@@ -1,8 +1,0 @@
-tmp/
-
-# vim
-.*.sw*
-
-# binary
-./app-service
-
