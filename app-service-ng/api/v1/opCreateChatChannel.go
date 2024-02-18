@@ -13,7 +13,7 @@ import (
 
 type CreateChatChannelInput struct {
 	AuthorizationHeaderResolver
-	GroupId string `path:"groupId" format:"uuid"`
+	GroupId string `path:"chatGroupId" format:"uuid"`
 	Body    struct {
 		// second part of the channel resource name following `chat group`
 		Name    string  `json:"name" pattern:"\\w+" doc:"second part of the channel resource name (everything after ':')"`
@@ -41,7 +41,7 @@ func (impl *VersionedImpl) RegisterCreateChatChannel(api huma.API, vc libAPI.Ver
 					http.StatusBadRequest,
 				},
 				Tags: []string{"chat", "protected"},
-				Path: "/chat/groups/{groupId}/channels",
+				Path: "/chat/groups/{chatGroupId}/channels",
 			},
 		),
 		func(ctx context.Context, input *CreateChatChannelInput) (*CreateChatChannelOutput, error) {
