@@ -69,7 +69,6 @@ func chatChannelsForUser(ctx context.Context, userId string) ([]ChatChannel, err
 			qm.Rels(
 				models.ChatUserRels.Chat,
 				models.ChatRels.Parent,
-				models.ChatRels.ChatUsers,
 			),
 		),
 	).AllG(ctx)
