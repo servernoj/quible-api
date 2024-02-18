@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/auth-service/api"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -28,7 +28,7 @@ type LoginOutput struct {
 	Body UserTokens
 }
 
-func (impl *VersionedImpl) RegisterLogin(api huma.API, vc api.VersionConfig) {
+func (impl *VersionedImpl) RegisterLogin(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(

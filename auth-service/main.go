@@ -11,8 +11,9 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/quible-io/quible-api/auth-service/api"
+	srvAPI "github.com/quible-io/quible-api/auth-service/api"
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/store"
 	"github.com/rs/zerolog"
@@ -56,15 +57,15 @@ func Server() {
 			Handler: router,
 		}
 		// -- V1
-		api.Setup[v1.VersionedImpl](
+		srvAPI.Setup[v1.VersionedImpl](
 			router,
-			api.VersionConfig{
+			libAPI.VersionConfig{
 				Tag:    "v1",
 				SemVer: "1.0.0",
 			},
-			api.WithErrorMap(v1.ErrorMap),
-			api.WithVersion(),
-			api.WithHealth(),
+			libAPI.WithErrorMap(v1.ErrorMap),
+			libAPI.WithVersion(),
+			libAPI.WithHealth(),
 		)
 		// Hooks
 		hooks.OnStart(func() {
@@ -75,7 +76,10 @@ func Server() {
 		hooks.OnStop(func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			_ = server.Shutdown(ctx)
+			err := server.Shutdown(ctx)
+			if err != nil {
+				log.Error().Err(err).Send()
+			}
 		})
 	})
 	cli.Run()

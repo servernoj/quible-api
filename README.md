@@ -11,13 +11,13 @@ Install Docker desktop software:
 
 Install other CLI dependencies:
 - [Stringer](https://pkg.go.dev/golang.org/x/tools/cmd/stringer) allows for automated creation of methods that satisfy the `fmt.Stringer` interface. Run `go install golang.org/x/tools/cmd/stringer@latest`
-- [Swagger](https://pkg.go.dev/github.com/swaggo/swag/v2/cmd/swag) spec generator `go install github.com/swaggo/swag/v2/cmd/swag@latest`
 - [Jade](https://pkg.go.dev/github.com/quible-io/vendors-jade/cmd/jade) PUG template compiler `go install github.com/quible-io/vendors-jade/cmd/jade@latest`
 
 Create `.env` file based on content from `.env.sample` and edit it to define values of the listed variables:
 
 - `ENV_JWT_SECRET` passphrase for JWT signing/verification
 - `ENV_ABLY_KEY` API key for Ably service
+- `ENV_RAPIDAPI_KEY` API key for `BasketAPI` data provider
 - `ENV_POSTMARK_API_KEY` API key for Postmark email delivery service (server key)
 - `WEB_CLIENT_URL` holds the URL of the associated web client
 - `POSTGRES_USER` DB user to be setup and used for connecting microservices to DB
@@ -25,6 +25,7 @@ Create `.env` file based on content from `.env.sample` and edit it to define val
 - `POSTGRES_DB` DB name (arbitrary good name)
 - `AUTH_PORT` TCP port to run `auth-service`, should not conflict with existing host ports
 - `APP_PORT` TCP port to run `app-service`, should not conflict with existing host ports
+- `IS_DEV` when set to `1` allows differentiating behavior on `prod` and `dev` deployments
 
 # Database migrations
 
@@ -171,7 +172,7 @@ Here, the `dockerfile: ../Dockerfile` references `Dockerfile` from the repo root
 Alternatively, especially when the microservice is not compatible with the shared `Dockerfile`, the build section can be defined as follows (see `migrations` service for example):
 ```yaml
 build: 
-  context: ./demo-service
+  context: ./cmd
   dockerfile: ./Dockerfile
   ...
 ```
@@ -183,7 +184,7 @@ Running all microservices in Docker containers proves their inter-operational co
 
 The only service that is meant to continue running in Docker is DB. You can start it separately (without modifying any files) by running:
 ```sh
-docker-compose up db
+docker-compose up db -d
 ```
 
 Once the DB service is started in a Docker container, it exposes the `TCP:5432` port on the `localhost` interface. If you now start a microservice outside the Docker environment, it will still be able to connect to DB to access data. Under the hood, it will read `.env` file from the root of the repo and will compile the value of `ENV_DSN` environment variable from the variables exposed in that file (see implementation of this logic in `lib/env/setup.go`)
