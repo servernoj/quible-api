@@ -24,7 +24,7 @@ const (
 const (
 	Err400_UnknownError ErrorCode = Err400_Shift + iota + 1
 	Err400_MalformedJSON
-	Err400_InvalidRequestBody
+	Err400_InvalidRequest
 	Err400_MissingRequiredQueryParam
 	Err400_ChatGroupExists
 	Err400_ChannelExists
@@ -78,7 +78,7 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	// 400
 	Err400_UnknownError:                    "unknown error",
 	Err400_MalformedJSON:                   "malformed JSON request",
-	Err400_InvalidRequestBody:              "invalid request body",
+	Err400_InvalidRequest:                  "invalid request",
 	Err400_MissingRequiredQueryParam:       "missing/invalid required query param",
 	Err400_ChatGroupExists:                 "chat group with given name or title exists",
 	Err400_ChannelExists:                   "chat channel with this name in the same chat group already exists",

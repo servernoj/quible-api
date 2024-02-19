@@ -10,7 +10,7 @@ func _() {
 	var x [1]struct{}
 	_ = x[Err400_UnknownError-4002001]
 	_ = x[Err400_MalformedJSON-4002002]
-	_ = x[Err400_InvalidRequestBody-4002003]
+	_ = x[Err400_InvalidRequest-4002003]
 	_ = x[Err400_MissingRequiredQueryParam-4002004]
 	_ = x[Err400_ChatGroupExists-4002005]
 	_ = x[Err400_ChannelExists-4002006]
@@ -51,7 +51,7 @@ func _() {
 }
 
 const (
-	_ErrorCode_name_0 = "Err400_UnknownErrorErr400_MalformedJSONErr400_InvalidRequestBodyErr400_MissingRequiredQueryParamErr400_ChatGroupExistsErr400_ChannelExistsErr400_ChatGroupIsPrivateErr400_ChatGroupIsPublicErr400_ChatGroupIsSelfOwnedErr400_ChatChannelAlreadyJoinedErr400_EmailNotFoundErr400_InvalidOrMalformedTokenErr400_ChatChannelInviteeNotUserErr400_ChatChannelInviteeOwnsChatGroup"
+	_ErrorCode_name_0 = "Err400_UnknownErrorErr400_MalformedJSONErr400_InvalidRequestErr400_MissingRequiredQueryParamErr400_ChatGroupExistsErr400_ChannelExistsErr400_ChatGroupIsPrivateErr400_ChatGroupIsPublicErr400_ChatGroupIsSelfOwnedErr400_ChatChannelAlreadyJoinedErr400_EmailNotFoundErr400_InvalidOrMalformedTokenErr400_ChatChannelInviteeNotUserErr400_ChatChannelInviteeOwnsChatGroup"
 	_ErrorCode_name_1 = "Err401_UnknownErrorErr401_UserIdNotFoundErr401_UserNotFoundErr401_AuthServiceErrorErr401_InvalidAccessToken"
 	_ErrorCode_name_2 = "Err404_UnknownErrorErr404_ChatGroupNotFoundErr404_ChatChannelNotFound"
 	_ErrorCode_name_3 = "Err417_UnknownErrorErr417_InvalidToken"
@@ -60,7 +60,7 @@ const (
 )
 
 var (
-	_ErrorCode_index_0 = [...]uint16{0, 19, 39, 64, 96, 118, 138, 163, 187, 214, 245, 265, 295, 327, 365}
+	_ErrorCode_index_0 = [...]uint16{0, 19, 39, 60, 92, 114, 134, 159, 183, 210, 241, 261, 291, 323, 361}
 	_ErrorCode_index_1 = [...]uint8{0, 19, 40, 59, 82, 107}
 	_ErrorCode_index_2 = [...]uint8{0, 19, 43, 69}
 	_ErrorCode_index_3 = [...]uint8{0, 19, 38}

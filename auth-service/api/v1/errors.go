@@ -36,7 +36,7 @@ const (
 	Err400_UserWithUsernameExists
 	Err400_InsufficientPasswordComplexity
 	Err400_MalformedJSON
-	Err400_InvalidRequestBody
+	Err400_InvalidRequest
 	Err400_FileTooLarge
 	Err400_InvalidClientId
 	Err400_UserWithEmailOrUsernameExists
@@ -108,7 +108,7 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err400_InvalidEmailFormat:             "invalid email address format",
 	Err400_InvalidPhoneFormat:             "invalid phone number format",
 	Err400_MalformedJSON:                  "malformed JSON request",
-	Err400_InvalidRequestBody:             "invalid request body",
+	Err400_InvalidRequest:                 "invalid request body",
 	Err400_FileTooLarge:                   "invalid file size",
 	Err400_InvalidClientId:                "unexpected clientId",
 	Err400_UserWithEmailOrUsernameExists:  "activated user with such username or email exists",

@@ -48,7 +48,7 @@ func (impl VersionedImpl) NewError(status int, message string, errs ...error) hu
 				}
 			}
 		}
-		return ErrorMap.GetErrorResponse(Err400_InvalidRequestBody)
+		return ErrorMap.GetErrorResponse(Err400_InvalidRequest)
 	}
 	return ErrorMap.GetErrorResponse(Err500_UnknownHumaError, errs...)
 }

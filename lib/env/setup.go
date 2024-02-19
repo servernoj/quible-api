@@ -2,10 +2,10 @@ package env
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 )
 
 const envFile = "../.env"
@@ -46,6 +46,6 @@ func Setup() {
 			}
 		}
 	} else {
-		log.Println("running in docker...")
+		log.Info().Msg("running in docker...")
 	}
 }

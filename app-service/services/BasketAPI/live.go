@@ -3,7 +3,6 @@ package BasketAPI
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"slices"
@@ -12,6 +11,7 @@ import (
 	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/misc"
+	"github.com/rs/zerolog/log"
 )
 
 const ERRORS_IN_A_ROW_TO_SET_ALERT = 10
@@ -49,7 +49,7 @@ func StartLive() (chan<- struct{}, error) {
 				if err != nil {
 					countError++
 					countOK = 0
-					log.Printf("BasketAPI error: %s", err)
+					log.Info().Msgf("BasketAPI error: %s", err)
 					if !isInError && countError > ERRORS_IN_A_ROW_TO_SET_ALERT {
 						isInError = true
 						if err := email.Send(ctx, email.EmailDTO{
@@ -62,7 +62,7 @@ func StartLive() (chan<- struct{}, error) {
 								err,
 							),
 						}); err != nil {
-							log.Printf("unable to send BasketAPI error report: %s", err)
+							log.Info().Msgf("unable to send BasketAPI error report: %s", err)
 						}
 					}
 					continue
@@ -96,7 +96,7 @@ func StartLive() (chan<- struct{}, error) {
 						}
 						liveMessage.Events = append(liveMessage.Events, liveEvent)
 						states[ev.ID] = state
-						log.Printf(
+						log.Info().Msgf(
 							"[%d %s %s %d] played %d: %s (%d) vs. %s (%d)\n",
 							ev.ID,
 							ev.Status.Description,
@@ -111,12 +111,12 @@ func StartLive() (chan<- struct{}, error) {
 					}
 				}
 				if len(liveMessage.IDs) == 0 && len(states) > 0 {
-					log.Println("no events in qualified tournaments...")
+					log.Info().Msg("no events in qualified tournaments...")
 					states = map[uint]string{}
 				}
 				if len(liveMessage.Events) > 0 {
 					if err := ablyChannel.Publish(ctx, "message", liveMessage); err != nil {
-						log.Printf("unable to publish live data to Ably: %s", err)
+						log.Info().Msgf("unable to publish live data to Ably: %s", err)
 					}
 				}
 			case <-quit:

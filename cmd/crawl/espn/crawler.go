@@ -3,13 +3,13 @@ package espn
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"slices"
 
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
+	"github.com/rs/zerolog/log"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
@@ -48,7 +48,7 @@ func (c *Crawler) Run() error {
 		{"update players", c.UpdatePlayers},
 	}
 	for _, action := range actions {
-		log.Printf("Running %q ...\n", action.Name)
+		log.Info().Msgf("Running %q ...\n", action.Name)
 		if err := action.Handler(ctx); err != nil {
 			_ = tx.Rollback()
 			return fmt.Errorf("unable to perform %q: %w", action.Name, err)

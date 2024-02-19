@@ -3,11 +3,12 @@ package misc
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type GetList[T any] struct {
@@ -27,7 +28,7 @@ func (g GetList[T]) Do() ([]T, error) {
 	}
 	for res := range g.SplitAndRun(source) {
 		if g.ExpectedStatus != 0 && res.StatusCode != g.ExpectedStatus {
-			log.Printf("GetList: one of the requests (%s) failed: %s", res.Request.URL, res.Status)
+			log.Info().Msgf("GetList: one of the requests (%s) failed: %s", res.Request.URL, res.Status)
 			continue
 		}
 		body := res.Body
@@ -94,7 +95,7 @@ func (g GetList[T]) SplitAndRun(in <-chan *http.Request) chan *http.Response {
 					if res, err := g.Client.Do(req); err == nil {
 						ch <- res
 					} else {
-						log.Printf("unable to execute request: %s", err)
+						log.Info().Msgf("unable to execute request: %s", err)
 					}
 				}
 				wg.Done()
