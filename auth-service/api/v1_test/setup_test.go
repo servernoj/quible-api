@@ -27,7 +27,6 @@ type TestSuite struct {
 	suite.Suite
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
-	db       *sql.DB
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -67,26 +66,25 @@ func (suite *TestSuite) SetupTest() {
 		hostAndPort,
 		POSTGRES_DB,
 	)
-	log.Debug().Msgf("Connecting to database on url: %q", dsn)
+	log.Info().Msgf("Connecting to database...")
 	if err := suite.resource.Expire(120); err != nil {
 		suite.T().Fatalf("Could not set hard kill timer for the container: %s", err)
 	}
 	suite.pool.MaxWait = 120 * time.Second
-	attempt := 1
+	var db *sql.DB
 	if err = suite.pool.Retry(
 		func() error {
-			log.Debug().Msgf("connection attempt %d...", attempt)
-			suite.db, err = sql.Open("pgx", dsn)
+			db, err = sql.Open("pgx", dsn)
 			if err != nil {
 				return err
 			}
-			attempt++
-			return suite.db.Ping()
+			return db.Ping()
 		},
 	); err != nil {
 		suite.T().Fatalf("Could not connect to docker: %s", err)
 	}
-	boil.SetDB(suite.db)
+	log.Info().Msg("Database connected")
+	boil.SetDB(db)
 }
 func (suite *TestSuite) TearDownTest() {
 	if db, ok := boil.GetDB().(*sql.DB); ok {
