@@ -4,12 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/pressly/goose/v3"
+	"github.com/quible-io/quible-api/cmd/migrations"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
@@ -22,6 +25,13 @@ const (
 	POSTGRES_USER     = "user"
 	POSTGRES_DB       = "dbname"
 )
+
+type DebugWriter struct{}
+
+func (DebugWriter) Write(p []byte) (n int, err error) {
+	log.Debug().Msg(strings.TrimSpace(string(p)))
+	return len(p), nil
+}
 
 type TestSuite struct {
 	suite.Suite
@@ -84,8 +94,19 @@ func (suite *TestSuite) SetupTest() {
 		suite.T().Fatalf("Could not connect to docker: %s", err)
 	}
 	log.Info().Msg("Database connected")
+	// 4. Perform DB migrations
+	migrationFS := migrations.FS
+	goose.SetBaseFS(migrationFS)
+	if err := goose.Run("up", db, "."); err != nil {
+		suite.T().Fatalf("Could not migrate DB: %s", err)
+	}
+	log.Info().Msg("DB migrated")
+	// 5. Setup SQLBoiler
 	boil.SetDB(db)
+	boil.DebugMode = true
+	boil.DebugWriter = new(DebugWriter)
 }
+
 func (suite *TestSuite) TearDownTest() {
 	if db, ok := boil.GetDB().(*sql.DB); ok {
 		db.Close()
@@ -100,10 +121,10 @@ func (suite *TestSuite) TestOne() {
 	assert.Equal(true, true, "true is true")
 }
 
-func (suite *TestSuite) TestTwo() {
-	assert := assert.New(suite.T())
-	assert.Equal(false, false, "false is false")
-}
+// func (suite *TestSuite) TestTwo() {
+// 	assert := assert.New(suite.T())
+// 	assert.Equal(false, false, "false is false")
+// }
 
 func TestV1(t *testing.T) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
