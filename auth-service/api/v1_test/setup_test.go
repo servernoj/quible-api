@@ -1,6 +1,7 @@
 package v1_test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"github.com/quible-io/quible-api/cmd/migrations"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
@@ -37,10 +37,13 @@ type TestSuite struct {
 	suite.Suite
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
+	ctx      context.Context
 }
 
 func (suite *TestSuite) SetupTest() {
 	var err error
+	// 0. Initialize context
+	suite.ctx = context.Background()
 	// 1. Initialize pool
 	suite.pool, err = dockertest.NewPool("")
 	if err != nil {
@@ -95,8 +98,7 @@ func (suite *TestSuite) SetupTest() {
 	}
 	log.Info().Msg("Database connected")
 	// 4. Perform DB migrations
-	migrationFS := migrations.FS
-	goose.SetBaseFS(migrationFS)
+	goose.SetBaseFS(migrations.FS)
 	if err := goose.Run("up", db, "."); err != nil {
 		suite.T().Fatalf("Could not migrate DB: %s", err)
 	}
@@ -115,16 +117,6 @@ func (suite *TestSuite) TearDownTest() {
 		suite.T().Fatalf("Could not purge resource: %s", err)
 	}
 }
-
-func (suite *TestSuite) TestOne() {
-	assert := assert.New(suite.T())
-	assert.Equal(true, true, "true is true")
-}
-
-// func (suite *TestSuite) TestTwo() {
-// 	assert := assert.New(suite.T())
-// 	assert.Equal(false, false, "false is false")
-// }
 
 func TestV1(t *testing.T) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
