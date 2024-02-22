@@ -13,7 +13,7 @@ import (
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/pressly/goose/v3"
-	"github.com/quible-io/quible-api/cmd/migrations"
+	"github.com/quible-io/quible-api/lib/migrations"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"github.com/volatiletech/sqlboiler/v4/boil"
