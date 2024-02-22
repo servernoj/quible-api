@@ -1,20 +1,19 @@
-package v1_test
+package api
 
 import (
-	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/danielgtaylor/huma/v2"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/pressly/goose/v3"
 	"github.com/quible-io/quible-api/cmd/migrations"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -37,13 +36,10 @@ type TestSuite struct {
 	suite.Suite
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
-	ctx      context.Context
 }
 
 func (suite *TestSuite) SetupTest() {
 	var err error
-	// 0. Initialize context
-	suite.ctx = context.Background()
 	// 1. Initialize pool
 	suite.pool, err = dockertest.NewPool("")
 	if err != nil {
@@ -118,7 +114,17 @@ func (suite *TestSuite) TearDownTest() {
 	}
 }
 
-func TestV1(t *testing.T) {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	suite.Run(t, &TestSuite{})
+func NewTestSuite[Impl ErrorReporter](t *testing.T, vc VersionConfig) TestSuite {
+	var implValue Impl
+	huma.NewError = func(status int, message string, errs ...error) huma.StatusError {
+		if status == 0 {
+			return &ErrorResponse{}
+		}
+		if len(errs) > 0 {
+			b, _ := json.MarshalIndent(errs, "", "  ")
+			log.Error().Msgf("Validation error(s): %s", b)
+		}
+		return implValue.NewError(status, message, errs...)
+	}
+	return TestSuite{}
 }
