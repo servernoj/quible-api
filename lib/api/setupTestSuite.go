@@ -35,9 +35,10 @@ func (DebugWriter) Write(p []byte) (n int, err error) {
 
 type TestSuite struct {
 	suite.Suite
-	pool     *dockertest.Pool
-	resource *dockertest.Resource
-	TestAPI  humatest.TestAPI
+	pool          *dockertest.Pool
+	resource      *dockertest.Resource
+	VersionConfig VersionConfig
+	TestAPI       humatest.TestAPI
 }
 
 type MyTB struct {
@@ -159,6 +160,7 @@ func NewTestSuite[Impl ErrorReporter](t *testing.T, vc VersionConfig) TestSuite 
 		}
 	}
 	return TestSuite{
-		TestAPI: api,
+		TestAPI:       api,
+		VersionConfig: vc,
 	}
 }

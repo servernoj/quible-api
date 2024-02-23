@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type SetupFunc[Impl ErrorReporter] func(router *gin.Engine, vc VersionConfig, withOptions ...WithOption)
+type SetupFunc[Impl ErrorReporter] func(router *gin.Engine, vc VersionConfig, withOptions ...WithOption) huma.API
 
 func overrideHumaNewError(implValue ErrorReporter) {
 	huma.NewError = func(status int, message string, errs ...error) huma.StatusError {
@@ -27,7 +27,7 @@ func overrideHumaNewError(implValue ErrorReporter) {
 }
 
 func SetupFactory[Impl ErrorReporter](Title, ServiceDescription string) SetupFunc[Impl] {
-	return func(router *gin.Engine, vc VersionConfig, withOptions ...WithOption) {
+	return func(router *gin.Engine, vc VersionConfig, withOptions ...WithOption) huma.API {
 		// 1. Initialize config with version-prefixed fields
 		config := vc.GetConfig(Title, ServiceDescription)
 		// 2. Create API instance
@@ -52,5 +52,6 @@ func SetupFactory[Impl ErrorReporter](Title, ServiceDescription string) SetupFun
 		for _, option := range withOptions {
 			option(api, vc)
 		}
+		return api
 	}
 }
