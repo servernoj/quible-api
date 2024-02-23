@@ -1,12 +1,10 @@
-name: CI Lint and Test
+name: CI Lint and Tests
 
-# on:
-#   pull_request:
-#     branches:
-#       - master
-#       - dev
-on: [push]
-
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
 jobs:
   lint_all:
     runs-on: ubuntu-latest

@@ -114,10 +114,12 @@ func (suite *TestSuite) SetupTest() {
 	// 4. Perform DB migrations
 	goose.SetLogger(goose.NopLogger())
 	goose.SetBaseFS(migrations.FS)
-	if err := goose.RunContext(context.Background(), "up", db, "."); err != nil {
+	ctx := context.Background()
+	if err := goose.RunContext(ctx, "up", db, "."); err != nil {
 		suite.T().Fatalf("Could not migrate DB: %s", err)
 	}
-	log.Info().Msg("DB migrated")
+	version, _ := goose.GetDBVersionContext(ctx, db)
+	log.Info().Msgf("DB migrated up to %d", version)
 	// 5. Setup SQLBoiler
 	boil.SetDB(db)
 	boil.DebugMode = true
