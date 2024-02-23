@@ -79,7 +79,7 @@ func StartLive() (chan<- struct{}, error) {
 				for _, ev := range res.Events {
 					if slices.Index(tournaments, ev.Tournament.Name) != -1 {
 						liveMessage.IDs = append(liveMessage.IDs, ev.ID)
-						state := fmt.Sprintf("%d:%d@%s+%d", ev.HomeScore.Current, ev.AwayScore.Current, ev.Status.Description, ev.Time.Played)
+						state := fmt.Sprintf("%d:%d@%s+%d", *ev.HomeScore.Current, *ev.AwayScore.Current, ev.Status.Description, *ev.Time.Played)
 						value, ok := states[ev.ID]
 						if ok && value == state {
 							continue
