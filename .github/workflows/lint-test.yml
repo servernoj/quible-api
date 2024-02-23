@@ -8,32 +8,32 @@ name: CI Lint and Test
 on: [push]
 
 jobs:
-  # lint_all:
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 10
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version: '1.21'
-  #         cache: false
-  #     - name: golangci-lint auth-service
-  #       uses: golangci/golangci-lint-action@v3
-  #       with:
-  #         version: v1.54
-  #         working-directory: ./auth-service
-  #     - name: golangci-lint app-service
-  #       uses: golangci/golangci-lint-action@v3
-  #       with:
-  #         version: v1.54
-  #         working-directory: ./app-service
-  #     - name: golangci-lint lib
-  #       uses: golangci/golangci-lint-action@v3
-  #       with:
-  #         version: v1.54
-  #         working-directory: ./lib
+  lint_all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: false
+      - name: golangci-lint auth-service
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+          working-directory: ./auth-service
+      - name: golangci-lint app-service
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+          working-directory: ./app-service
+      - name: golangci-lint lib
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+          working-directory: ./lib
 
   test_all:
     runs-on: ubuntu-latest
@@ -47,22 +47,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v4
-        # - uses: actions/setup-go@v2
         with:
           go-version: '1.21'
-          
       - name: Test auth-service
         run: |
           cd auth-service
           go test -v ./...
-      # - name: Test app-service
-      #   run: |
-      #     cd app-service
-      #     go test ./...
-      # - name: Test lib
-      #   run: |
-      #     cd lib
-      #     go test ./...
+      - name: Test app-service
+        run: |
+          cd app-service
+          go test ./...
+      - name: Test lib
+        run: |
+          cd lib
+          go test ./...
