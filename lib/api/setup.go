@@ -13,6 +13,19 @@ import (
 
 type SetupFunc[Impl ErrorReporter] func(router *gin.Engine, vc VersionConfig, withOptions ...WithOption)
 
+func overrideHumaNewError(implValue ErrorReporter) {
+	huma.NewError = func(status int, message string, errs ...error) huma.StatusError {
+		if status == 0 {
+			return &ErrorResponse{}
+		}
+		if len(errs) > 0 {
+			b, _ := json.MarshalIndent(errs, "", "  ")
+			log.Error().Msgf("Validation error(s): %s", b)
+		}
+		return implValue.NewError(status, message, errs...)
+	}
+}
+
 func SetupFactory[Impl ErrorReporter](Title, ServiceDescription string) SetupFunc[Impl] {
 	return func(router *gin.Engine, vc VersionConfig, withOptions ...WithOption) {
 		// 1. Initialize config with version-prefixed fields
@@ -20,23 +33,12 @@ func SetupFactory[Impl ErrorReporter](Title, ServiceDescription string) SetupFun
 		// 2. Create API instance
 		api := humagin.New(router, config)
 		// 3. Override default error reporting facility
-		huma.NewError = func(status int, message string, errs ...error) huma.StatusError {
-			if status == 0 {
-				// case for https://github.com/danielgtaylor/huma/issues/236
-				return &ErrorResponse{}
-			}
-			var implValue Impl
-			if len(errs) > 0 {
-				b, _ := json.MarshalIndent(errs, "", "  ")
-				log.Error().Msgf("Validation error(s): %s", b)
-			}
-			return implValue.NewError(status, message, errs...)
-		}
+		var implValue Impl
+		overrideHumaNewError(implValue)
 		// 4. Register all version-specific endpoints
-		var implPtr *Impl
-		implType := reflect.TypeOf(implPtr)
+		implType := reflect.TypeOf(&implValue)
 		args := []reflect.Value{
-			reflect.ValueOf(implPtr),
+			reflect.ValueOf(&implValue),
 			reflect.ValueOf(api),
 			reflect.ValueOf(vc),
 		}

@@ -2,13 +2,13 @@ package api
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/danielgtaylor/huma/v2"
+	"github.com/danielgtaylor/huma/v2/humatest"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -36,6 +36,23 @@ type TestSuite struct {
 	suite.Suite
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
+	TestAPI  humatest.TestAPI
+}
+
+type MyTB struct {
+	disableLogging bool
+	*testing.T
+}
+
+func (tb *MyTB) Log(args ...any) {
+	if !tb.disableLogging {
+		tb.T.Log(args...)
+	}
+}
+func (tb *MyTB) Logf(format string, args ...any) {
+	if !tb.disableLogging {
+		tb.T.Logf(format, args...)
+	}
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -94,6 +111,7 @@ func (suite *TestSuite) SetupTest() {
 	}
 	log.Info().Msg("Database connected")
 	// 4. Perform DB migrations
+	goose.SetLogger(goose.NopLogger())
 	goose.SetBaseFS(migrations.FS)
 	if err := goose.Run("up", db, "."); err != nil {
 		suite.T().Fatalf("Could not migrate DB: %s", err)
@@ -115,16 +133,29 @@ func (suite *TestSuite) TearDownTest() {
 }
 
 func NewTestSuite[Impl ErrorReporter](t *testing.T, vc VersionConfig) TestSuite {
+	// 1. Mimic error response from the actual API
 	var implValue Impl
-	huma.NewError = func(status int, message string, errs ...error) huma.StatusError {
-		if status == 0 {
-			return &ErrorResponse{}
-		}
-		if len(errs) > 0 {
-			b, _ := json.MarshalIndent(errs, "", "  ")
-			log.Error().Msgf("Validation error(s): %s", b)
-		}
-		return implValue.NewError(status, message, errs...)
+	overrideHumaNewError(implValue)
+	// 2. Create new test API
+	myTB := &MyTB{
+		T:              t,
+		disableLogging: true,
 	}
-	return TestSuite{}
+	_, api := humatest.New(myTB)
+	// 3. Register operations from the implemented API to the test API
+	implType := reflect.TypeOf(&implValue)
+	args := []reflect.Value{
+		reflect.ValueOf(&implValue),
+		reflect.ValueOf(api),
+		reflect.ValueOf(vc),
+	}
+	for i := 0; i < implType.NumMethod(); i++ {
+		m := implType.Method(i)
+		if strings.HasPrefix(m.Name, "Register") && len(m.Name) > 8 {
+			m.Func.Call(args)
+		}
+	}
+	return TestSuite{
+		TestAPI: api,
+	}
 }
