@@ -12,7 +12,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-type LoginInput struct {
+type UserLoginInput struct {
 	Body struct {
 		Email    string `json:"email" format:"email"`
 		Password string `json:"password"`
@@ -24,11 +24,11 @@ type UserTokens struct {
 	RefreshToken string `json:"refresh_token" doc:"refresh token to be used to renew/refresh access token without re-submitting user credentials"`
 }
 
-type LoginOutput struct {
+type UserLoginOutput struct {
 	Body UserTokens
 }
 
-func (impl *VersionedImpl) RegisterLogin(api huma.API, vc libAPI.VersionConfig) {
+func (impl *VersionedImpl) RegisterUserLogin(api huma.API, vc libAPI.VersionConfig) {
 	huma.Register(
 		api,
 		vc.Prefixer(
@@ -45,7 +45,7 @@ func (impl *VersionedImpl) RegisterLogin(api huma.API, vc libAPI.VersionConfig) 
 				Path: "/login",
 			},
 		),
-		func(ctx context.Context, input *LoginInput) (*LoginOutput, error) {
+		func(ctx context.Context, input *UserLoginInput) (*UserLoginOutput, error) {
 			// 1. Locate the user in DB
 			foundUser, err := models.Users(
 				models.UserWhere.Email.EQ(input.Body.Email),
@@ -73,11 +73,11 @@ func (impl *VersionedImpl) RegisterLogin(api huma.API, vc libAPI.VersionConfig) 
 			}
 			// 5. Update user's record to reference freshly generated refresh token
 			foundUser.Refresh = refreshToken.ID
-			if _, err := foundUser.UpdateG(ctx, boil.Infer()); err != nil {
+			if _, err := foundUser.UpdateG(ctx, boil.Whitelist("refresh")); err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
 			}
 			// 6. Prepare and return the response
-			response := &LoginOutput{}
+			response := &UserLoginOutput{}
 			response.Body.AccessToken = accessToken.String()
 			response.Body.RefreshToken = refreshToken.String()
 			return response, nil

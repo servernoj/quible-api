@@ -1,0 +1,4 @@
+"username","email","hashed_password","full_name","phone","activated_at"
+userA,userA@gmail.com,$2a$05$cchumERrwR36S0APeSiDW.EH5oBkhapHpEYMJ58FyYDx4wquxMh8K,User A,1234567890,2023-12-30 16:16:02.009
+userB,userB@gmail.com,$2a$05$cchumERrwR36S0APeSiDW.EH5oBkhapHpEYMJ58FyYDx4wquxMh8K,User B,0123456789,2023-12-30 16:16:02.009
+userC,UserC@gmail.com,$2a$05$cchumERrwR36S0APeSiDW.EH5oBkhapHpEYMJ58FyYDx4wquxMh8K,User C,0987654321,
