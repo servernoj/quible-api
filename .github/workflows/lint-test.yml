@@ -23,19 +23,19 @@ jobs:
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.54
-          args: --timeout=30m
+          args: --timeout=5m
           working-directory: ./auth-service
       - name: golangci-lint app-service
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.54
-          args: --timeout=30m
+          args: --timeout=5m
           working-directory: ./app-service
       - name: golangci-lint lib
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.54
-          args: --timeout=30m
+          args: --timeout=5m
           working-directory: ./lib
 
   test_all:

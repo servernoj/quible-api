@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"reflect"
@@ -113,7 +114,7 @@ func (suite *TestSuite) SetupTest() {
 	// 4. Perform DB migrations
 	goose.SetLogger(goose.NopLogger())
 	goose.SetBaseFS(migrations.FS)
-	if err := goose.Run("up", db, "."); err != nil {
+	if err := goose.RunContext(context.Background(), "up", db, "."); err != nil {
 		suite.T().Fatalf("Could not migrate DB: %s", err)
 	}
 	log.Info().Msg("DB migrated")
