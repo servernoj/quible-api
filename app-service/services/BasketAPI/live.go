@@ -97,16 +97,15 @@ func StartLive() (chan<- struct{}, error) {
 						liveMessage.Events = append(liveMessage.Events, liveEvent)
 						states[ev.ID] = state
 						log.Info().Msgf(
-							"[%d %s %s %d] played %d: %s (%d) vs. %s (%d)\n",
+							"[%d %s %s %d] %s (%d) vs. %s (%d)",
 							ev.ID,
 							ev.Status.Description,
 							ev.Status.Type,
 							ev.Status.Code,
-							ev.Time.Played,
 							liveEvent.AwayTeam.Abbr,
-							liveEvent.AwayScore.Current,
+							*liveEvent.AwayScore.Current,
 							liveEvent.HomeTeam.Abbr,
-							liveEvent.HomeScore.Current,
+							*liveEvent.HomeScore.Current,
 						)
 					}
 				}
