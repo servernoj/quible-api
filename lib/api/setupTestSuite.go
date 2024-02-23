@@ -122,7 +122,7 @@ func (suite *TestSuite) SetupTest() {
 	log.Info().Msgf("DB migrated up to %d", version)
 	// 5. Setup SQLBoiler
 	boil.SetDB(db)
-	boil.DebugMode = true
+	boil.DebugMode = false
 	boil.DebugWriter = new(DebugWriter)
 }
 
@@ -141,6 +141,7 @@ func NewTestSuite[Impl ErrorReporter](t *testing.T, title string, vc VersionConf
 		disableLogging: true,
 	}
 	apiSetup := SetupFactory[Impl](title, "")
+	gin.SetMode(gin.ReleaseMode)
 	testAPI := humatest.Wrap(
 		myTB,
 		apiSetup(
