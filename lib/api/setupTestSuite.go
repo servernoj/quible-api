@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2/humatest"
+	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -35,10 +35,9 @@ func (DebugWriter) Write(p []byte) (n int, err error) {
 
 type TestSuite struct {
 	suite.Suite
-	pool          *dockertest.Pool
-	resource      *dockertest.Resource
-	VersionConfig VersionConfig
-	TestAPI       humatest.TestAPI
+	pool     *dockertest.Pool
+	resource *dockertest.Resource
+	TestAPI  humatest.TestAPI
 }
 
 type MyTB struct {
@@ -136,31 +135,20 @@ func (suite *TestSuite) TearDownTest() {
 	}
 }
 
-func NewTestSuite[Impl ErrorReporter](t *testing.T, vc VersionConfig) TestSuite {
-	// 1. Mimic error response from the actual API
-	var implValue Impl
-	overrideHumaNewError(implValue)
-	// 2. Create new test API
+func NewTestSuite[Impl ErrorReporter](t *testing.T, title string, vc VersionConfig) TestSuite {
 	myTB := &MyTB{
 		T:              t,
 		disableLogging: true,
 	}
-	_, api := humatest.New(myTB)
-	// 3. Register operations from the implemented API to the test API
-	implType := reflect.TypeOf(&implValue)
-	args := []reflect.Value{
-		reflect.ValueOf(&implValue),
-		reflect.ValueOf(api),
-		reflect.ValueOf(vc),
-	}
-	for i := 0; i < implType.NumMethod(); i++ {
-		m := implType.Method(i)
-		if strings.HasPrefix(m.Name, "Register") && len(m.Name) > 8 {
-			m.Func.Call(args)
-		}
-	}
+	apiSetup := SetupFactory[Impl](title, "")
+	testAPI := humatest.Wrap(
+		myTB,
+		apiSetup(
+			gin.Default(),
+			vc,
+		),
+	)
 	return TestSuite{
-		TestAPI:       api,
-		VersionConfig: vc,
+		TestAPI: testAPI,
 	}
 }

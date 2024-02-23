@@ -1,9 +1,11 @@
 package v1_test
 
 import (
+	"net/http/httptest"
 	"os"
 	"testing"
 
+	srvAPI "github.com/quible-io/quible-api/auth-service/api"
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/rs/zerolog"
@@ -14,7 +16,7 @@ import (
 type TestCases struct {
 	libAPI.TestSuite
 }
-
+type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
 type TCRequest struct {
 	Body map[string]any
 }
@@ -26,6 +28,7 @@ type TCData struct {
 	Description string
 	Request     TCRequest
 	Response    TCResponse
+	ExtraTests  []TCExtraTest
 }
 type TCScenarios map[string]TCData
 
@@ -40,6 +43,7 @@ func TestRunner(t *testing.T) {
 		&TestCases{
 			TestSuite: libAPI.NewTestSuite[v1.VersionedImpl](
 				t,
+				srvAPI.Title,
 				libAPI.VersionConfig{
 					Tag:    "v1",
 					SemVer: "1.0.0",
