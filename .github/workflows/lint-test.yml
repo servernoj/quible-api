@@ -43,8 +43,6 @@ jobs:
         image: docker:23.0-rc-dind-rootless
         ports:
           - 2375:2375
-    # container: golang:latest
-    # timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,7 +53,7 @@ jobs:
       - name: Test auth-service
         run: |
           cd auth-service
-          go test -v ./...
+          go test ./... -cover
       - name: Test app-service
         run: |
           cd app-service
