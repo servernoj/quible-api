@@ -2,7 +2,6 @@ package v1
 
 import (
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -19,21 +18,6 @@ func New() libAPI.ServiceAPI {
 
 type VersionedImpl struct {
 	email.EmailSender
-}
-
-func (impl *VersionedImpl) Register(api huma.API, vc libAPI.VersionConfig) {
-	implType := reflect.TypeOf(impl)
-	args := []reflect.Value{
-		reflect.ValueOf(impl),
-		reflect.ValueOf(api),
-		reflect.ValueOf(vc),
-	}
-	for i := 0; i < implType.NumMethod(); i++ {
-		m := implType.Method(i)
-		if strings.HasPrefix(m.Name, "Register") && len(m.Name) > 8 {
-			m.Func.Call(args)
-		}
-	}
 }
 
 func (impl VersionedImpl) NewError(status int, message string, errs ...error) huma.StatusError {
