@@ -101,7 +101,7 @@ func (suite *TestCases) TestUserLogin() {
 			},
 		},
 		"UnactivatedUser": TCData{
-			Description: "login with unactivateduser",
+			Description: "login with unactivated user",
 			Request: TCRequest{
 				Body: map[string]any{
 					"email":    "UserC@gmail.com",
