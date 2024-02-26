@@ -139,7 +139,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 				),
 				&html,
 			)
-			if err := email.Send(ctx, email.EmailDTO{
+			if err := impl.SendEmail(ctx, email.EmailPayload{
 				From:     "no-reply@quible.io",
 				To:       invitee.Email,
 				Subject:  "Invitation to join private chat channel",

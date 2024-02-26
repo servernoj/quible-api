@@ -1,7 +1,7 @@
 package postmark
 
 // ErrorCode: see error codes here (https://postmarkapp.com/developer/api/overview#error-codes)
-type PostmarkResponse struct {
+type Response struct {
 	To          string `json:"To"`
 	SubmittedAt string `json:"SubmittedAt"`
 	MessageID   string `json:"MessageID"`
@@ -9,16 +9,6 @@ type PostmarkResponse struct {
 	Message     string `json:"Message"`
 }
 
-func (r PostmarkResponse) Error() string {
+func (r Response) Error() string {
 	return r.Message
-}
-
-type PostmarkPayload interface {
-	EmailDTO
-}
-
-type RequestParams[T PostmarkPayload] struct {
-	Method  string
-	Path    string
-	Payload *T
 }

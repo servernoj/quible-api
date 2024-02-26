@@ -10,6 +10,7 @@ import (
 
 	"github.com/quible-io/quible-api/app-service/services/ablyService"
 	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/email/postmark"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/rs/zerolog/log"
 )
@@ -29,6 +30,8 @@ func StartLive() (chan<- struct{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize team entity enhancer: %w", err)
 	}
+	// postmark
+	emailSender := postmark.NewClient()
 	// ably
 	ablyRealTime := ablyService.GetAbly()
 	ablyChannel := ablyRealTime.Channels.Get("live:main")
@@ -52,7 +55,7 @@ func StartLive() (chan<- struct{}, error) {
 					log.Info().Msgf("BasketAPI error: %s", err)
 					if !isInError && countError > ERRORS_IN_A_ROW_TO_SET_ALERT {
 						isInError = true
-						if err := email.Send(ctx, email.EmailDTO{
+						if err := emailSender.SendEmail(ctx, email.EmailPayload{
 							From:    "api@quible.io",
 							To:      "devops@quible.io",
 							Subject: "BasketAPI failure",

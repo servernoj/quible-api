@@ -135,16 +135,17 @@ func (suite *TestSuite) TearDownTest() {
 	}
 }
 
-func NewTestSuite[Impl ErrorReporter](t *testing.T, title string, vc VersionConfig) TestSuite {
+func NewTestSuite(t *testing.T, serviceAPI ServiceAPI, title string, vc VersionConfig) TestSuite {
 	myTB := &MyTB{
 		T:              t,
 		disableLogging: true,
 	}
-	apiSetup := SetupFactory[Impl](title, "")
 	gin.SetMode(gin.ReleaseMode)
+	postInit := GetPostInit(title, "")
 	testAPI := humatest.Wrap(
 		myTB,
-		apiSetup(
+		postInit(
+			serviceAPI,
 			gin.Default(),
 			vc,
 		),

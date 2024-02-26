@@ -5,78 +5,72 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/quible-io/quible-api/lib/email"
 )
 
-type Client struct {
+type Option func(client *PostmarkClient)
+
+func WithBaseUrl(BaseURL string) Option {
+	return func(postmarkClient *PostmarkClient) {
+		postmarkClient.BaseURL = BaseURL
+	}
+}
+func WithHttpClient(httpClient http.Client) Option {
+	return func(postmarkClient *PostmarkClient) {
+		postmarkClient.Client = httpClient
+	}
+}
+
+type PostmarkClient struct {
 	http.Client
 	apiKey  string
 	BaseURL string
-	Context context.Context
 }
 
-func NewClient(ctx context.Context) *Client {
-	return &Client{
+func NewClient(options ...Option) email.EmailSender {
+	postmarkClient := PostmarkClient{
 		Client:  http.Client{Timeout: 10 * time.Second},
 		apiKey:  os.Getenv("ENV_POSTMARK_API_KEY"),
 		BaseURL: "https://api.postmarkapp.com",
-		Context: ctx,
 	}
+	for _, option := range options {
+		option(&postmarkClient)
+	}
+	return &postmarkClient
 }
 
-func (client *Client) SendEmail(email EmailDTO) (*PostmarkResponse, error) {
-	return doRequest(
-		client,
-		RequestParams[EmailDTO]{
-			Method:  http.MethodPost,
-			Path:    "email",
-			Payload: &email,
-		},
-	)
-}
-
-func doRequest[T PostmarkPayload](client *Client, params RequestParams[T]) (*PostmarkResponse, error) {
-
-	var requestBody io.Reader
-	if params.Payload != nil {
-		marshalled, err := json.Marshal(params.Payload)
-		if err != nil {
-			return nil, fmt.Errorf("unable to marshal request payload: %w", err)
-		}
-		requestBody = bytes.NewReader(marshalled)
+func (postmarkClient *PostmarkClient) SendEmail(ctx context.Context, emailPayload email.EmailPayload) error {
+	b, err := json.Marshal(emailPayload)
+	if err != nil {
+		return fmt.Errorf("unable to marshal payload: %w", err)
 	}
-
 	req, err := http.NewRequestWithContext(
-		client.Context,
-		params.Method,
-		fmt.Sprintf("%s/%s", client.BaseURL, params.Path),
-		requestBody,
+		ctx,
+		http.MethodPost,
+		fmt.Sprintf("%s/email", postmarkClient.BaseURL),
+		bytes.NewBuffer(b),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create request: %w", err)
+		return fmt.Errorf("unable to prepare request: %w", err)
 	}
-
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Postmark-Server-Token", client.apiKey)
-
-	res, err := client.Do(req)
+	req.Header.Add("X-Postmark-Server-Token", postmarkClient.apiKey)
+	res, err := postmarkClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("unable to execute request to %q: %w", req.URL, err)
+		return fmt.Errorf("unable send request: %w", err)
 	}
-
 	defer res.Body.Close()
-	var ParsedResponse PostmarkResponse
-	if err := json.NewDecoder(res.Body).Decode(&ParsedResponse); err != nil {
-		return nil, fmt.Errorf("unable to parse response from %q: %w", req.URL, err)
+	var parsedResponse Response
+	if err := json.NewDecoder(res.Body).Decode(&parsedResponse); err != nil {
+		return fmt.Errorf("unable to parse response: %w", err)
 	}
-
-	if res.StatusCode >= http.StatusBadRequest {
-		return nil, ParsedResponse
+	if res.StatusCode >= 400 {
+		return parsedResponse
 	}
-
-	return &ParsedResponse, nil
+	return nil
 }

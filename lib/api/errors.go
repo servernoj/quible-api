@@ -4,13 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/danielgtaylor/huma/v2"
 	"github.com/rs/zerolog/log"
 )
-
-type ErrorReporter interface {
-	NewError(int, string, ...error) huma.StatusError
-}
 
 const ErrStatusGain = 10000
 
