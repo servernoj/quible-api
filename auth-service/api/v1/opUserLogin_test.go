@@ -109,7 +109,7 @@ func (suite *TestCases) TestUserLogin() {
 				},
 			},
 			Response: TCResponse{
-				Status:    http.StatusBadRequest,
+				Status:    http.StatusUnauthorized,
 				ErrorCode: misc.Of(v1.Err401_UserNotActivated),
 			},
 		},
