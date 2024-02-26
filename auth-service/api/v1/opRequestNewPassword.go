@@ -64,7 +64,7 @@ func (impl *VersionedImpl) RegisterRequestNewPassword(api huma.API, vc libAPI.Ve
 				&html,
 			)
 			// 3. Send out generated email
-			if err := email.Send(ctx, email.EmailDTO{
+			if err := impl.SendEmail(ctx, email.EmailPayload{
 				From:     "no-reply@quible.io",
 				To:       user.Email,
 				Subject:  "Password reset",

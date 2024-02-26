@@ -41,8 +41,9 @@ func TestRunner(t *testing.T) {
 	suite.Run(
 		t,
 		&TestCases{
-			TestSuite: libAPI.NewTestSuite[v1.VersionedImpl](
+			TestSuite: libAPI.NewTestSuite(
 				t,
+				v1.New(),
 				srvAPI.Title,
 				libAPI.VersionConfig{
 					Tag:    "v1",

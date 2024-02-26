@@ -57,7 +57,8 @@ func Server() {
 			Handler: router,
 		}
 		// -- V1
-		srvAPI.Setup[v1.VersionedImpl](
+		srvAPI.Setup(
+			v1.New(),
 			router,
 			libAPI.VersionConfig{
 				Tag:    "v1",

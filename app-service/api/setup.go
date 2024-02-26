@@ -12,7 +12,7 @@ const Title = "Quible app service"
 //go:embed serviceDescription.md
 var ServiceDescription string
 
-func Setup[Impl libAPI.ErrorReporter](router *gin.Engine, vc libAPI.VersionConfig, withOptions ...libAPI.WithOption) {
-	libSetup := libAPI.SetupFactory[Impl](Title, ServiceDescription)
-	libSetup(router, vc, withOptions...)
+func Setup(impl libAPI.ServiceAPI, router *gin.Engine, vc libAPI.VersionConfig, withOptions ...libAPI.WithOption) {
+	postInit := libAPI.GetPostInit(Title, ServiceDescription)
+	postInit(impl, router, vc, withOptions...)
 }
