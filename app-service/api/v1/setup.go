@@ -41,3 +41,7 @@ func (impl VersionedImpl) NewError(status int, message string, errs ...error) hu
 	}
 	return ErrorMap.GetErrorResponse(Err500_UnknownHumaError, errs...)
 }
+
+func (impl *VersionedImpl) SetEmailSender(emailSender email.EmailSender) {
+	impl.EmailSender = emailSender
+}
