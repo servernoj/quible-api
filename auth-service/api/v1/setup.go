@@ -10,10 +10,22 @@ import (
 	"github.com/quible-io/quible-api/lib/email/postmark"
 )
 
-func New() libAPI.ServiceAPI {
-	return &VersionedImpl{
+type WithOption func(*VersionedImpl)
+
+func WithEmailSenderFunc(emailSenderFunc email.EmailSenderFunc) WithOption {
+	return func(impl *VersionedImpl) {
+		impl.EmailSender = emailSenderFunc
+	}
+}
+
+func New(opts ...WithOption) libAPI.ServiceAPI {
+	impl := &VersionedImpl{
 		EmailSender: postmark.NewClient(),
 	}
+	for _, opt := range opts {
+		opt(impl)
+	}
+	return impl
 }
 
 type VersionedImpl struct {

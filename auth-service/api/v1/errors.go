@@ -96,6 +96,7 @@ const (
 	Err500_UnknownHumaError
 	Err500_UnableToRetrieveProfileImage
 	Err500_UnableToStoreImage
+	Err500_UnableToInitializeEmailClient
 )
 const (
 	Err503_DataBaseOnDelete ErrorCode = Err503_Shift + iota + 1
@@ -139,13 +140,14 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	// -- 424
 	Err424_UnableToSendEmail: "unable to send email",
 	// -- 500
-	Err500_UnableToRegister:             "unexpected issue during registration",
-	Err500_UnableToGenerateToken:        "unable to generate JWT token",
-	Err500_UnknownError:                 "internal server error",
-	Err500_UnableToActivateUser:         "unable to activate user",
-	Err500_UnableToResetPassword:        "unable to reset password",
-	Err500_UnableToUpdateUser:           "unable to update user record",
-	Err500_UnknownHumaError:             "unidentified upstream Huma error",
-	Err500_UnableToRetrieveProfileImage: "unable to retrieve profile image",
-	Err500_UnableToStoreImage:           "unable to store uploaded profile image",
+	Err500_UnableToRegister:              "unexpected issue during registration",
+	Err500_UnableToGenerateToken:         "unable to generate JWT token",
+	Err500_UnknownError:                  "internal server error",
+	Err500_UnableToActivateUser:          "unable to activate user",
+	Err500_UnableToResetPassword:         "unable to reset password",
+	Err500_UnableToUpdateUser:            "unable to update user record",
+	Err500_UnknownHumaError:              "unidentified upstream Huma error",
+	Err500_UnableToRetrieveProfileImage:  "unable to retrieve profile image",
+	Err500_UnableToStoreImage:            "unable to store uploaded profile image",
+	Err500_UnableToInitializeEmailClient: "unable to initialize email client",
 }
