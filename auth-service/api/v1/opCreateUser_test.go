@@ -1,15 +1,33 @@
 package v1_test
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
+	"github.com/quible-io/quible-api/lib/email"
 	"github.com/quible-io/quible-api/lib/misc"
+	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/store"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+type MockedEmailSender struct {
+	mock.Mock
+}
+
+func (m *MockedEmailSender) SendEmail(ctx context.Context, emailPayload email.EmailPayload) error {
+	args := m.Called(ctx, emailPayload)
+	log.Info().Msg("Email sender mocked")
+	return args.Error(0)
+}
 
 func (suite *TestCases) TestCreateUser() {
 	t := suite.T()
@@ -78,8 +96,36 @@ func (suite *TestCases) TestCreateUser() {
 				ErrorCode: misc.Of(v1.Err400_InvalidPhoneFormat),
 			},
 		},
+		"FailureSendEmail": TCData{
+			Description: "Failure due to error in email sender",
+			Request: TCRequest{
+				Body: map[string]any{
+					"username":  "userD",
+					"email":     "userD@gmail.com",
+					"password":  "password",
+					"phone":     "0123456789",
+					"full_name": "User D",
+				},
+			},
+			Response: TCResponse{
+				Status:    http.StatusFailedDependency,
+				ErrorCode: misc.Of(v1.Err424_UnableToSendEmail),
+			},
+			PreHook: func(t *testing.T) any {
+				mockedEmailSender := new(MockedEmailSender)
+				mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(errors.New("email delivery failed"))
+				suite.ServiceAPI.SetEmailSender(
+					mockedEmailSender,
+				)
+				return mockedEmailSender
+			},
+			PostHook: func(t *testing.T, state any) {
+				mockedEmailSender := state.(*MockedEmailSender)
+				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
+			},
+		},
 		"Success": TCData{
-			Description: "Failure of registering user with invalid phone",
+			Description: "Happy path with mocked email sender",
 			Request: TCRequest{
 				Body: map[string]any{
 					"username":  "userD",
@@ -92,6 +138,36 @@ func (suite *TestCases) TestCreateUser() {
 			Response: TCResponse{
 				Status: http.StatusCreated,
 			},
+			PreHook: func(t *testing.T) any {
+				mockedEmailSender := new(MockedEmailSender)
+				mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(nil)
+				suite.ServiceAPI.SetEmailSender(
+					mockedEmailSender,
+				)
+				return mockedEmailSender
+			},
+			PostHook: func(t *testing.T, state any) {
+				mockedEmailSender := state.(*MockedEmailSender)
+				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
+			},
+			ExtraTests: []TCExtraTest{
+				func(req TCRequest, response *httptest.ResponseRecorder) bool {
+					var responseBody v1.UserSimplified
+					if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
+						return false
+					}
+					userInDB, err := models.FindUserG(context.Background(), responseBody.ID)
+					if err != nil {
+						return false
+					}
+					email := req.Body["email"].(string)
+					username := req.Body["username"].(string)
+					if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() != nil {
+						return false
+					}
+					return true
+				},
+			},
 		},
 	}
 	// 1. Import users from CSV file
@@ -100,6 +176,11 @@ func (suite *TestCases) TestCreateUser() {
 	for name, scenario := range testCases {
 		t.Run(name, func(t *testing.T) {
 			assert := assert.New(t)
+			var state any
+			// pre-hook (per-subtest initialization)
+			if scenario.PreHook != nil {
+				state = scenario.PreHook(t)
+			}
 			response := suite.TestAPI.Post("/api/v1/user", scenario.Request.Body)
 			// response status
 			assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
@@ -116,6 +197,10 @@ func (suite *TestCases) TestCreateUser() {
 				assert.True(
 					fn(scenario.Request, response),
 				)
+			}
+			// post-hook (post execution assertion)
+			if scenario.PostHook != nil {
+				scenario.PostHook(t, state)
 			}
 		})
 	}

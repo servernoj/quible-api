@@ -12,20 +12,10 @@ import (
 
 type WithOption func(*VersionedImpl)
 
-func WithEmailSenderFunc(emailSenderFunc email.EmailSenderFunc) WithOption {
-	return func(impl *VersionedImpl) {
-		impl.EmailSender = emailSenderFunc
-	}
-}
-
-func New(opts ...WithOption) libAPI.ServiceAPI {
-	impl := &VersionedImpl{
+func New() libAPI.ServiceAPI {
+	return &VersionedImpl{
 		EmailSender: postmark.NewClient(),
 	}
-	for _, opt := range opts {
-		opt(impl)
-	}
-	return impl
 }
 
 type VersionedImpl struct {
@@ -55,4 +45,8 @@ func (impl VersionedImpl) NewError(status int, message string, errs ...error) hu
 		return ErrorMap.GetErrorResponse(Err400_InvalidRequest)
 	}
 	return ErrorMap.GetErrorResponse(Err500_UnknownHumaError, errs...)
+}
+
+func (impl *VersionedImpl) SetEmailSender(emailSender email.EmailSender) {
+	impl.EmailSender = emailSender
 }

@@ -1,7 +1,6 @@
 package v1_test
 
 import (
-	"context"
 	_ "embed"
 	"net/http/httptest"
 	"os"
@@ -10,7 +9,6 @@ import (
 	srvAPI "github.com/quible-io/quible-api/auth-service/api"
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	libAPI "github.com/quible-io/quible-api/lib/api"
-	"github.com/quible-io/quible-api/lib/email"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
@@ -21,6 +19,7 @@ var users_as_csv string
 
 type TestCases struct {
 	libAPI.TestSuite
+	libAPI.ServiceAPI
 }
 type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
 type TCRequest struct {
@@ -35,6 +34,8 @@ type TCData struct {
 	Request     TCRequest
 	Response    TCResponse
 	ExtraTests  []TCExtraTest
+	PreHook     func(*testing.T) any
+	PostHook    func(*testing.T, any)
 }
 type TCScenarios map[string]TCData
 
@@ -44,19 +45,14 @@ type TCScenarios map[string]TCData
 // for example `TestUserLogin`.
 func TestRunner(t *testing.T) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	implementation := v1.New()
 	suite.Run(
 		t,
 		&TestCases{
+			ServiceAPI: implementation,
 			TestSuite: libAPI.NewTestSuite(
 				t,
-				v1.New(
-					v1.WithEmailSenderFunc(
-						func(ctx context.Context, emailPayload email.EmailPayload) error {
-							log.Info().Msg("EmailSender mocked")
-							return nil
-						},
-					),
-				),
+				implementation,
 				srvAPI.Title,
 				libAPI.VersionConfig{
 					Tag:    "v1",

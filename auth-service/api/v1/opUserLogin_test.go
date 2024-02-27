@@ -2,6 +2,7 @@ package v1_test
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -18,6 +19,7 @@ import (
 
 func (suite *TestCases) TestUserLogin() {
 	t := suite.T()
+	t.Parallel()
 	testCases := TCScenarios{
 		"Success": TCData{
 			Description: "login with correct credentials and expect success",
