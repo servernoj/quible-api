@@ -97,6 +97,19 @@ func (suite *TestCases) TestUserLogin() {
 				ErrorCode: misc.Of(v1.Err400_InvalidEmailFormat),
 			},
 		},
+		"UnactivatedUser": TCData{
+			Description: "login with unactivated user",
+			Request: TCRequest{
+				Body: map[string]any{
+					"email":    "UserC@gmail.com",
+					"password": "does-not-matter",
+				},
+			},
+			Response: TCResponse{
+				Status:    http.StatusUnauthorized,
+				ErrorCode: misc.Of(v1.Err401_UserNotActivated),
+			},
+		},
 	}
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", users_as_csv)
