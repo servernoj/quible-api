@@ -12,7 +12,7 @@ const Title = "Quible auth service"
 //go:embed serviceDescription.md
 var ServiceDescription string
 
-func Setup(impl libAPI.ServiceAPI, router *gin.Engine, vc libAPI.VersionConfig, withOptions ...libAPI.WithOption) {
+func Setup(serviceAPI libAPI.ServiceAPI, router *gin.Engine, vc libAPI.VersionConfig, withOptions ...libAPI.WithOption) {
 	postInit := libAPI.GetPostInit(Title, ServiceDescription)
-	postInit(impl, router, vc, withOptions...)
+	postInit(serviceAPI, router, vc, withOptions...)
 }

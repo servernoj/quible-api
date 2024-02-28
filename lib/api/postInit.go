@@ -16,8 +16,13 @@ type ErrorReporter interface {
 	NewError(int, string, ...error) huma.StatusError
 }
 
+type EmailSenderSetter interface {
+	SetEmailSender(email.EmailSender)
+}
+
 type ServiceAPI interface {
 	ErrorReporter
+	EmailSenderSetter
 	email.EmailSender
 }
 

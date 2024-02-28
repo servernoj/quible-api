@@ -20,3 +20,9 @@ type EmailPayload struct {
 type EmailSender interface {
 	SendEmail(context.Context, EmailPayload) error
 }
+
+type EmailSenderFunc func(context.Context, EmailPayload) error
+
+func (fn EmailSenderFunc) SendEmail(ctx context.Context, payload EmailPayload) error {
+	return fn(ctx, payload)
+}

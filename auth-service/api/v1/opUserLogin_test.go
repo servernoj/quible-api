@@ -17,9 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:embed TestData/users.csv
-var users_as_csv string
-
 func (suite *TestCases) TestUserLogin() {
 	t := suite.T()
 	t.Parallel()
