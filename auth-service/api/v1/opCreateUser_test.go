@@ -171,7 +171,7 @@ func (suite *TestCases) TestCreateUser() {
 		},
 	}
 	// 1. Import users from CSV file
-	store.InsertFromCSV(t, "users", users_as_csv)
+	store.InsertFromCSV(t, "users", UsersCSV)
 	// 2. Try different login scenarios
 	for name, scenario := range testCases {
 		t.Run(name, func(t *testing.T) {

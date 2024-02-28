@@ -1,0 +1,4 @@
+"id","username","email","hashed_password","full_name","phone","activated_at"
+9bef41ed-fb10-4791-b02e-96b372c09466,userA,userA@gmail.com,$2a$05$cchumERrwR36S0APeSiDW.EH5oBkhapHpEYMJ58FyYDx4wquxMh8K,User A,1234567890,2023-12-30 16:16:02.009
+42d29b4b-935d-4f35-b26c-70080107f6d6,userB,userB@gmail.com,$2a$05$cchumERrwR36S0APeSiDW.EH5oBkhapHpEYMJ58FyYDx4wquxMh8K,User B,0123456789,2023-12-30 16:16:02.009
+c6174e8a-e12f-4d64-a4fe-a3b0c081bd31,userC,UserC@gmail.com,$2a$05$cchumERrwR36S0APeSiDW.EH5oBkhapHpEYMJ58FyYDx4wquxMh8K,User C,0987654321,2023-12-30 16:16:02.009
