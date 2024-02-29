@@ -102,3 +102,36 @@ func WithHealth() WithOption {
 		)
 	}
 }
+
+type ContextKey string
+
+type humaContext huma.Context
+
+type ContextWithValue struct {
+	humaContext
+	key   ContextKey
+	value any
+}
+
+func (c *ContextWithValue) Context() context.Context {
+	return context.WithValue(
+		c.humaContext.Context(),
+		c.key,
+		c.value,
+	)
+}
+
+func WithContextValue(key ContextKey, value any) WithOption {
+	return func(api huma.API, vc VersionConfig) {
+		api.UseMiddleware(
+			func(ctx huma.Context, next func(huma.Context)) {
+				newHumaContext := ContextWithValue{
+					humaContext: ctx,
+					key:         key,
+					value:       value,
+				}
+				next(&newHumaContext)
+			},
+		)
+	}
+}

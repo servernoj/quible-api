@@ -57,7 +57,7 @@ jobs:
       - name: Test app-service
         run: |
           cd app-service
-          go test ./...
+          go test ./... -cover
       - name: Test lib
         run: |
           cd lib

@@ -29,7 +29,8 @@ type TestCases struct {
 }
 type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
 type TCRequest struct {
-	Body map[string]any
+	Body    map[string]any
+	Headers []any
 }
 type TCResponse struct {
 	Status    int
