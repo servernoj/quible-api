@@ -38,6 +38,7 @@ type TestSuite struct {
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
 	TestAPI  humatest.TestAPI
+	VersionConfig
 }
 
 type MyTB struct {
@@ -151,6 +152,7 @@ func NewTestSuite(t *testing.T, serviceAPI ServiceAPI, title string, vc VersionC
 		),
 	)
 	return TestSuite{
-		TestAPI: testAPI,
+		TestAPI:       testAPI,
+		VersionConfig: vc,
 	}
 }

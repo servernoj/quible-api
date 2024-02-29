@@ -10,6 +10,10 @@ import (
 	"github.com/quible-io/quible-api/lib/email/postmark"
 )
 
+const (
+	HttpClientContextKey = libAPI.ContextKey("httpClient")
+)
+
 func New() libAPI.ServiceAPI {
 	return &VersionedImpl{
 		EmailSender: postmark.NewClient(),

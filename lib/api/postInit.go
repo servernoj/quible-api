@@ -34,7 +34,11 @@ func GetPostInit(title string, description string) PostInit {
 		config := vc.GetConfig(title, description)
 		// 2. Create API instance
 		api := humagin.New(router, config)
-		// 3. Override default error reporting facility
+		// 3. Register all optional [shared] endpoints
+		for _, option := range withOptions {
+			option(api, vc)
+		}
+		// 4. Override default error reporting facility
 		huma.NewError = func(status int, message string, errs ...error) huma.StatusError {
 			if status == 0 {
 				return &ErrorResponse{}
@@ -45,7 +49,7 @@ func GetPostInit(title string, description string) PostInit {
 			}
 			return serviceAPI.NewError(status, message, errs...)
 		}
-		// 4. Register all implementation-specific endpoints
+		// 5. Register all implementation-specific endpoints
 		implType := reflect.TypeOf(serviceAPI)
 		args := []reflect.Value{
 			reflect.ValueOf(serviceAPI),
@@ -57,10 +61,6 @@ func GetPostInit(title string, description string) PostInit {
 			if strings.HasPrefix(m.Name, "Register") && len(m.Name) > 8 {
 				m.Func.Call(args)
 			}
-		}
-		// 5. Register all optional [shared] endpoints
-		for _, option := range withOptions {
-			option(api, vc)
 		}
 		return api
 	}

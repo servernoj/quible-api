@@ -1,0 +1,14 @@
+"id","resource","title","parent_id","is_private","owner_id"
+"8482ba32-840b-4ccd-8d0f-ab5f6628bbcf","PubGr1","pub gr one",,"false","9bef41ed-fb10-4791-b02e-96b372c09466"
+"cd54bef3-5793-4b3f-809d-8b73fad05f4c","PubGr2","pub gr two",,"false","c6174e8a-e12f-4d64-a4fe-a3b0c081bd31"
+"bba6c28c-17f1-4d66-83df-a7c2421417a8","PubGr3","pub gr three",,"false","42d29b4b-935d-4f35-b26c-70080107f6d6"
+"6e22a7e1-a7ed-46ec-8043-c49055d0e528","PrGr1","priv gr one",,"true","9bef41ed-fb10-4791-b02e-96b372c09466"
+"5fc26811-33e6-4559-91c3-9b95cf61d3ab","PrGr2","priv gr two",,"true","c6174e8a-e12f-4d64-a4fe-a3b0c081bd31"
+"d8ccd6ae-6367-4cb6-ac3f-adc86c8dfab3","Ch1","pub one","8482ba32-840b-4ccd-8d0f-ab5f6628bbcf",,
+"d0d784df-092f-465f-a479-9523a61ddb53","Ch2","pub two","8482ba32-840b-4ccd-8d0f-ab5f6628bbcf",,
+"0ea83a0c-02a8-4415-939b-2fe1a99bbcb5","Ch1","pub 1","cd54bef3-5793-4b3f-809d-8b73fad05f4c",,
+"f67b76ad-a313-4a6a-be6c-f389e20809f0","Ch2","pub 2","cd54bef3-5793-4b3f-809d-8b73fad05f4c",,
+"29af8af9-6e50-434c-b5d8-876067a3ca24","Ch1","priv one","6e22a7e1-a7ed-46ec-8043-c49055d0e528",,
+"b7b0a881-1602-4068-87e0-8648669afe1c","Ch2","priv two","6e22a7e1-a7ed-46ec-8043-c49055d0e528",,
+"bf9bd519-4f5b-446b-b1e9-b45b5c6d2403","Ch1","priv 1","5fc26811-33e6-4559-91c3-9b95cf61d3ab",,
+"8a2bc140-6622-4a26-b047-b3bb735bf34a","Ch2","priv 2","5fc26811-33e6-4559-91c3-9b95cf61d3ab",,

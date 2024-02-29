@@ -10,23 +10,14 @@ import (
 	"github.com/quible-io/quible-api/lib/models"
 )
 
-type _resolved struct {
-	resolved bool
-}
-
 // -- Authorization header containing Bearer access token. Injects `UserId` into `input` struct
 type AuthorizationHeaderResolver struct {
-	_resolved
 	Authorization string `header:"authorization"`
 	UserId        string
 }
 
 func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []error) {
-	if !input.resolved {
-		input.resolved = true
-	} else {
-		return
-	}
+	// 1. Prepare request
 	request, _ := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf(
@@ -36,7 +27,10 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 		http.NoBody,
 	)
 	request.Header.Add("Authorization", input.Authorization)
-	response, err := http.DefaultClient.Do(request)
+	// 2. Initialize HTTP client with default value and override it from Context when present
+	var httpClient = http.DefaultClient
+	// 3. Perform the request
+	response, err := httpClient.Do(request)
 	if err != nil {
 		errs = append(errs, &huma.ErrorDetail{
 			Message:  "unable to send request to auth-service",
@@ -47,7 +41,10 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 	}
 	body := response.Body
 	defer body.Close()
-	var data map[string]any
+	// 4. Parse the response and check if status is not 401
+	var data struct {
+		ID string `json:"id"`
+	}
 	if err := json.NewDecoder(body).Decode(&data); err != nil {
 		errs = append(errs, &huma.ErrorDetail{
 			Message:  "unable to parse response from auth-service",
@@ -64,23 +61,15 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 		})
 		return
 	}
-	if userId, ok := data["id"].(string); !ok {
+	// 5. Verify that user exists in DB
+	if exists, err := models.UserExistsG(ctx.Context(), data.ID); err != nil || !exists {
 		errs = append(errs, &huma.ErrorDetail{
-			Message:  "field `id` is not present in the returned object",
-			Location: "auth-service.getUser.data",
-			Value:    data,
+			Message:  "user not found",
+			Location: "db.users",
+			Value:    err,
 		})
 		return
-	} else {
-		if exists, err := models.UserExistsG(ctx.Context(), userId); err != nil || !exists {
-			errs = append(errs, &huma.ErrorDetail{
-				Message:  "user not found",
-				Location: "db.users",
-				Value:    err,
-			})
-			return
-		}
-		input.UserId = userId
 	}
+	input.UserId = data.ID
 	return
 }
