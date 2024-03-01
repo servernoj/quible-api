@@ -12,7 +12,7 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-type InsertOptionsFunc func(*InsertOptions)
+type InsertOption func(*InsertOptions)
 
 type InsertOptions struct {
 	isNull   func(string) bool
@@ -20,18 +20,23 @@ type InsertOptions struct {
 	db       *sql.DB
 }
 
-func InsertWithIsNull(isNull func(string) bool) InsertOptionsFunc {
+func InsertWithIsNull(isNull func(string) bool) InsertOption {
 	return func(options *InsertOptions) {
 		options.isNull = isNull
 	}
 }
-func InsertWithDB(db *sql.DB) InsertOptionsFunc {
+func InsertWithIsBase64(isBase64 func(string, string) bool) InsertOption {
+	return func(options *InsertOptions) {
+		options.isBase64 = isBase64
+	}
+}
+func InsertWithDB(db *sql.DB) InsertOption {
 	return func(options *InsertOptions) {
 		options.db = db
 	}
 }
 
-func InsertFromCSV(t *testing.T, tableName string, csv_as_string string, opts ...InsertOptionsFunc) {
+func InsertFromCSV(t *testing.T, tableName string, csv_as_string string, opts ...InsertOption) {
 	options := InsertOptions{
 		isNull: func(s string) bool {
 			return len(s) == 0
