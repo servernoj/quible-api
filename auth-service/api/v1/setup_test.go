@@ -44,12 +44,12 @@ type TCData struct {
 }
 type TCScenarios map[string]TCData
 
-func GetToken(t *testing.T, userId string) string {
+func GetToken(t *testing.T, userId string, action jwt.TokenAction) string {
 	user, err := models.FindUserG(context.Background(), userId)
 	if err != nil {
 		t.Fatalf("unable to retrieve user record from DB: %q", err)
 	}
-	token, err := jwt.GenerateToken(user, jwt.TokenActionAccess, nil)
+	token, err := jwt.GenerateToken(user, action, nil)
 	if err != nil {
 		t.Fatal("unable to generate token")
 	}
