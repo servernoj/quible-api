@@ -33,7 +33,7 @@ func (suite *TestCases) TestGetUser() {
 			},
 		},
 		"FailureInvalidAccessToken": TCData{
-			Description: "Failure due to invalid token in authorization header",
+			Description: "Failure due to an invalid token in the authorization header",
 			Request: TCRequest{
 				Headers: []any{
 					"Authorization: Bearer invalid-token",
@@ -45,7 +45,7 @@ func (suite *TestCases) TestGetUser() {
 			},
 		},
 		"Success": TCData{
-			Description: "Failure due to invalid token in authorization header",
+			Description: "Success + validating returned user against DB",
 			Request: TCRequest{
 				Headers: []any{
 					// User A
