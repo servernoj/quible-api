@@ -27,6 +27,9 @@ type UploadProfileImageInput struct {
 }
 
 func (input *UploadProfileImageInput) Resolve(ctx huma.Context) (errs []error) {
+	if errs = input.AuthorizationHeaderResolver.Resolve(ctx); len(errs) > 0 {
+		return
+	}
 	// 1. Analyze content-type header
 	mediaType, params, err := mime.ParseMediaType(input.ContentType)
 	if err != nil {

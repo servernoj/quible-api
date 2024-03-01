@@ -5,7 +5,7 @@ go 1.21.3
 replace github.com/quible-io/quible-api/lib => ../lib
 
 require (
-	github.com/danielgtaylor/huma/v2 v2.5.0
+	github.com/danielgtaylor/huma/v2 v2.6.0
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/quible-io/quible-api/lib v0.0.0-00010101000000-000000000000

@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"encoding/csv"
 	"fmt"
 	"strings"
@@ -14,8 +15,9 @@ import (
 type InsertOptionsFunc func(*InsertOptions)
 
 type InsertOptions struct {
-	isNull func(string) bool
-	db     *sql.DB
+	isNull   func(string) bool
+	isBase64 func(string, string) bool
+	db       *sql.DB
 }
 
 func InsertWithIsNull(isNull func(string) bool) InsertOptionsFunc {
@@ -33,6 +35,9 @@ func InsertFromCSV(t *testing.T, tableName string, csv_as_string string, opts ..
 	options := InsertOptions{
 		isNull: func(s string) bool {
 			return len(s) == 0
+		},
+		isBase64: func(s string, col string) bool {
+			return s[len(s)-1] == '=' && col == "image"
 		},
 		db: boil.GetDB().(*sql.DB),
 	}
@@ -60,10 +65,21 @@ func InsertFromCSV(t *testing.T, tableName string, csv_as_string string, opts ..
 	for _, data := range records[1:] {
 		args := make([]any, len(data))
 		for idx := range data {
-			if options.isNull(data[idx]) {
+			switch {
+			case options.isNull(data[idx]):
 				args[idx] = nil
-			} else {
-				args[idx] = data[idx]
+			case options.isBase64(data[idx], headers[idx]):
+				{
+					decoded, err := base64.StdEncoding.DecodeString(data[idx])
+					if err != nil {
+						args[idx] = data[idx]
+					}
+					args[idx] = decoded
+				}
+			default:
+				{
+					args[idx] = data[idx]
+				}
 			}
 		}
 		if _, err := stmt.Exec(args...); err != nil {
