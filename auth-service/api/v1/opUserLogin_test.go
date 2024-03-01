@@ -19,7 +19,6 @@ import (
 
 func (suite *TestCases) TestUserLogin() {
 	t := suite.T()
-	t.Parallel()
 	testCases := TCScenarios{
 		"Success": TCData{
 			Description: "login with correct credentials and expect success",

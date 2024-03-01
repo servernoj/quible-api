@@ -1,6 +1,7 @@
 package v1_test
 
 import (
+	"context"
 	_ "embed"
 	"net/http/httptest"
 	"os"
@@ -9,6 +10,8 @@ import (
 	srvAPI "github.com/quible-io/quible-api/auth-service/api"
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	libAPI "github.com/quible-io/quible-api/lib/api"
+	"github.com/quible-io/quible-api/lib/jwt"
+	"github.com/quible-io/quible-api/lib/models"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +26,8 @@ type TestCases struct {
 }
 type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
 type TCRequest struct {
-	Body map[string]any
+	Body    map[string]any
+	Headers []any
 }
 type TCResponse struct {
 	Status    int
@@ -38,6 +42,18 @@ type TCData struct {
 	PostHook    func(*testing.T, any)
 }
 type TCScenarios map[string]TCData
+
+func GetToken(t *testing.T, userId string) string {
+	user, err := models.FindUserG(context.Background(), userId)
+	if err != nil {
+		t.Fatalf("unable to retrieve user record from DB: %q", err)
+	}
+	token, err := jwt.GenerateToken(user, jwt.TokenActionAccess, nil)
+	if err != nil {
+		t.Fatal("unable to generate token")
+	}
+	return token.String()
+}
 
 // This is the only test function being called by `go test ./...` It takes advantage of `testify/suite` package
 // to initialize a test suite containing (implementing) `SetupTest` and `TearDownTest` methods that are automatically
