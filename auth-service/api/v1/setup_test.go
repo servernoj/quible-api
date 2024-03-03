@@ -3,7 +3,6 @@ package v1_test
 import (
 	"context"
 	_ "embed"
-	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -20,30 +19,6 @@ import (
 //go:embed TestData/users.csv
 var UsersCSV string
 
-type TestCases struct {
-	libAPI.TestSuite
-	libAPI.ServiceAPI
-}
-type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
-type TCRequest struct {
-	Body    map[string]any
-	Headers []any
-	Params  map[string]any
-}
-type TCResponse struct {
-	Status    int
-	ErrorCode *v1.ErrorCode
-}
-type TCData struct {
-	Description string
-	Request     TCRequest
-	Response    TCResponse
-	ExtraTests  []TCExtraTest
-	PreHook     func(*testing.T) any
-	PostHook    func(*testing.T, any)
-}
-type TCScenarios map[string]TCData
-
 func GetToken(t *testing.T, userId string, action jwt.TokenAction) string {
 	user, err := models.FindUserG(context.Background(), userId)
 	if err != nil {
@@ -54,6 +29,11 @@ func GetToken(t *testing.T, userId string, action jwt.TokenAction) string {
 		t.Fatal("unable to generate token")
 	}
 	return token.String()
+}
+
+type TestCases struct {
+	libAPI.TestSuite
+	libAPI.ServiceAPI
 }
 
 // This is the only test function being called by `go test ./...` It takes advantage of `testify/suite` package
