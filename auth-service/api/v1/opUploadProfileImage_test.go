@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -11,31 +12,34 @@ import (
 	"net/http/httptest"
 	"net/textproto"
 	"os"
+	"reflect"
 	"testing"
 
+	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/lib/jwt"
+	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/store"
 	"github.com/rs/zerolog/log"
 )
 
-func NewTCRequest(t *testing.T) TCRequest {
+func NewTCRequest(t *testing.T, contentType, imageFilename, userId, fieldName string) TCRequest {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	h := make(textproto.MIMEHeader)
 	h.Set(
 		"Content-Disposition",
-		`form-data; name="image"; filename="image.svg"`,
+		fmt.Sprintf(`form-data; name="%s"; filename="image.svg"`, fieldName),
 	)
 	h.Set(
 		"Content-Type",
-		"image/svg+xml",
+		contentType,
 	)
 	part, err := writer.CreatePart(h)
 	if err != nil {
 		t.Fatal(err)
 	}
-	file, err := os.Open("TestData/image.svg")
+	file, err := os.Open(imageFilename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +48,6 @@ func NewTCRequest(t *testing.T) TCRequest {
 		t.Fatal(err)
 	}
 	writer.Close()
-	userId := "42d29b4b-935d-4f35-b26c-70080107f6d6"
 	args := []any{
 		fmt.Sprintf("Content-Length: %d", body.Len()),
 		fmt.Sprintf("Content-Type: multipart/form-data; boundary=%s", writer.Boundary()),
@@ -56,7 +59,9 @@ func NewTCRequest(t *testing.T) TCRequest {
 		Path:   "/api/v1/user/image",
 		Args:   args,
 		Params: map[string]any{
-			"userId": userId,
+			"userId":        userId,
+			"contentType":   contentType,
+			"imageFilename": imageFilename,
 		},
 	}
 }
@@ -68,8 +73,8 @@ func (suite *TestCases) TestUploadProfileImage() {
 	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"Success": TCData{
-			Description: "login with correct credentials and expect success",
-			Request:     NewTCRequest(t),
+			Description: "Successful upload and confirmation in DB",
+			Request:     NewTCRequest(t, "image/svg+xml", "TestData/image.svg", "42d29b4b-935d-4f35-b26c-70080107f6d6", "image"),
 			Response: TCResponse{
 				Status: http.StatusAccepted,
 			},
@@ -80,8 +85,47 @@ func (suite *TestCases) TestUploadProfileImage() {
 						log.Error().Err(err).Send()
 						return false
 					}
-					return user.Image.Ptr() != nil
+					imageDataBytesPtr := user.Image.Ptr()
+					if imageDataBytesPtr == nil {
+						return false
+					}
+					var imageData v1.ImageData
+					if err := json.Unmarshal(*imageDataBytesPtr, &imageData); err != nil {
+						log.Error().Err(err).Send()
+						return false
+					}
+					if imageData.ContentType != t.Params["contentType"].(string) {
+						return false
+					}
+					f, err := os.Open(t.Params["imageFilename"].(string))
+					if err != nil {
+						log.Error().Err(err).Send()
+						return false
+					}
+					defer f.Close()
+					b, err := io.ReadAll(f)
+					if err != nil {
+						log.Error().Err(err).Send()
+						return false
+					}
+					return reflect.DeepEqual(b, imageData.BinaryContent)
 				},
+			},
+		},
+		"FailureOnInvalidMultipartName": TCData{
+			Description: "Failure to upload when multipart content field is not named as `image`",
+			Request:     NewTCRequest(t, "image/svg+xml", "TestData/image.svg", "42d29b4b-935d-4f35-b26c-70080107f6d6", "invalid"),
+			Response: TCResponse{
+				Status:    http.StatusBadRequest,
+				ErrorCode: misc.Of(v1.Err400_ImageDataNotPresent),
+			},
+		},
+		"FailureOnInvalidContentType": TCData{
+			Description: "Failure to upload when file content type doesn't have prefix `image/`",
+			Request:     NewTCRequest(t, "invalid", "TestData/image.svg", "42d29b4b-935d-4f35-b26c-70080107f6d6", "image"),
+			Response: TCResponse{
+				Status:    http.StatusBadRequest,
+				ErrorCode: misc.Of(v1.Err400_ImageDataNotPresent),
 			},
 		},
 	}

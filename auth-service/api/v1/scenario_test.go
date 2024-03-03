@@ -35,7 +35,6 @@ type TCScenarios map[string]TCData
 
 func (scenario *TCData) GetRunner(testAPI humatest.TestAPI) func(*testing.T) {
 	return func(t *testing.T) {
-		t.Helper()
 		assert := assert.New(t)
 		var state any
 		// pre-hook (per-subtest initialization)
