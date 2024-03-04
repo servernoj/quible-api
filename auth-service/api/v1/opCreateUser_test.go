@@ -6,16 +6,15 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/lib/email"
+	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/store"
 	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -31,16 +30,23 @@ func (m *MockedEmailSender) SendEmail(ctx context.Context, emailPayload email.Em
 
 func (suite *TestCases) TestCreateUser() {
 	t := suite.T()
+	// 1. Import users from CSV file
+	store.InsertFromCSV(t, "users", UsersCSV)
+	// 2. Load environment variables
+	env.Setup()
+	// 3. Define test scenarios
 	testCases := TCScenarios{
 		"FailureOnActivatedWithExistingEmail": TCData{
 			Description: "Failure of registering existing email on activated user",
 			Request: TCRequest{
-				Body: map[string]any{
-					"username":  "new-username",
-					"email":     "userA@gmail.com",
-					"password":  "password",
-					"phone":     "0123456789",
-					"full_name": "existing email",
+				Args: []any{
+					map[string]any{
+						"username":  "new-username",
+						"email":     "userA@gmail.com",
+						"password":  "password",
+						"phone":     "0123456789",
+						"full_name": "existing email",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -51,12 +57,14 @@ func (suite *TestCases) TestCreateUser() {
 		"FailureOnActivatedWithExistingUsername": TCData{
 			Description: "Failure of registering existing username on activated user",
 			Request: TCRequest{
-				Body: map[string]any{
-					"username":  "userA",
-					"email":     "non-existent@gmail.com",
-					"password":  "password",
-					"phone":     "0123456789",
-					"full_name": "existing username",
+				Args: []any{
+					map[string]any{
+						"username":  "userA",
+						"email":     "non-existent@gmail.com",
+						"password":  "password",
+						"phone":     "0123456789",
+						"full_name": "existing username",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -67,12 +75,14 @@ func (suite *TestCases) TestCreateUser() {
 		"FailureOnInvalidEmail": TCData{
 			Description: "Failure of registering user with invalid email",
 			Request: TCRequest{
-				Body: map[string]any{
-					"username":  "userD",
-					"email":     "not-an-email-address",
-					"password":  "password",
-					"phone":     "0123456789",
-					"full_name": "User D",
+				Args: []any{
+					map[string]any{
+						"username":  "userD",
+						"email":     "not-an-email-address",
+						"password":  "password",
+						"phone":     "0123456789",
+						"full_name": "User D",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -83,12 +93,14 @@ func (suite *TestCases) TestCreateUser() {
 		"FailureOnInvalidPhone": TCData{
 			Description: "Failure of registering user with invalid phone",
 			Request: TCRequest{
-				Body: map[string]any{
-					"username":  "userD",
-					"email":     "userD@gmail.com",
-					"password":  "password",
-					"phone":     "invalid",
-					"full_name": "User D",
+				Args: []any{
+					map[string]any{
+						"username":  "userD",
+						"email":     "userD@gmail.com",
+						"password":  "password",
+						"phone":     "invalid",
+						"full_name": "User D",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -99,12 +111,14 @@ func (suite *TestCases) TestCreateUser() {
 		"FailureSendEmail": TCData{
 			Description: "Failure due to error in email sender",
 			Request: TCRequest{
-				Body: map[string]any{
-					"username":  "userD",
-					"email":     "userD@gmail.com",
-					"password":  "password",
-					"phone":     "0123456789",
-					"full_name": "User D",
+				Args: []any{
+					map[string]any{
+						"username":  "userD",
+						"email":     "userD@gmail.com",
+						"password":  "password",
+						"phone":     "0123456789",
+						"full_name": "User D",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -127,12 +141,18 @@ func (suite *TestCases) TestCreateUser() {
 		"Success": TCData{
 			Description: "Happy path with mocked email sender",
 			Request: TCRequest{
-				Body: map[string]any{
-					"username":  "userD",
-					"email":     "userD@gmail.com",
-					"password":  "password",
-					"phone":     "0123456789",
-					"full_name": "User D",
+				Args: []any{
+					map[string]any{
+						"username":  "userD",
+						"email":     "userD@gmail.com",
+						"password":  "password",
+						"phone":     "0123456789",
+						"full_name": "User D",
+					},
+				},
+				Params: map[string]any{
+					"username": "userD",
+					"email":    "userD@gmail.com",
 				},
 			},
 			Response: TCResponse{
@@ -160,8 +180,8 @@ func (suite *TestCases) TestCreateUser() {
 					if err != nil {
 						return false
 					}
-					email := req.Body["email"].(string)
-					username := req.Body["username"].(string)
+					email := req.Params["email"].(string)
+					username := req.Params["username"].(string)
 					if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() != nil {
 						return false
 					}
@@ -170,38 +190,8 @@ func (suite *TestCases) TestCreateUser() {
 			},
 		},
 	}
-	// 1. Import users from CSV file
-	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Try different login scenarios
+	// 4. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
-			var state any
-			// pre-hook (per-subtest initialization)
-			if scenario.PreHook != nil {
-				state = scenario.PreHook(t)
-			}
-			response := suite.TestAPI.Post("/api/v1/user", scenario.Request.Body)
-			// response status
-			assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
-			// error code in case of error
-			if scenario.Response.ErrorCode != nil {
-				assert.Contains(
-					response.Body.String(),
-					strconv.Itoa(int(*scenario.Response.ErrorCode)),
-					"error code should match expectation",
-				)
-			}
-			// extra tests (if present)
-			for _, fn := range scenario.ExtraTests {
-				assert.True(
-					fn(scenario.Request, response),
-				)
-			}
-			// post-hook (post execution assertion)
-			if scenario.PostHook != nil {
-				scenario.PostHook(t, state)
-			}
-		})
+		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPost, "/api/v1/user"))
 	}
 }

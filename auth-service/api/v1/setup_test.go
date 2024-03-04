@@ -31,10 +31,17 @@ func GetToken(t *testing.T, userId string, action jwt.TokenAction) string {
 	return token.String()
 }
 
-type TestCases struct {
-	libAPI.TestSuite
-	libAPI.ServiceAPI
-}
+type (
+	TCScenarios = libAPI.TCScenarios[v1.ErrorCode]
+	TCRequest   = libAPI.TCRequest
+	TCResponse  = libAPI.TCResponse[v1.ErrorCode]
+	TCData      = libAPI.TCData[v1.ErrorCode]
+	TCExtraTest = libAPI.TCExtraTest
+	TestCases   struct {
+		libAPI.TestSuite
+		libAPI.ServiceAPI
+	}
+)
 
 // This is the only test function being called by `go test ./...` It takes advantage of `testify/suite` package
 // to initialize a test suite containing (implementing) `SetupTest` and `TearDownTest` methods that are automatically

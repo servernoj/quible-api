@@ -3,24 +3,23 @@ package v1_test
 import (
 	_ "embed"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"strconv"
-	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
+	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
-	"github.com/stretchr/testify/assert"
 )
 
 func (suite *TestCases) TestGetUserProfile() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Define test scenarios
+	// 2. Load environment variables
+	env.Setup()
+	// 3. Define test scenarios
 	testCases := TCScenarios{
 		"SuccessWithImage": TCData{
 			Description: "Success with image in profile",
@@ -105,28 +104,16 @@ func (suite *TestCases) TestGetUserProfile() {
 			},
 		},
 	}
-	// 3. Run scenarios in sequence
+	// 4. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
-			path := fmt.Sprintf("/api/v1/user/%s/profile", scenario.Request.Params["userId"])
-			response := suite.TestAPI.Get(path, scenario.Request.Headers...)
-			// response status
-			assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
-			// error code in case of error
-			if scenario.Response.ErrorCode != nil {
-				assert.Contains(
-					response.Body.String(),
-					strconv.Itoa(int(*scenario.Response.ErrorCode)),
-					"error code should match expectation",
-				)
-			}
-			// extra tests (if present)
-			for _, fn := range scenario.ExtraTests {
-				assert.True(
-					fn(scenario.Request, response),
-				)
-			}
-		})
+		t.Run(
+			name,
+			scenario.GetRunner(
+				suite.TestAPI,
+				http.MethodGet,
+				"/api/v1/user/%s/profile",
+				scenario.Request.Params["userId"],
+			),
+		)
 	}
 }

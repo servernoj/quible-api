@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/h2non/gock"
@@ -15,11 +14,16 @@ import (
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/store"
-	"github.com/stretchr/testify/assert"
 )
 
 func (suite *TestCases) TestListChatGroups() {
 	t := suite.T()
+	// 1. Import data from CSV files
+	store.InsertFromCSV(t, "users", UsersCSV)
+	store.InsertFromCSV(t, "chats", ChatsCSV)
+	// 2. Load environment variables
+	env.Setup()
+	// 3. Define test scenarios
 	testCases := TCScenarios{
 		"FailureUnreachableAuthService": TCData{
 			Description: "Failure on unavailable auth-service",
@@ -32,7 +36,7 @@ func (suite *TestCases) TestListChatGroups() {
 		"FailureOnInvalidAuthorization": TCData{
 			Description: "Failure on unauthorized request due to invalid Bearer token",
 			Request: TCRequest{
-				Headers: []any{
+				Args: []any{
 					"Authorization: invalid",
 				},
 			},
@@ -55,7 +59,7 @@ func (suite *TestCases) TestListChatGroups() {
 		"SuccessUserWithChatGroups": TCData{
 			Description: "Success with non-empty list of chat groups in response",
 			Request: TCRequest{
-				Headers: []any{
+				Args: []any{
 					"Authorization: valid",
 				},
 			},
@@ -97,7 +101,7 @@ func (suite *TestCases) TestListChatGroups() {
 		"SuccessUserWithoutChatGroups": TCData{
 			Description: "Success with empty list of chat groups in response",
 			Request: TCRequest{
-				Headers: []any{
+				Args: []any{
 					"Authorization: valid",
 				},
 			},
@@ -131,7 +135,7 @@ func (suite *TestCases) TestListChatGroups() {
 		"FailureOnUnknownUser": TCData{
 			Description: "Failure on a request on behalf of unknown user",
 			Request: TCRequest{
-				Headers: []any{
+				Args: []any{
 					"Authorization: valid",
 				},
 			},
@@ -154,41 +158,8 @@ func (suite *TestCases) TestListChatGroups() {
 			},
 		},
 	}
-	// 1. Import data from CSV files
-	store.InsertFromCSV(t, "users", UsersCSV)
-	store.InsertFromCSV(t, "chats", ChatsCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Try different login scenarios
+	// 4. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
-			var state any
-			// pre-hook (mock initialization)
-			if scenario.PreHook != nil {
-				state = scenario.PreHook(t)
-			}
-			response := suite.TestAPI.Get("/api/v1/chat/groups", scenario.Request.Headers...)
-			// response status
-			assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
-			// error code in case of error
-			if scenario.Response.ErrorCode != nil {
-				assert.Contains(
-					response.Body.String(),
-					strconv.Itoa(int(*scenario.Response.ErrorCode)),
-					"error code should match expectation",
-				)
-			}
-			// extra tests (if present)
-			for _, fn := range scenario.ExtraTests {
-				assert.True(
-					fn(scenario.Request, response),
-				)
-			}
-			// post-hook (mock assertion)
-			if scenario.PostHook != nil {
-				scenario.PostHook(t, state)
-			}
-		})
+		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodGet, "/api/v1/chat/groups"))
 	}
 }

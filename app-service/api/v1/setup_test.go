@@ -2,7 +2,6 @@ package v1_test
 
 import (
 	_ "embed"
-	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -23,28 +22,17 @@ var ChatsCSV string
 //go:embed TestData/chat-user.csv
 var ChatUserCSV string
 
-type TestCases struct {
-	libAPI.TestSuite
-	libAPI.ServiceAPI
-}
-type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
-type TCRequest struct {
-	Body    map[string]any
-	Headers []any
-}
-type TCResponse struct {
-	Status    int
-	ErrorCode *v1.ErrorCode
-}
-type TCData struct {
-	Description string
-	Request     TCRequest
-	Response    TCResponse
-	ExtraTests  []TCExtraTest
-	PreHook     func(*testing.T) any
-	PostHook    func(*testing.T, any)
-}
-type TCScenarios map[string]TCData
+type (
+	TCScenarios = libAPI.TCScenarios[v1.ErrorCode]
+	TCRequest   = libAPI.TCRequest
+	TCResponse  = libAPI.TCResponse[v1.ErrorCode]
+	TCData      = libAPI.TCData[v1.ErrorCode]
+	TCExtraTest = libAPI.TCExtraTest
+	TestCases   struct {
+		libAPI.TestSuite
+		libAPI.ServiceAPI
+	}
+)
 
 // This is the only test function being called by `go test ./...` It takes advantage of `testify/suite` package
 // to initialize a test suite containing (implementing) `SetupTest` and `TearDownTest` methods that are automatically

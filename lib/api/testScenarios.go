@@ -1,39 +1,35 @@
-package v1_test
+package api
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 
 	"github.com/danielgtaylor/huma/v2/humatest"
-	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/stretchr/testify/assert"
 )
 
 type TCExtraTest func(TCRequest, *httptest.ResponseRecorder) bool
 type TCRequest struct {
-	Method  string
-	Path    string
-	Args    []any
-	Body    map[string]any
-	Headers []any
-	Params  map[string]any
+	Args   []any
+	Params map[string]any
 }
-type TCResponse struct {
+type TCResponse[EC ErrorCodeConstraints] struct {
 	Status    int
-	ErrorCode *v1.ErrorCode
+	ErrorCode *EC
 }
-type TCData struct {
+type TCData[EC ErrorCodeConstraints] struct {
 	Description string
 	Request     TCRequest
-	Response    TCResponse
+	Response    TCResponse[EC]
 	ExtraTests  []TCExtraTest
 	PreHook     func(*testing.T) any
 	PostHook    func(*testing.T, any)
 }
-type TCScenarios map[string]TCData
+type TCScenarios[EC ErrorCodeConstraints] map[string]TCData[EC]
 
-func (scenario *TCData) GetRunner(testAPI humatest.TestAPI) func(*testing.T) {
+func (scenario *TCData[EC]) GetRunner(testAPI humatest.TestAPI, method string, pathFormat string, pathArgs ...any) func(*testing.T) {
 	return func(t *testing.T) {
 		assert := assert.New(t)
 		var state any
@@ -42,8 +38,8 @@ func (scenario *TCData) GetRunner(testAPI humatest.TestAPI) func(*testing.T) {
 			state = scenario.PreHook(t)
 		}
 		response := testAPI.Do(
-			scenario.Request.Method,
-			scenario.Request.Path,
+			method,
+			fmt.Sprintf(pathFormat, pathArgs...),
 			scenario.Request.Args...,
 		)
 		// response status

@@ -7,15 +7,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"strconv"
-	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
-	"github.com/stretchr/testify/assert"
 )
 
 func (suite *TestCases) TestGetUser() {
@@ -29,7 +26,7 @@ func (suite *TestCases) TestGetUser() {
 		"FailureMissingAuthorizationHeader": TCData{
 			Description: "Failure due to missing authorization header",
 			Request: TCRequest{
-				Headers: []any{},
+				Args: []any{},
 			},
 			Response: TCResponse{
 				Status:    http.StatusUnauthorized,
@@ -39,7 +36,7 @@ func (suite *TestCases) TestGetUser() {
 		"FailureInvalidAccessToken": TCData{
 			Description: "Failure due to an invalid token in the authorization header",
 			Request: TCRequest{
-				Headers: []any{
+				Args: []any{
 					"Authorization: Bearer invalid-token",
 				},
 			},
@@ -51,7 +48,7 @@ func (suite *TestCases) TestGetUser() {
 		"Success": TCData{
 			Description: "Success + validating returned user against DB",
 			Request: TCRequest{
-				Headers: []any{
+				Args: []any{
 					// User A
 					fmt.Sprintf("Authorization: Bearer %s", GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionAccess)),
 				},
@@ -79,25 +76,6 @@ func (suite *TestCases) TestGetUser() {
 	}
 	// 4. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
-			response := suite.TestAPI.Get("/api/v1/user", scenario.Request.Headers...)
-			// response status
-			assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
-			// error code in case of error
-			if scenario.Response.ErrorCode != nil {
-				assert.Contains(
-					response.Body.String(),
-					strconv.Itoa(int(*scenario.Response.ErrorCode)),
-					"error code should match expectation",
-				)
-			}
-			// extra tests (if present)
-			for _, fn := range scenario.ExtraTests {
-				assert.True(
-					fn(scenario.Request, response),
-				)
-			}
-		})
+		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodGet, "/api/v1/user"))
 	}
 }

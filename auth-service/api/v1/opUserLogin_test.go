@@ -6,26 +6,34 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
-	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
+	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/store"
-	"github.com/stretchr/testify/assert"
 )
 
 func (suite *TestCases) TestUserLogin() {
 	t := suite.T()
+	// 1. Import users from CSV file
+	store.InsertFromCSV(t, "users", UsersCSV)
+	// 2. Load environment variables
+	env.Setup()
+	// 3. Define test scenarios
 	testCases := TCScenarios{
 		"Success": TCData{
 			Description: "login with correct credentials and expect success",
 			Request: TCRequest{
-				Body: map[string]any{
-					"email":    "userA@gmail.com",
-					"password": "password",
+				Args: []any{
+					map[string]any{
+						"email":    "userA@gmail.com",
+						"password": "password",
+					},
+				},
+				Params: map[string]any{
+					"email": "userA@gmail.com",
 				},
 			},
 			Response: TCResponse{
@@ -33,7 +41,7 @@ func (suite *TestCases) TestUserLogin() {
 			},
 			ExtraTests: []TCExtraTest{
 				func(req TCRequest, response *httptest.ResponseRecorder) bool {
-					email := req.Body["email"].(string)
+					email := req.Params["email"].(string)
 					var responseBody v1.UserTokens
 					if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
 						return false
@@ -60,9 +68,11 @@ func (suite *TestCases) TestUserLogin() {
 		"InvalidCredentials": TCData{
 			Description: "login with incorrect credentials and expect error",
 			Request: TCRequest{
-				Body: map[string]any{
-					"email":    "userA@gmail.com",
-					"password": "wrong password",
+				Args: []any{
+					map[string]any{
+						"email":    "userA@gmail.com",
+						"password": "wrong password",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -73,9 +83,11 @@ func (suite *TestCases) TestUserLogin() {
 		"UnknownUser": TCData{
 			Description: "login non-existing user and expect error",
 			Request: TCRequest{
-				Body: map[string]any{
-					"email":    "unknown-user@gmail.com",
-					"password": "does-not-matter",
+				Args: []any{
+					map[string]any{
+						"email":    "unknown-user@gmail.com",
+						"password": "does-not-matter",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -86,9 +98,11 @@ func (suite *TestCases) TestUserLogin() {
 		"InvalidEmailFormat": TCData{
 			Description: "login with improperly formatted email",
 			Request: TCRequest{
-				Body: map[string]any{
-					"email":    "not-an-email-address",
-					"password": "password",
+				Args: []any{
+					map[string]any{
+						"email":    "not-an-email-address",
+						"password": "password",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -99,9 +113,11 @@ func (suite *TestCases) TestUserLogin() {
 		"UnactivatedUser": TCData{
 			Description: "login with unactivated user",
 			Request: TCRequest{
-				Body: map[string]any{
-					"email":    "UserC@gmail.com",
-					"password": "does-not-matter",
+				Args: []any{
+					map[string]any{
+						"email":    "UserC@gmail.com",
+						"password": "does-not-matter",
+					},
 				},
 			},
 			Response: TCResponse{
@@ -110,29 +126,8 @@ func (suite *TestCases) TestUserLogin() {
 			},
 		},
 	}
-	// 1. Import users from CSV file
-	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Try different login scenarios
+	// 4. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
-			response := suite.TestAPI.Post("/api/v1/login", scenario.Request.Body)
-			// response status
-			assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
-			// error code in case of error
-			if scenario.Response.ErrorCode != nil {
-				assert.Contains(
-					response.Body.String(),
-					strconv.Itoa(int(*scenario.Response.ErrorCode)),
-					"error code should match expectation",
-				)
-			}
-			// extra tests (if present)
-			for _, fn := range scenario.ExtraTests {
-				assert.True(
-					fn(scenario.Request, response),
-				)
-			}
-		})
+		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPost, "/api/v1/login"))
 	}
 }

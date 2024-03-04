@@ -8,7 +8,6 @@ require (
 	github.com/danielgtaylor/huma/v2 v2.6.0
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/google/go-cmp v0.6.0
 	github.com/quible-io/quible-api/lib v0.0.0-00010101000000-000000000000
 	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.8.4

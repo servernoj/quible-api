@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
+	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
@@ -55,9 +56,7 @@ func NewTCRequest(t *testing.T, contentType, imageFilename, userId, fieldName st
 		bytes.NewReader(body.Bytes()),
 	}
 	return TCRequest{
-		Method: http.MethodPut,
-		Path:   "/api/v1/user/image",
-		Args:   args,
+		Args: args,
 		Params: map[string]any{
 			"userId":        userId,
 			"contentType":   contentType,
@@ -70,7 +69,9 @@ func (suite *TestCases) TestUploadProfileImage() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Define test scenarios
+	// 2. Load environment variables
+	env.Setup()
+	// 3. Define test scenarios
 	testCases := TCScenarios{
 		"Success": TCData{
 			Description: "Successful upload and confirmation in DB",
@@ -129,8 +130,8 @@ func (suite *TestCases) TestUploadProfileImage() {
 			},
 		},
 	}
-	// 3. Try different login scenarios
+	// 4. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, scenario.GetRunner(suite.TestAPI))
+		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPut, "/api/v1/user/image"))
 	}
 }
