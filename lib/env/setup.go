@@ -3,15 +3,19 @@ package env
 import (
 	"fmt"
 	"os"
+	"path"
+	"runtime"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
 )
 
-const envFile = "../.env"
-
 func Setup() {
 	if os.Getenv("IS_DOCKER") != "1" {
+		var envFile string
+		if _, fn, _, ok := runtime.Caller(0); ok {
+			envFile = path.Dir(fn) + "/../../.env"
+		}
 		if err := godotenv.Load(envFile); err == nil {
 			if os.Getenv("ENV_DSN") == "" {
 				os.Setenv(
@@ -44,6 +48,8 @@ func Setup() {
 					),
 				)
 			}
+		} else {
+			panic(err)
 		}
 	} else {
 		log.Info().Msg("running in docker...")
