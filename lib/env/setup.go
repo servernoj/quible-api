@@ -49,7 +49,7 @@ func Setup() {
 				)
 			}
 		} else {
-			panic(err)
+			log.Error().Err(err).Send()
 		}
 	} else {
 		log.Info().Msg("running in docker...")
