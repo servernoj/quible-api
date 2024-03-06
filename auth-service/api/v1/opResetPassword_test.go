@@ -10,7 +10,6 @@ import (
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
-	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
@@ -22,9 +21,7 @@ func (suite *TestCases) TestPasswordReset() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Define test scenarios
+	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"FailureOnInvalidStepValue": TCData{
 			Description: "Failure when the `step` field is set to anything but `define` or `validate`",
@@ -68,12 +65,8 @@ func (suite *TestCases) TestPasswordReset() {
 				},
 			},
 			PreHook: func(t *testing.T) any {
-				oldSecret := os.Getenv("ENV_JWT_SECRET")
 				os.Setenv("ENV_JWT_SECRET", "secret")
-				return oldSecret
-			},
-			PostHook: func(t *testing.T, a any) {
-				os.Setenv("ENV_JWT_SECRET", a.(string))
+				return nil
 			},
 			Response: TCResponse{
 				Status:    http.StatusExpectationFailed,
@@ -116,16 +109,19 @@ func (suite *TestCases) TestPasswordReset() {
 		},
 		"SuccessOnDefineStep": TCData{
 			Description: "Success while setting a new password in the `define` step",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"token":           GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionPasswordReset),
-						"password":        "abc123",
-						"confirmPassword": "abc123",
-						"step":            "define",
+			Request: func() TCRequest {
+				os.Setenv("ENV_JWT_SECRET", "secret")
+				return TCRequest{
+					Args: []any{
+						map[string]any{
+							"token":           GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionPasswordReset),
+							"password":        "abc123",
+							"confirmPassword": "abc123",
+							"step":            "define",
+						},
 					},
-				},
-			},
+				}
+			}(),
 			Response: TCResponse{
 				Status: http.StatusOK,
 			},
@@ -147,20 +143,23 @@ func (suite *TestCases) TestPasswordReset() {
 		},
 		"SuccessOnValidationStep": TCData{
 			Description: "Success with a correct token in the `validate` step",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"token": GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionPasswordReset),
-						"step":  "validate",
+			Request: func() TCRequest {
+				os.Setenv("ENV_JWT_SECRET", "secret")
+				return TCRequest{
+					Args: []any{
+						map[string]any{
+							"token": GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionPasswordReset),
+							"step":  "validate",
+						},
 					},
-				},
-			},
+				}
+			}(),
 			Response: TCResponse{
 				Status: http.StatusOK,
 			},
 		},
 	}
-	// 4. Run scenarios in sequence
+	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
 		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPost, "/api/v1/user/password-reset"))
 	}

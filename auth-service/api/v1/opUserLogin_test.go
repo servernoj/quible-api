@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
-	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
@@ -19,9 +18,7 @@ func (suite *TestCases) TestUserLogin() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Define test scenarios
+	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"Success": TCData{
 			Description: "login with correct credentials and expect success",
@@ -126,7 +123,7 @@ func (suite *TestCases) TestUserLogin() {
 			},
 		},
 	}
-	// 4. Run scenarios in sequence
+	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
 		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPost, "/api/v1/login"))
 	}

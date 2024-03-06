@@ -10,7 +10,6 @@ import (
 
 	"github.com/h2non/gock"
 	v1 "github.com/quible-io/quible-api/app-service/api/v1"
-	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/store"
@@ -21,9 +20,7 @@ func (suite *TestCases) TestListChatGroups() {
 	// 1. Import data from CSV files
 	store.InsertFromCSV(t, "users", UsersCSV)
 	store.InsertFromCSV(t, "chats", ChatsCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Define test scenarios
+	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"FailureUnreachableAuthService": TCData{
 			Description: "Failure on unavailable auth-service",
@@ -158,7 +155,7 @@ func (suite *TestCases) TestListChatGroups() {
 			},
 		},
 	}
-	// 4. Run scenarios in sequence
+	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
 		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodGet, "/api/v1/chat/groups"))
 	}

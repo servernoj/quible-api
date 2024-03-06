@@ -8,7 +8,6 @@ import (
 	"reflect"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
-	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/store"
 )
@@ -17,9 +16,7 @@ func (suite *TestCases) TestGetUserProfile() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Define test scenarios
+	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"SuccessWithImage": TCData{
 			Description: "Success with image in profile",
@@ -104,7 +101,7 @@ func (suite *TestCases) TestGetUserProfile() {
 			},
 		},
 	}
-	// 4. Run scenarios in sequence
+	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
 		t.Run(
 			name,

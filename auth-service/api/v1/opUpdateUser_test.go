@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
-	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
@@ -22,9 +21,7 @@ func (suite *TestCases) TestUpdateUser() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Define test scenarios
+	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"SuccessOnEmptyRequest": TCData{
 			Description: "Success on an empty request body, user record stays intact",
@@ -195,7 +192,7 @@ func (suite *TestCases) TestUpdateUser() {
 			},
 		},
 	}
-	// 4. Run scenarios in sequence
+	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
 		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPatch, "/api/v1/user"))
 	}

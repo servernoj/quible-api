@@ -16,7 +16,6 @@ import (
 	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
-	"github.com/quible-io/quible-api/lib/env"
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
@@ -24,54 +23,51 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func NewTCRequest(t *testing.T, contentType, imageFilename, userId, fieldName string) TCRequest {
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	h := make(textproto.MIMEHeader)
-	h.Set(
-		"Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="image.svg"`, fieldName),
-	)
-	h.Set(
-		"Content-Type",
-		contentType,
-	)
-	part, err := writer.CreatePart(h)
-	if err != nil {
-		t.Fatal(err)
-	}
-	file, err := os.Open(imageFilename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer file.Close()
-	if _, err := io.Copy(part, file); err != nil {
-		t.Fatal(err)
-	}
-	writer.Close()
-	args := []any{
-		fmt.Sprintf("Content-Length: %d", body.Len()),
-		fmt.Sprintf("Content-Type: multipart/form-data; boundary=%s", writer.Boundary()),
-		fmt.Sprintf("Authorization: Bearer %s", GetToken(t, userId, jwt.TokenActionAccess)),
-		bytes.NewReader(body.Bytes()),
-	}
-	return TCRequest{
-		Args: args,
-		Params: map[string]any{
-			"userId":        userId,
-			"contentType":   contentType,
-			"imageFilename": imageFilename,
-		},
-	}
-}
-
 func (suite *TestCases) TestUploadProfileImage() {
 	t := suite.T()
 	// 1. Import users from CSV file
 	store.InsertFromCSV(t, "users", UsersCSV)
-	// 2. Load environment variables
-	env.Setup()
-	// 3. Define test scenarios
+	NewTCRequest := func(t *testing.T, contentType, imageFilename, userId, fieldName string) TCRequest {
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		h := make(textproto.MIMEHeader)
+		h.Set(
+			"Content-Disposition",
+			fmt.Sprintf(`form-data; name="%s"; filename="image.svg"`, fieldName),
+		)
+		h.Set(
+			"Content-Type",
+			contentType,
+		)
+		part, err := writer.CreatePart(h)
+		if err != nil {
+			t.Fatal(err)
+		}
+		file, err := os.Open(imageFilename)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer file.Close()
+		if _, err := io.Copy(part, file); err != nil {
+			t.Fatal(err)
+		}
+		writer.Close()
+		args := []any{
+			fmt.Sprintf("Content-Length: %d", body.Len()),
+			fmt.Sprintf("Content-Type: multipart/form-data; boundary=%s", writer.Boundary()),
+			fmt.Sprintf("Authorization: Bearer %s", GetToken(t, userId, jwt.TokenActionAccess)),
+			bytes.NewReader(body.Bytes()),
+		}
+		return TCRequest{
+			Args: args,
+			Params: map[string]any{
+				"userId":        userId,
+				"contentType":   contentType,
+				"imageFilename": imageFilename,
+			},
+		}
+	}
+	// 2. Define test scenarios
 	testCases := TCScenarios{
 		"Success": TCData{
 			Description: "Successful upload and confirmation in DB",
@@ -130,7 +126,7 @@ func (suite *TestCases) TestUploadProfileImage() {
 			},
 		},
 	}
-	// 4. Run scenarios in sequence
+	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
 		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPut, "/api/v1/user/image"))
 	}
