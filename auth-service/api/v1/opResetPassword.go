@@ -46,7 +46,7 @@ func (input *ResetPasswordInput) Resolve(ctx huma.Context) (errs []error) {
 		if *input.Body.Password != *input.Body.ConfirmPassword {
 			errs = append(errs, &huma.ErrorDetail{
 				Message:  "Password should match its confirmation value",
-				Location: "body",
+				Location: "body.confirmPassword",
 				Value:    input.Body,
 			})
 			return
