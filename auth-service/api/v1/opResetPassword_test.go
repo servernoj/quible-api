@@ -5,6 +5,8 @@ import (
 	_ "embed"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
@@ -59,11 +61,19 @@ func (suite *TestCases) TestPasswordReset() {
 			Request: TCRequest{
 				Args: []any{
 					map[string]any{
-						// token with expiration at 2030-01-01 of PasswordReset action but for non-existing user
-						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsInVzZXJJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImFjdGlvbiI6IlBhc3N3b3JkUmVzZXQiLCJleHRyYUNsYWltcyI6bnVsbH0.5n3jVZDQ1wAHNv5s-uKfyuQM7YZvpOz3aa--ACy76oc",
+						// token for non-existing user "00000000-0000-0000-0000-000000000000" with secret `secret`
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsInVzZXJJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImFjdGlvbiI6IlBhc3N3b3JkUmVzZXQiLCJleHRyYUNsYWltcyI6bnVsbH0.nUt1bT0IJ-D3gYLgSOEE-6f9uiphf61TEVpjeWHikY4",
 						"step":  "validate",
 					},
 				},
+			},
+			PreHook: func(t *testing.T) any {
+				oldSecret := os.Getenv("ENV_JWT_SECRET")
+				os.Setenv("ENV_JWT_SECRET", "secret")
+				return oldSecret
+			},
+			PostHook: func(t *testing.T, a any) {
+				os.Setenv("ENV_JWT_SECRET", a.(string))
 			},
 			Response: TCResponse{
 				Status:    http.StatusExpectationFailed,
