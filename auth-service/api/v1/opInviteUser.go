@@ -15,6 +15,7 @@ import (
 )
 
 type InviteUserInput struct {
+	AuthorizationHeaderResolver
 	Body struct {
 		Email    string `json:"email" format:"email"`
 		FullName string `json:"full_name" minLength:"1"`
@@ -38,7 +39,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 					http.StatusFailedDependency,
 				},
 				DefaultStatus: http.StatusOK,
-				Tags:          []string{"user", "public"},
+				Tags:          []string{"user", "private"},
 				Path:          "/user/invite",
 			},
 		),
