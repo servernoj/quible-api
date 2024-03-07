@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/lib/jwt"
@@ -40,6 +41,26 @@ func (suite *TestCases) TestGetUser() {
 			Response: TCResponse{
 				Status:    http.StatusUnauthorized,
 				ErrorCode: misc.Of(v1.Err401_InvalidAccessToken),
+			},
+		},
+		"FailureTokenBadUser": TCData{
+			Description: "Failure due to non-existing user referenced in the token",
+			Request: TCRequest{
+				Args: []any{
+					// access token for non-existing user "00000000-0000-0000-0000-000000000000" with secret `secret`
+					fmt.Sprintf(
+						"Authorization: Bearer %s",
+						"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImlzcyI6IlF1aWJsZSIsInVzZXJJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImFjdGlvbiI6IkFjY2VzcyIsImV4dHJhQ2xhaW1zIjpudWxsfQ.3-JimplIBm4W7YBcgZGp2Efmh5Thv8bQZM5ggrAW0RY",
+					),
+				},
+			},
+			Response: TCResponse{
+				Status:    http.StatusUnauthorized,
+				ErrorCode: misc.Of(v1.Err401_InvalidAccessToken),
+			},
+			PreHook: func(t *testing.T) any {
+				t.Setenv("ENV_JWT_SECRET", "secret")
+				return nil
 			},
 		},
 		"Success": TCData{

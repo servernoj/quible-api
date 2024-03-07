@@ -117,7 +117,7 @@ func (suite *TestCases) TestUploadProfileImage() {
 				ErrorCode: misc.Of(v1.Err400_ImageDataNotPresent),
 			},
 		},
-		"FailureOnInvalidContentType": TCData{
+		"FailureOnNonImageContentType": TCData{
 			Description: "Failure to upload when file content type doesn't have prefix `image/`",
 			Request:     NewTCRequest(t, "invalid", "TestData/image.svg", "42d29b4b-935d-4f35-b26c-70080107f6d6", "image"),
 			Response: TCResponse{

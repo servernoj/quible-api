@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	"github.com/quible-io/quible-api/lib/jwt"
@@ -75,6 +76,25 @@ func (suite *TestCases) TestActivateUser() {
 			Response: TCResponse{
 				Status:    http.StatusUnauthorized,
 				ErrorCode: misc.Of(v1.Err401_InvalidActivationToken),
+			},
+		},
+		"FailureTokenBadUser": TCData{
+			Description: "Failure due to non-existing user referenced in the token",
+			Request: TCRequest{
+				Args: []any{
+					map[string]any{
+						// token for non-existing user "00000000-0000-0000-0000-000000000000" with secret `secret`
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsInVzZXJJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImFjdGlvbiI6IkFjdGl2YXRlIiwiZXh0cmFDbGFpbXMiOm51bGx9.t_pSHH5N4ptUCFKbkXZrnHzsTGkJOCH6bp3aAK-W_GU",
+					},
+				},
+			},
+			Response: TCResponse{
+				Status:    http.StatusExpectationFailed,
+				ErrorCode: misc.Of(v1.Err417_UnableToAssociateUser),
+			},
+			PreHook: func(t *testing.T) any {
+				t.Setenv("ENV_JWT_SECRET", "secret")
+				return nil
 			},
 		},
 		"Success": TCData{

@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
@@ -65,7 +64,7 @@ func (suite *TestCases) TestPasswordReset() {
 				},
 			},
 			PreHook: func(t *testing.T) any {
-				os.Setenv("ENV_JWT_SECRET", "secret")
+				t.Setenv("ENV_JWT_SECRET", "secret")
 				return nil
 			},
 			Response: TCResponse{
@@ -82,6 +81,38 @@ func (suite *TestCases) TestPasswordReset() {
 						"step":            "define",
 						"password":        "abc123",
 						"confirmPassword": "123abc",
+					},
+				},
+			},
+			Response: TCResponse{
+				Status:    http.StatusBadRequest,
+				ErrorCode: misc.Of(v1.Err400_UnsatisfactoryConfirmPassword),
+			},
+		},
+		"FailureOnMissingPassword": TCData{
+			Description: "Failure when password is not sent in the `define` step",
+			Request: TCRequest{
+				Args: []any{
+					map[string]any{
+						"token":           GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionPasswordReset),
+						"step":            "define",
+						"confirmPassword": "123abc",
+					},
+				},
+			},
+			Response: TCResponse{
+				Status:    http.StatusBadRequest,
+				ErrorCode: misc.Of(v1.Err400_UnsatisfactoryPassword),
+			},
+		},
+		"FailureOnMissingPasswordConfirmation": TCData{
+			Description: "Failure when password confirmation is not sent in the `define` step",
+			Request: TCRequest{
+				Args: []any{
+					map[string]any{
+						"token":    GetToken(t, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionPasswordReset),
+						"step":     "define",
+						"password": "123abc",
 					},
 				},
 			},
@@ -110,7 +141,7 @@ func (suite *TestCases) TestPasswordReset() {
 		"SuccessOnDefineStep": TCData{
 			Description: "Success while setting a new password in the `define` step",
 			Request: func() TCRequest {
-				os.Setenv("ENV_JWT_SECRET", "secret")
+				t.Setenv("ENV_JWT_SECRET", "secret")
 				return TCRequest{
 					Args: []any{
 						map[string]any{
@@ -144,7 +175,7 @@ func (suite *TestCases) TestPasswordReset() {
 		"SuccessOnValidationStep": TCData{
 			Description: "Success with a correct token in the `validate` step",
 			Request: func() TCRequest {
-				os.Setenv("ENV_JWT_SECRET", "secret")
+				t.Setenv("ENV_JWT_SECRET", "secret")
 				return TCRequest{
 					Args: []any{
 						map[string]any{

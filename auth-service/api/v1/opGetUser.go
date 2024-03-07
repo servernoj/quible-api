@@ -35,10 +35,7 @@ func (impl *VersionedImpl) RegisterGetUser(api huma.API, vc libAPI.VersionConfig
 		),
 		func(ctx context.Context, input *GetUserInput) (*GetUserOutput, error) {
 			// 1. Locate user based on access token send via Authorization header
-			user, err := models.FindUserG(ctx, input.UserId)
-			if err != nil {
-				return nil, ErrorMap.GetErrorResponse(Err401_UserNotFound, err)
-			}
+			user, _ := models.FindUserG(ctx, input.UserId)
 			// 2. Return simplified version of the user object
 			response := &GetUserOutput{
 				Body: UserSimplified{

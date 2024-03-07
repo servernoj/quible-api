@@ -45,10 +45,7 @@ func (impl *VersionedImpl) RegisterUpdateUser(api huma.API, vc libAPI.VersionCon
 		),
 		func(ctx context.Context, input *UpdateUserInput) (*UpdateUserOutput, error) {
 			// 1. Retrieve the user record for update
-			user, err := models.FindUserG(ctx, input.UserId)
-			if err != nil {
-				return nil, ErrorMap.GetErrorResponse(Err401_UserNotFound, err)
-			}
+			user, _ := models.FindUserG(ctx, input.UserId)
 			// 2. Update user record with respect to provided PATCH data
 			patchDataType := reflect.TypeOf(input.Body)
 			patchDataValue := reflect.ValueOf(input.Body)
@@ -58,9 +55,6 @@ func (impl *VersionedImpl) RegisterUpdateUser(api huma.API, vc libAPI.VersionCon
 				fieldValue := patchDataValue.Field(i).Elem()
 				if fieldValue.IsValid() {
 					target := userValue.FieldByName(fieldName)
-					if target.Kind().String() == "struct" && target.Type().String() == "null.String" {
-						target = target.FieldByName("String")
-					}
 					if target.CanSet() {
 						target.SetString(fieldValue.String())
 					}

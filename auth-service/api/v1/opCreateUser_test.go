@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -135,7 +136,59 @@ func (suite *TestCases) TestCreateUser() {
 				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
 			},
 		},
-		"Success": TCData{
+		"SuccessDev": TCData{
+			Description: "Happy path with mocked email sender and IS_DEV enabled (auto-activation)",
+			Request: TCRequest{
+				Args: []any{
+					map[string]any{
+						"username":  "userE",
+						"email":     "userE@gmail.com",
+						"password":  "password",
+						"phone":     "0123456789",
+						"full_name": "User E",
+					},
+				},
+				Params: map[string]any{
+					"username":       "userE",
+					"email":          "userE@gmail.com",
+					"autoActivation": "true",
+				},
+			},
+			Response: TCResponse{
+				Status: http.StatusCreated,
+			},
+			PreHook: func(t *testing.T) any {
+				t.Setenv("IS_DEV", "1")
+				mockedEmailSender := new(CreateUserEmailSender)
+				suite.ServiceAPI.SetEmailSender(
+					mockedEmailSender,
+				)
+				return mockedEmailSender
+			},
+			PostHook: func(t *testing.T, state any) {
+				mockedEmailSender := state.(*CreateUserEmailSender)
+				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 0)
+			},
+			ExtraTests: []TCExtraTest{
+				func(req TCRequest, response *httptest.ResponseRecorder) bool {
+					var responseBody v1.UserSimplified
+					if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
+						return false
+					}
+					userInDB, err := models.FindUserG(context.Background(), responseBody.ID)
+					if err != nil {
+						return false
+					}
+					email := req.Params["email"].(string)
+					username := req.Params["username"].(string)
+					if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() == nil {
+						return false
+					}
+					return true
+				},
+			},
+		},
+		"SuccessProd": TCData{
 			Description: "Happy path with mocked email sender",
 			Request: TCRequest{
 				Args: []any{
@@ -189,6 +242,15 @@ func (suite *TestCases) TestCreateUser() {
 	}
 	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, scenario.GetRunner(suite.TestAPI, http.MethodPost, "/api/v1/user"))
+		url := "/api/v1/user"
+		if scenario.Request.Params["autoActivation"] != nil {
+			url = fmt.Sprintf(
+				"/api/v1/user?auto-activation=%s",
+				scenario.Request.Params["autoActivation"].(string),
+			)
+		}
+		t.Run(
+			name, scenario.GetRunner(suite.TestAPI, http.MethodPost, url),
+		)
 	}
 }
