@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockedEmailSender struct {
+type CreateUserEmailSender struct {
 	mock.Mock
 }
 
-func (m *MockedEmailSender) SendEmail(ctx context.Context, emailPayload email.EmailPayload) error {
+func (m *CreateUserEmailSender) SendEmail(ctx context.Context, emailPayload email.EmailPayload) error {
 	args := m.Called(ctx, emailPayload)
 	log.Info().Msg("Email sender mocked")
 	return args.Error(0)
@@ -123,7 +123,7 @@ func (suite *TestCases) TestCreateUser() {
 				ErrorCode: misc.Of(v1.Err424_UnableToSendEmail),
 			},
 			PreHook: func(t *testing.T) any {
-				mockedEmailSender := new(MockedEmailSender)
+				mockedEmailSender := new(CreateUserEmailSender)
 				mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(errors.New("email delivery failed"))
 				suite.ServiceAPI.SetEmailSender(
 					mockedEmailSender,
@@ -131,7 +131,7 @@ func (suite *TestCases) TestCreateUser() {
 				return mockedEmailSender
 			},
 			PostHook: func(t *testing.T, state any) {
-				mockedEmailSender := state.(*MockedEmailSender)
+				mockedEmailSender := state.(*CreateUserEmailSender)
 				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
 			},
 		},
@@ -156,7 +156,7 @@ func (suite *TestCases) TestCreateUser() {
 				Status: http.StatusCreated,
 			},
 			PreHook: func(t *testing.T) any {
-				mockedEmailSender := new(MockedEmailSender)
+				mockedEmailSender := new(CreateUserEmailSender)
 				mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(nil)
 				suite.ServiceAPI.SetEmailSender(
 					mockedEmailSender,
@@ -164,7 +164,7 @@ func (suite *TestCases) TestCreateUser() {
 				return mockedEmailSender
 			},
 			PostHook: func(t *testing.T, state any) {
-				mockedEmailSender := state.(*MockedEmailSender)
+				mockedEmailSender := state.(*CreateUserEmailSender)
 				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
 			},
 			ExtraTests: []TCExtraTest{
