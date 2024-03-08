@@ -36,6 +36,8 @@ const (
 	Err400_InvalidOrMalformedToken
 	Err400_ChatChannelInviteeNotUser
 	Err400_ChatChannelInviteeOwnsChatGroup
+	Err400_OnlyForChatGroups
+	Err400_OnlyForChatChannels
 )
 const (
 	Err401_UnknownError ErrorCode = Err401_Shift + iota + 1
@@ -48,6 +50,7 @@ const (
 	Err404_UnknownError ErrorCode = Err404_Shift + iota + 1
 	Err404_ChatGroupNotFound
 	Err404_ChatChannelNotFound
+	Err404_ChatRecordNotFound
 )
 const (
 	Err417_UnknownError ErrorCode = Err417_Shift + iota + 1
@@ -72,6 +75,7 @@ const (
 	Err500_UnknownHumaError
 	Err500_UnableCreateChatUser
 	Err500_UnableUpdateChatUser
+	Err500_UnableUpdateChatRecord
 )
 
 var ErrorMap = libAPI.ErrorMap[ErrorCode]{
@@ -90,6 +94,8 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err400_InvalidOrMalformedToken:         "activation token is missing or malformed",
 	Err400_ChatChannelInviteeNotUser:       "chat channel invitee doesn't have an account",
 	Err400_ChatChannelInviteeOwnsChatGroup: "chat group owner cannot be an invitee",
+	Err400_OnlyForChatGroups:               "update allowed only for chat groups",
+	Err400_OnlyForChatChannels:             "update allowed only for chat channels",
 	// 401
 	Err401_UnknownError:       "unknown error",
 	Err401_UserIdNotFound:     "userId not present",
@@ -100,6 +106,7 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err404_UnknownError:        "unknown error",
 	Err404_ChatGroupNotFound:   "chat group not found",
 	Err404_ChatChannelNotFound: "chat channel not found",
+	Err404_ChatRecordNotFound:  "chat record (group/channel) not found",
 	// 417
 	Err417_UnknownError: "unknown error",
 	Err417_InvalidToken: "invalid (possibly expired) token",
@@ -109,8 +116,9 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err424_BasketAPIGetGame:   "unexpected problem with (Match|MatchStatistics|MatchLineups) API from BasketAPI",
 	Err424_UnableToSendEmail:  "unable to send email",
 	// 500
-	Err500_UnknownError:         "internal server error",
-	Err500_UnknownHumaError:     "unidentified upstream Huma error",
-	Err500_UnableCreateChatUser: "unable to create chat to user association",
-	Err500_UnableUpdateChatUser: "unable to update chat to user association",
+	Err500_UnknownError:           "internal server error",
+	Err500_UnknownHumaError:       "unidentified upstream Huma error",
+	Err500_UnableCreateChatUser:   "unable to create chat to user association",
+	Err500_UnableUpdateChatUser:   "unable to update chat to user association",
+	Err500_UnableUpdateChatRecord: "unable to update chat record (group/channel)",
 }
