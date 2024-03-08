@@ -118,7 +118,7 @@ func StartLive() (chan<- struct{}, error) {
 				}
 				if len(liveMessage.Events) > 0 {
 					if err := ablyChannel.Publish(ctx, "message", liveMessage); err != nil {
-						log.Info().Msgf("unable to publish live data to Ably: %s", err)
+						log.Error().Err(err).Msg("unable to publish live data to Ably")
 					}
 				}
 			case <-quit:
