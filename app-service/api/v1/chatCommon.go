@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/quible-io/quible-api/lib/models"
@@ -26,7 +27,7 @@ type ChatChannel struct {
 	Parent   *models.Chat `json:"-"`
 }
 
-func chatChannelsForUser(ctx context.Context, userId string) ([]ChatChannel, error) {
+func chatChannelsForUser(ctx context.Context, db *sql.DB, userId string) ([]ChatChannel, error) {
 	// 0. Initialize storage
 	chatChannelByChatId := map[string]ChatChannel{}
 	chatChannels := []ChatChannel{}
@@ -39,7 +40,7 @@ func chatChannelsForUser(ctx context.Context, userId string) ([]ChatChannel, err
 				models.ChatRels.Parent,
 			),
 		),
-	).AllG(ctx)
+	).All(ctx, db)
 	if err != nil {
 		return nil, ErrorMap.GetErrorResponse(
 			Err500_UnknownError,
@@ -72,7 +73,7 @@ func chatChannelsForUser(ctx context.Context, userId string) ([]ChatChannel, err
 				models.ChatRels.Parent,
 			),
 		),
-	).AllG(ctx)
+	).All(ctx, db)
 	if err != nil {
 		return nil, ErrorMap.GetErrorResponse(
 			Err500_UnknownError,

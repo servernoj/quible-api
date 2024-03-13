@@ -72,11 +72,12 @@ func Server() {
 		}
 		// -- V1
 		srvAPI.Setup(
-			v1.New(),
+			v1.NewServiceAPI(),
 			router,
 			libAPI.VersionConfig{
-				Tag:    "v1",
-				SemVer: "1.0.0",
+				Tag:         "v1",
+				SemVer:      "1.0.0",
+				Description: v1.ServiceDescription,
 			},
 			libAPI.WithErrorMap(v1.ErrorMap),
 			libAPI.WithVersion(),

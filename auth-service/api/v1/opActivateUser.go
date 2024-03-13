@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -41,6 +42,9 @@ func (impl *VersionedImpl) RegisterActivateUser(api huma.API, vc libAPI.VersionC
 			},
 		),
 		func(ctx context.Context, input *ActivateUserInput) (*ActivateUserOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opActivateUser")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Identify `userId` from the provided activation token
 			tokenClaims, err := jwt.VerifyJWT(input.Body.Token, jwt.TokenActionActivate)
 			if err != nil {
@@ -48,13 +52,13 @@ func (impl *VersionedImpl) RegisterActivateUser(api huma.API, vc libAPI.VersionC
 			}
 			userId := tokenClaims["userId"].(string)
 			// 2. Locate user in DB
-			user, err := models.FindUserG(ctx, userId)
+			user, err := models.FindUser(ctx, db, userId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err417_UnableToAssociateUser, err)
 			}
 			// 3. Once found, update user record to store activation timestamp
 			user.ActivatedAt = null.TimeFrom(time.Now())
-			_, err = user.UpdateG(ctx, boil.Infer())
+			_, err = user.Update(ctx, db, boil.Infer())
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToActivateUser, err)
 			}

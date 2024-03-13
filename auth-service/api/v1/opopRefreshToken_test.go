@@ -3,6 +3,7 @@ package v1_test
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,12 +13,13 @@ import (
 	"github.com/quible-io/quible-api/lib/jwt"
 	"github.com/quible-io/quible-api/lib/models"
 	"github.com/quible-io/quible-api/lib/suite"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-func (tc *TestCases) TestActivateUser(t *testing.T) {
+func (tc *TestCases) TestRefreshToken(t *testing.T) {
 	// 1. Import users from CSV file
 	db := tc.DBStore.RetrieveDB(t.Name())
-	deps := tc.ServiceAPI.SetContext("opActivateUser")
+	deps := tc.ServiceAPI.SetContext("opRefreshToken")
 	deps.Set("db", db)
 	if err := suite.InsertFromCSV(db, "users", UsersCSV); err != nil {
 		t.Fatalf("unable to import test data from CSV: %s", err)
@@ -30,7 +32,7 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 				Request: libAPI.TCRequest{
 					Args: []any{
 						map[string]any{
-							"token": "purely-invalid-token",
+							"refresh_token": "purely-invalid-token",
 						},
 					},
 				},
@@ -46,13 +48,13 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 				Request: libAPI.TCRequest{
 					Args: []any{
 						map[string]any{
-							"token": suite.GetToken(t, db, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionAccess),
+							"refresh_token": suite.GetToken(t, db, "9bef41ed-fb10-4791-b02e-96b372c09466", jwt.TokenActionAccess),
 						},
 					},
 				},
 				Response: libAPI.TCResponse{
 					Status:    http.StatusUnauthorized,
-					ErrorCode: v1.Err401_InvalidActivationToken.Ptr(),
+					ErrorCode: v1.Err401_InvalidRefreshToken.Ptr(),
 				},
 			}
 		},
@@ -66,13 +68,13 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 					Args: []any{
 						map[string]any{
 							// expired on 1/1/2000 at 00:00 UTC
-							"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk0NjY4NDgwMCwidXNlcklkIjoiOWJlZjQxZWQtZmIxMC00NzkxLWIwMmUtOTZiMzcyYzA5NDY2IiwiYWN0aW9uIjoiQWN0aXZhdGUiLCJleHRyYUNsYWltcyI6bnVsbH0.R6KGfdxRtYcBNrP3lc5nDgzAoVlYU58w-XUKEmDZ5P8",
+							"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk0NjY4NDgwMCwidXNlcklkIjoiOWJlZjQxZWQtZmIxMC00NzkxLWIwMmUtOTZiMzcyYzA5NDY2IiwiYWN0aW9uIjoiUmVmcmVzaCIsImV4dHJhQ2xhaW1zIjpudWxsfQ.awLM2azz_ooskVVOOTz5ecXBsUNygT8MgFgc8_hspLY",
 						},
 					},
 				},
 				Response: libAPI.TCResponse{
 					Status:    http.StatusUnauthorized,
-					ErrorCode: v1.Err401_InvalidActivationToken.Ptr(),
+					ErrorCode: v1.Err401_InvalidRefreshToken.Ptr(),
 				},
 			}
 		},
@@ -86,13 +88,13 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 					Args: []any{
 						map[string]any{
 							// signed with "wrong-secret", exp set to 1/1/2030 at 00:00 UTC
-							"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsInVzZXJJZCI6IjliZWY0MWVkLWZiMTAtNDc5MS1iMDJlLTk2YjM3MmMwOTQ2NiIsImFjdGlvbiI6IkFjdGl2YXRlIiwiZXh0cmFDbGFpbXMiOm51bGx9.ZlDe3hRl5MfpbkHKyFfUDJ_Zsv140KBjWZ7wBBd6-f0",
+							"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImlzcyI6IlF1aWJsZSIsInVzZXJJZCI6IjliZWY0MWVkLWZiMTAtNDc5MS1iMDJlLTk2YjM3MmMwOTQ2NiIsImFjdGlvbiI6IlJlZnJlc2giLCJleHRyYUNsYWltcyI6bnVsbH0.9J6YGWT9VzuozCKsmeBHqIDyEY3I_dlb1dO9lotaLL8",
 						},
 					},
 				},
 				Response: libAPI.TCResponse{
 					Status:    http.StatusUnauthorized,
-					ErrorCode: v1.Err401_InvalidActivationToken.Ptr(),
+					ErrorCode: v1.Err401_InvalidRefreshToken.Ptr(),
 				},
 			}
 		},
@@ -106,24 +108,31 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 					Args: []any{
 						map[string]any{
 							// token for non-existing user "00000000-0000-0000-0000-000000000000" with secret `secret`
-							"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsInVzZXJJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImFjdGlvbiI6IkFjdGl2YXRlIiwiZXh0cmFDbGFpbXMiOm51bGx9.t_pSHH5N4ptUCFKbkXZrnHzsTGkJOCH6bp3aAK-W_GU",
+							"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4OTM0NTYwMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImlzcyI6IlF1aWJsZSIsInVzZXJJZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImFjdGlvbiI6IlJlZnJlc2giLCJleHRyYUNsYWltcyI6bnVsbH0.unkFdy1NsJ3jC-XtsF7DUP6HuGfV0TTlqICkHA5Pf_k",
 						},
 					},
 				},
 				Response: libAPI.TCResponse{
-					Status:    http.StatusExpectationFailed,
-					ErrorCode: v1.Err417_UnableToAssociateUser.Ptr(),
+					Status:    http.StatusUnauthorized,
+					ErrorCode: v1.Err401_InvalidRefreshToken.Ptr(),
 				},
 			}
 		},
 		"Success": func(t *testing.T) libAPI.TCData {
+			ctx := context.Background()
+			userId := "9bef41ed-fb10-4791-b02e-96b372c09466"
+			refreshTokenSent := suite.GetToken(t, db, userId, jwt.TokenActionRefresh)
+			claims, _ := jwt.VerifyJWT(refreshTokenSent, jwt.TokenActionRefresh)
+			tokenId := claims["jti"].(string)
+			user, _ := models.FindUser(ctx, db, userId)
+			user.Refresh = tokenId
+			_, _ = user.Update(ctx, db, boil.Whitelist("refresh"))
 			return libAPI.TCData{
-				Description: "Success with confirmation of the activation in DB",
+				Description: "Success with confirmation of user record modification",
 				Request: libAPI.TCRequest{
 					Args: []any{
 						map[string]any{
-							// non-activated user
-							"token": suite.GetToken(t, db, "c6174e8a-e12f-4d64-a4fe-a3b0c081bd31", jwt.TokenActionActivate),
+							"refresh_token": refreshTokenSent,
 						},
 					},
 				},
@@ -132,12 +141,27 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 				},
 				ExtraTests: []libAPI.TCExtraTest{
 					func(req libAPI.TCRequest, res *httptest.ResponseRecorder) bool {
-						userId := "c6174e8a-e12f-4d64-a4fe-a3b0c081bd31"
 						user, err := models.FindUser(context.Background(), db, userId)
 						if err != nil {
 							return false
 						}
-						return user.ActivatedAt.Ptr() != nil
+						var responseBody v1.UserTokens
+						if err := json.NewDecoder(res.Body).Decode(&responseBody); err != nil {
+							return false
+						}
+						if refreshTokenSent == responseBody.RefreshToken {
+							return false
+						}
+						claims, err := jwt.VerifyJWT(responseBody.RefreshToken, jwt.TokenActionRefresh)
+						if err != nil {
+							return false
+						}
+						userIdFromToken := claims["userId"].(string)
+						refreshTokenId := claims["jti"].(string)
+						if user.ID != userIdFromToken || user.Refresh != refreshTokenId {
+							return false
+						}
+						return true
 					},
 				},
 			}
@@ -145,6 +169,6 @@ func (tc *TestCases) TestActivateUser(t *testing.T) {
 	}
 	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
-		t.Run(name, scenario.GetRunner(tc.TestAPI, http.MethodPost, "/user/activate"))
+		t.Run(name, scenario.GetRunner(tc.TestAPI, http.MethodPost, "/user/refresh"))
 	}
 }

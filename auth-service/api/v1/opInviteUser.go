@@ -3,6 +3,8 @@ package v1
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -44,8 +46,11 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 			},
 		),
 		func(ctx context.Context, input *InviteUserInput) (*InviteUserOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opInviteUser")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Identify if a user already exist
-			user, _ := models.Users(models.UserWhere.Email.EQ(input.Body.Email)).OneG(ctx)
+			user, _ := models.Users(models.UserWhere.Email.EQ(input.Body.Email)).One(ctx, db)
 			if user != nil {
 				return nil, ErrorMap.GetErrorResponse(Err400_UserWithEmailExists)
 			}
@@ -59,13 +64,20 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 				),
 				&html,
 			)
-			if err := impl.SendEmail(ctx, email.EmailPayload{
-				From:     "no-reply@quible.io",
-				To:       input.Body.Email,
-				Subject:  "Invitation to register Quible account",
-				HTMLBody: html.String(),
-			}); err != nil {
-				return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+			if emailSender, ok := deps.Get("mailer").(email.EmailSender); ok {
+				if err := emailSender.SendEmail(ctx, email.EmailPayload{
+					From:     "no-reply@quible.io",
+					To:       input.Body.Email,
+					Subject:  "Invitation to register Quible account",
+					HTMLBody: html.String(),
+				}); err != nil {
+					return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+				}
+			} else {
+				return nil, ErrorMap.GetErrorResponse(
+					Err424_UnableToSendEmail,
+					errors.New("email client unavailable"),
+				)
 			}
 			// 3. Return empty response to indicate success
 			return nil, nil

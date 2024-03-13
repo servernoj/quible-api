@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
+	libAPI "github.com/quible-io/quible-api/lib/api"
 	"github.com/quible-io/quible-api/lib/email"
-	"github.com/quible-io/quible-api/lib/misc"
 	"github.com/quible-io/quible-api/lib/models"
-	"github.com/quible-io/quible-api/lib/store"
+	"github.com/quible-io/quible-api/lib/suite"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/mock"
 )
@@ -28,229 +28,245 @@ func (m *CreateUserEmailSender) SendEmail(ctx context.Context, emailPayload emai
 	return args.Error(0)
 }
 
-func (suite *TestCases) TestCreateUser() {
-	t := suite.T()
+func (tc *TestCases) TestCreateUser(t *testing.T) {
 	// 1. Import users from CSV file
-	store.InsertFromCSV(t, "users", UsersCSV)
+	db := tc.DBStore.RetrieveDB(t.Name())
+	deps := tc.ServiceAPI.SetContext("opCreateUser")
+	deps.Set("db", db)
+	if err := suite.InsertFromCSV(db, "users", UsersCSV); err != nil {
+		t.Fatalf("unable to import test data from CSV: %s", err)
+	}
 	// 2. Define test scenarios
-	testCases := TCScenarios{
-		"FailureOnActivatedWithExistingEmail": TCData{
-			Description: "Failure of registering existing email on activated user",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "new-username",
-						"email":     "userA@gmail.com",
-						"password":  "password",
-						"phone":     "0123456789",
-						"full_name": "existing email",
+	testCases := libAPI.TCScenarios{
+		"FailureOnActivatedWithExistingEmail": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Failure of registering existing email on activated user",
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "new-username",
+							"email":     "userA@gmail.com",
+							"password":  "password",
+							"phone":     "0123456789",
+							"full_name": "existing email",
+						},
 					},
 				},
-			},
-			Response: TCResponse{
-				Status:    http.StatusBadRequest,
-				ErrorCode: misc.Of(v1.Err400_UserWithEmailOrUsernameExists),
-			},
+				Response: libAPI.TCResponse{
+					Status:    http.StatusBadRequest,
+					ErrorCode: v1.Err400_UserWithEmailOrUsernameExists.Ptr(),
+				},
+			}
 		},
-		"FailureOnActivatedWithExistingUsername": TCData{
-			Description: "Failure of registering existing username on activated user",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "userA",
-						"email":     "non-existent@gmail.com",
-						"password":  "password",
-						"phone":     "0123456789",
-						"full_name": "existing username",
+		"FailureOnActivatedWithExistingUsername": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Failure of registering existing username on activated user",
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "userA",
+							"email":     "non-existent@gmail.com",
+							"password":  "password",
+							"phone":     "0123456789",
+							"full_name": "existing username",
+						},
 					},
 				},
-			},
-			Response: TCResponse{
-				Status:    http.StatusBadRequest,
-				ErrorCode: misc.Of(v1.Err400_UserWithEmailOrUsernameExists),
-			},
+				Response: libAPI.TCResponse{
+					Status:    http.StatusBadRequest,
+					ErrorCode: v1.Err400_UserWithEmailOrUsernameExists.Ptr(),
+				},
+			}
 		},
-		"FailureOnInvalidEmail": TCData{
-			Description: "Failure of registering user with invalid email",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "userD",
-						"email":     "not-an-email-address",
-						"password":  "password",
-						"phone":     "0123456789",
-						"full_name": "User D",
+		"FailureOnInvalidEmail": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Failure of registering user with invalid email",
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "userD",
+							"email":     "not-an-email-address",
+							"password":  "password",
+							"phone":     "0123456789",
+							"full_name": "User D",
+						},
 					},
 				},
-			},
-			Response: TCResponse{
-				Status:    http.StatusBadRequest,
-				ErrorCode: misc.Of(v1.Err400_InvalidEmailFormat),
-			},
+				Response: libAPI.TCResponse{
+					Status:    http.StatusBadRequest,
+					ErrorCode: v1.Err400_InvalidEmailFormat.Ptr(),
+				},
+			}
 		},
-		"FailureOnInvalidPhone": TCData{
-			Description: "Failure of registering user with invalid phone",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "userD",
-						"email":     "userD@gmail.com",
-						"password":  "password",
-						"phone":     "invalid",
-						"full_name": "User D",
+		"FailureOnInvalidPhone": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Failure of registering user with invalid phone",
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "userD",
+							"email":     "userD@gmail.com",
+							"password":  "password",
+							"phone":     "invalid",
+							"full_name": "User D",
+						},
 					},
 				},
-			},
-			Response: TCResponse{
-				Status:    http.StatusBadRequest,
-				ErrorCode: misc.Of(v1.Err400_InvalidPhoneFormat),
-			},
+				Response: libAPI.TCResponse{
+					Status:    http.StatusBadRequest,
+					ErrorCode: v1.Err400_InvalidPhoneFormat.Ptr(),
+				},
+			}
 		},
-		"FailureSendEmail": TCData{
-			Description: "Failure due to error in email sender",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "userD",
-						"email":     "userD@gmail.com",
-						"password":  "password",
-						"phone":     "0123456789",
-						"full_name": "User D",
+		"FailureSendEmail": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Failure due to error in email sender",
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "userD",
+							"email":     "userD@gmail.com",
+							"password":  "password",
+							"phone":     "0123456789",
+							"full_name": "User D",
+						},
 					},
 				},
-			},
-			Response: TCResponse{
-				Status:    http.StatusFailedDependency,
-				ErrorCode: misc.Of(v1.Err424_UnableToSendEmail),
-			},
-			PreHook: func(t *testing.T) any {
-				mockedEmailSender := new(CreateUserEmailSender)
-				mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(errors.New("email delivery failed"))
-				suite.ServiceAPI.SetEmailSender(
-					mockedEmailSender,
-				)
-				return mockedEmailSender
-			},
-			PostHook: func(t *testing.T, state any) {
-				mockedEmailSender := state.(*CreateUserEmailSender)
-				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
-			},
+				Response: libAPI.TCResponse{
+					Status:    http.StatusFailedDependency,
+					ErrorCode: v1.Err424_UnableToSendEmail.Ptr(),
+				},
+				PreHook: func(t *testing.T) any {
+					mockedEmailSender := new(CreateUserEmailSender)
+					mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(errors.New("email delivery failed"))
+					deps.Set("mailer", mockedEmailSender)
+					return mockedEmailSender
+				},
+				PostHook: func(t *testing.T, state any) {
+					mockedEmailSender := state.(*CreateUserEmailSender)
+					mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
+				},
+			}
 		},
-		"SuccessDev": TCData{
-			Description: "Happy path with mocked email sender and IS_DEV enabled (auto-activation)",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "userE",
-						"email":     "userE@gmail.com",
-						"password":  "password",
-						"phone":     "0123456789",
-						"full_name": "User E",
+		"SuccessDev": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Happy path with mocked email sender and IS_DEV enabled (auto-activation)",
+				Envs: libAPI.TCEnv{
+					"IS_DEV": "1",
+				},
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "userE",
+							"email":     "userE@gmail.com",
+							"password":  "password",
+							"phone":     "0123456789",
+							"full_name": "User E",
+						},
+					},
+					Params: map[string]any{
+						"username":       "userE",
+						"email":          "userE@gmail.com",
+						"autoActivation": "true",
 					},
 				},
-				Params: map[string]any{
-					"username":       "userE",
-					"email":          "userE@gmail.com",
-					"autoActivation": "true",
+				Response: libAPI.TCResponse{
+					Status: http.StatusCreated,
 				},
-			},
-			Response: TCResponse{
-				Status: http.StatusCreated,
-			},
-			PreHook: func(t *testing.T) any {
-				t.Setenv("IS_DEV", "1")
-				mockedEmailSender := new(CreateUserEmailSender)
-				suite.ServiceAPI.SetEmailSender(
-					mockedEmailSender,
-				)
-				return mockedEmailSender
-			},
-			PostHook: func(t *testing.T, state any) {
-				mockedEmailSender := state.(*CreateUserEmailSender)
-				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 0)
-			},
-			ExtraTests: []TCExtraTest{
-				func(req TCRequest, response *httptest.ResponseRecorder) bool {
-					var responseBody v1.UserSimplified
-					if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
-						return false
-					}
-					userInDB, err := models.FindUserG(context.Background(), responseBody.ID)
-					if err != nil {
-						return false
-					}
-					email := req.Params["email"].(string)
-					username := req.Params["username"].(string)
-					if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() == nil {
-						return false
-					}
-					return true
+				PreHook: func(t *testing.T) any {
+					mockedEmailSender := new(CreateUserEmailSender)
+					deps.Set("mailer", mockedEmailSender)
+					return mockedEmailSender
 				},
-			},
+				PostHook: func(t *testing.T, state any) {
+					mockedEmailSender := state.(*CreateUserEmailSender)
+					mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 0)
+				},
+				ExtraTests: []libAPI.TCExtraTest{
+					func(req libAPI.TCRequest, response *httptest.ResponseRecorder) bool {
+						var responseBody v1.UserSimplified
+						if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
+							return false
+						}
+						userInDB, err := models.FindUser(context.Background(), db, responseBody.ID)
+						if err != nil {
+							return false
+						}
+						email := req.Params["email"].(string)
+						username := req.Params["username"].(string)
+						if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() == nil {
+							return false
+						}
+						return true
+					},
+				},
+			}
 		},
-		"SuccessProd": TCData{
-			Description: "Happy path with mocked email sender",
-			Request: TCRequest{
-				Args: []any{
-					map[string]any{
-						"username":  "userD",
-						"email":     "userD@gmail.com",
-						"password":  "password",
-						"phone":     "0123456789",
-						"full_name": "User D",
+		"SuccessProd": func(t *testing.T) libAPI.TCData {
+			return libAPI.TCData{
+				Description: "Happy path with mocked email sender",
+				Request: libAPI.TCRequest{
+					Args: []any{
+						map[string]any{
+							"username":  "userD",
+							"email":     "userD@gmail.com",
+							"password":  "password",
+							"phone":     "0123456789",
+							"full_name": "User D",
+						},
+					},
+					Params: map[string]any{
+						"username": "userD",
+						"email":    "userD@gmail.com",
 					},
 				},
-				Params: map[string]any{
-					"username": "userD",
-					"email":    "userD@gmail.com",
+				Response: libAPI.TCResponse{
+					Status: http.StatusCreated,
 				},
-			},
-			Response: TCResponse{
-				Status: http.StatusCreated,
-			},
-			PreHook: func(t *testing.T) any {
-				mockedEmailSender := new(CreateUserEmailSender)
-				mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(nil)
-				suite.ServiceAPI.SetEmailSender(
-					mockedEmailSender,
-				)
-				return mockedEmailSender
-			},
-			PostHook: func(t *testing.T, state any) {
-				mockedEmailSender := state.(*CreateUserEmailSender)
-				mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
-			},
-			ExtraTests: []TCExtraTest{
-				func(req TCRequest, response *httptest.ResponseRecorder) bool {
-					var responseBody v1.UserSimplified
-					if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
-						return false
-					}
-					userInDB, err := models.FindUserG(context.Background(), responseBody.ID)
-					if err != nil {
-						return false
-					}
-					email := req.Params["email"].(string)
-					username := req.Params["username"].(string)
-					if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() != nil {
-						return false
-					}
-					return true
+				PreHook: func(t *testing.T) any {
+					mockedEmailSender := new(CreateUserEmailSender)
+					mockedEmailSender.On("SendEmail", mock.Anything, mock.Anything).Return(nil)
+					deps.Set("mailer", mockedEmailSender)
+					return mockedEmailSender
 				},
-			},
+				PostHook: func(t *testing.T, state any) {
+					mockedEmailSender := state.(*CreateUserEmailSender)
+					mockedEmailSender.AssertNumberOfCalls(t, "SendEmail", 1)
+				},
+				ExtraTests: []libAPI.TCExtraTest{
+					func(req libAPI.TCRequest, response *httptest.ResponseRecorder) bool {
+						var responseBody v1.UserSimplified
+						if err := json.NewDecoder(response.Body).Decode(&responseBody); err != nil {
+							return false
+						}
+						userInDB, err := models.FindUser(context.Background(), db, responseBody.ID)
+						if err != nil {
+							return false
+						}
+						email := req.Params["email"].(string)
+						username := req.Params["username"].(string)
+						if userInDB.Email != email || userInDB.Username != username || userInDB.ActivatedAt.Ptr() != nil {
+							return false
+						}
+						return true
+					},
+				},
+			}
 		},
 	}
 	// 3. Run scenarios in sequence
 	for name, scenario := range testCases {
-		url := "/api/v1/user"
-		if scenario.Request.Params["autoActivation"] != nil {
-			url = fmt.Sprintf(
-				"/api/v1/user?auto-activation=%s",
-				scenario.Request.Params["autoActivation"].(string),
-			)
-		}
-		t.Run(
-			name, scenario.GetRunner(suite.TestAPI, http.MethodPost, url),
-		)
+		t.Run(name, func(t *testing.T) {
+			tcData := scenario(t)
+			url := "/user"
+			if tcData.Request.Params["autoActivation"] != nil {
+				url = fmt.Sprintf(
+					"/user?auto-activation=%s",
+					tcData.Request.Params["autoActivation"].(string),
+				)
+			}
+			runner := scenario.GetRunner(tc.TestAPI, http.MethodPost, url)
+			runner(t)
+		})
 	}
 }

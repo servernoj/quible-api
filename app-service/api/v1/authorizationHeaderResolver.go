@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/quible-io/quible-api/lib/models"
+	"github.com/rs/zerolog/log"
 )
 
 // -- Authorization header containing Bearer access token. Injects `UserId` into `input` struct
@@ -18,6 +18,7 @@ type AuthorizationHeaderResolver struct {
 
 func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []error) {
 	// 1. Prepare request
+	log.Info().Msg(os.Getenv("ENV_URL_AUTH_SERVICE"))
 	request, _ := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf(
@@ -27,7 +28,7 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 		http.NoBody,
 	)
 	request.Header.Add("Authorization", input.Authorization)
-	// 2. Initialize HTTP client with default value and override it from Context when present
+	// 2. Initialize HTTP client
 	var httpClient = http.DefaultClient
 	// 3. Perform the request
 	response, err := httpClient.Do(request)
@@ -58,15 +59,6 @@ func (input *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []erro
 			Message:  "insufficient privilege",
 			Location: "auth-service.getUser.status",
 			Value:    response.StatusCode,
-		})
-		return
-	}
-	// 5. Verify that user exists in DB
-	if exists, err := models.UserExistsG(ctx.Context(), data.ID); err != nil || !exists {
-		errs = append(errs, &huma.ErrorDetail{
-			Message:  "user not found",
-			Location: "db.users",
-			Value:    err,
 		})
 		return
 	}

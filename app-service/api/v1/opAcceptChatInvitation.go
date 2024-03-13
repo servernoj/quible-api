@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -42,6 +43,9 @@ func (impl *VersionedImpl) RegisterAcceptChatInvitation(api huma.API, vc libAPI.
 			},
 		),
 		func(ctx context.Context, input *AcceptChatInvitationInput) (*AcceptChatInvitationOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opAcceptChatInvitation")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Process invitation token from request body
 			tokenClaims, err := jwt.VerifyJWT(input.Body.Token, jwt.TokenActionInvitationToPrivateChat)
 			if err != nil {
@@ -78,7 +82,7 @@ func (impl *VersionedImpl) RegisterAcceptChatInvitation(api huma.API, vc libAPI.
 					models.ChatRels.ChatUsers,
 					models.ChatUserWhere.UserID.EQ(inviteeId),
 				),
-			).OneG(ctx)
+			).One(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
@@ -100,7 +104,7 @@ func (impl *VersionedImpl) RegisterAcceptChatInvitation(api huma.API, vc libAPI.
 			// 3. Update chat-user association (to clear "disabled" flag)
 			chatUser := chatChannel.R.ChatUsers[0]
 			chatUser.Disabled = false
-			if _, err := chatUser.UpdateG(ctx, boil.Whitelist("disabled")); err != nil {
+			if _, err := chatUser.Update(ctx, db, boil.Whitelist("disabled")); err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnableUpdateChatUser,
 					err,

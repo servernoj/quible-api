@@ -6,7 +6,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/quible-io/quible-api/auth-service/services/userService"
 	"github.com/quible-io/quible-api/lib/jwt"
-	"github.com/quible-io/quible-api/lib/models"
 )
 
 // -- Authorization header containing Bearer access token. Injects `UserId` into `input` struct
@@ -36,16 +35,7 @@ func (f *AuthorizationHeaderResolver) Resolve(ctx huma.Context) (errs []error) {
 		})
 		return
 	}
-	UserId := tokenClaims["userId"].(string)
-	if exists, _ := models.UserExistsG(ctx.Context(), UserId); !exists {
-		errs = append(errs, &huma.ErrorDetail{
-			Message:  "referenced user not found",
-			Location: "header.authorization.bearer",
-			Value:    token,
-		})
-		return
-	}
-	f.UserId = UserId
+	f.UserId = tokenClaims["userId"].(string)
 	return
 }
 

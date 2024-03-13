@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -39,13 +40,16 @@ func (impl *VersionedImpl) RegisterGetChatToken(api huma.API, vc libAPI.VersionC
 			},
 		),
 		func(ctx context.Context, input *GetChatTokenInput) (*GetChatTokenOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opGetChatToken")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Compute map of capabilities
 			capabilities := map[string][]string{}
 			// 1a. Process implied capabilities from self-owned chat groups
 			chatGroups, err := models.Chats(
 				models.ChatWhere.ParentID.IsNull(),
 				models.ChatWhere.OwnerID.EQ(null.StringFrom(input.UserId)),
-			).AllG(ctx)
+			).All(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
@@ -60,7 +64,7 @@ func (impl *VersionedImpl) RegisterGetChatToken(api huma.API, vc libAPI.VersionC
 			chatUsers, err := models.ChatUsers(
 				models.ChatUserWhere.UserID.EQ(input.UserId),
 				models.ChatUserWhere.Disabled.EQ(false),
-			).AllG(ctx)
+			).All(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
@@ -73,14 +77,14 @@ func (impl *VersionedImpl) RegisterGetChatToken(api huma.API, vc libAPI.VersionC
 				if item.IsRo {
 					access = AccessReadOnly
 				}
-				chat, err := models.FindChatG(ctx, chatId)
+				chat, err := models.FindChat(ctx, db, chatId)
 				if err != nil {
 					return nil, ErrorMap.GetErrorResponse(
 						Err500_UnknownError,
 						err,
 					)
 				}
-				parentChatGroup, err := chat.Parent().OneG(ctx)
+				parentChatGroup, err := chat.Parent().One(ctx, db)
 				if err != nil {
 					return nil, ErrorMap.GetErrorResponse(
 						Err500_UnknownError,

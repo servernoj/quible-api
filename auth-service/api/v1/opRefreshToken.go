@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -13,7 +14,7 @@ import (
 
 type RefreshTokenInput struct {
 	Body struct {
-		RefreshToken string `json:"refresh_token"`
+		RefreshToken string `json:"refresh_token" pattern:"^[^.]+([.][^.]+){2}$"`
 	}
 }
 
@@ -40,6 +41,9 @@ func (impl *VersionedImpl) RegisterRefreshToken(api huma.API, vc libAPI.VersionC
 			},
 		),
 		func(ctx context.Context, input *RefreshTokenInput) (*RefreshTokenOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opRefreshToken")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Process and validate provided refresh token
 			claims, err := jwt.VerifyJWT(input.Body.RefreshToken, jwt.TokenActionRefresh)
 			if err != nil {
@@ -47,7 +51,7 @@ func (impl *VersionedImpl) RegisterRefreshToken(api huma.API, vc libAPI.VersionC
 			}
 			userId := claims["userId"].(string)
 			// 2. Retrieve user record associated with the refresh token
-			user, err := models.FindUserG(ctx, userId)
+			user, err := models.FindUser(ctx, db, userId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err401_InvalidRefreshToken, err)
 			}
@@ -66,7 +70,7 @@ func (impl *VersionedImpl) RegisterRefreshToken(api huma.API, vc libAPI.VersionC
 			}
 			// 5. Update user's record to reference freshly generated refresh token
 			user.Refresh = refreshToken.ID
-			if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+			if _, err := user.Update(ctx, db, boil.Infer()); err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
 			}
 			// 6. Return both [newly generated] access and refresh tokens

@@ -1,68 +1,63 @@
 package v1_test
 
 import (
-	"context"
 	_ "embed"
-	"os"
 	"testing"
 
+	"github.com/danielgtaylor/huma/v2/humatest"
+	"github.com/gin-gonic/gin"
 	srvAPI "github.com/quible-io/quible-api/auth-service/api"
 	v1 "github.com/quible-io/quible-api/auth-service/api/v1"
 	libAPI "github.com/quible-io/quible-api/lib/api"
-	"github.com/quible-io/quible-api/lib/jwt"
-	"github.com/quible-io/quible-api/lib/models"
+	"github.com/quible-io/quible-api/lib/suite"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/suite"
 )
+
+type tlogWriter struct {
+	t *testing.T
+}
+
+func (lw *tlogWriter) Write(p []byte) (n int, err error) {
+	lw.t.Helper()
+	lw.t.Logf((string)(p))
+	return len(p), nil
+}
 
 //go:embed TestData/users.csv
 var UsersCSV string
 
-func GetToken(t *testing.T, userId string, action jwt.TokenAction) string {
-	user, err := models.FindUserG(context.Background(), userId)
-	if err != nil {
-		t.Fatalf("unable to retrieve user record from DB: %q", err)
-	}
-	token, err := jwt.GenerateToken(user, action, nil)
-	if err != nil {
-		t.Fatal("unable to generate token")
-	}
-	return token.String()
+type TestCases struct {
+	suite.TestSuite
+	humatest.TestAPI
+	libAPI.ServiceAPI
 }
 
-type (
-	TCScenarios = libAPI.TCScenarios[v1.ErrorCode]
-	TCRequest   = libAPI.TCRequest
-	TCResponse  = libAPI.TCResponse[v1.ErrorCode]
-	TCData      = libAPI.TCData[v1.ErrorCode]
-	TCExtraTest = libAPI.TCExtraTest
-	TestCases   struct {
-		libAPI.TestSuite
-		libAPI.ServiceAPI
-	}
-)
-
-// This is the only test function being called by `go test ./...` It takes advantage of `testify/suite` package
-// to initialize a test suite containing (implementing) `SetupTest` and `TearDownTest` methods that are automatically
-// called before and after "each test". The "each test" term defines methods in the `TestCases` that have names started with `Test`,
-// for example `TestUserLogin`.
 func TestRunner(t *testing.T) {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	implementation := v1.New()
-	suite.Run(
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: &tlogWriter{t}})
+	gin.SetMode(gin.ReleaseMode)
+	serviceAPI := v1.NewServiceAPI(
+		v1.WithDeps(
+			libAPI.NewDeps(
+				make(map[string]any),
+			),
+		),
+	)
+	api := srvAPI.Setup(
+		serviceAPI,
+		gin.Default(),
+		libAPI.VersionConfig{},
+	)
+	testAPI := suite.NewTestAPI(t, api)
+	suite.RunSuite(
 		t,
 		&TestCases{
-			ServiceAPI: implementation,
-			TestSuite: libAPI.NewTestSuite(
-				t,
-				implementation,
-				srvAPI.Title,
-				libAPI.VersionConfig{
-					Tag:    "v1",
-					SemVer: "1.0.0",
-				},
-			),
+			ServiceAPI: serviceAPI,
+			TestSuite: suite.TestSuite{
+				DBStore: suite.NewDBs(),
+			},
+			TestAPI: testAPI,
 		},
+		true,
 	)
 }

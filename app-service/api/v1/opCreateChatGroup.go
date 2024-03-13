@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -45,6 +46,9 @@ func (impl *VersionedImpl) RegisterCreateChatGroup(api huma.API, vc libAPI.Versi
 			},
 		),
 		func(ctx context.Context, input *CreateChatGroupInput) (*CreateChatGroupOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opCreateChatGroup")
+			db := deps.Get("db").(*sql.DB)
 			resource := GROUP_PREFIX + input.Body.Name
 			chatGroupFound, err := models.Chats(
 				models.ChatWhere.OwnerID.EQ(null.StringFrom(input.UserId)),
@@ -53,7 +57,7 @@ func (impl *VersionedImpl) RegisterCreateChatGroup(api huma.API, vc libAPI.Versi
 					qm.Or2(models.ChatWhere.Resource.EQ(resource)),
 					qm.Or2(models.ChatWhere.Title.EQ(input.Body.Title)),
 				),
-			).ExistsG(ctx)
+			).Exists(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
@@ -73,7 +77,7 @@ func (impl *VersionedImpl) RegisterCreateChatGroup(api huma.API, vc libAPI.Versi
 				Summary:   null.StringFromPtr(input.Body.Summary),
 				Title:     input.Body.Title,
 			}
-			if err := chatGroup.InsertG(ctx, boil.Infer()); err != nil {
+			if err := chatGroup.Insert(ctx, db, boil.Infer()); err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
 					err,

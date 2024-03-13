@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -38,14 +39,17 @@ func (impl *VersionedImpl) RegisterJoinChatChannel(api huma.API, vc libAPI.Versi
 			},
 		),
 		func(ctx context.Context, input *JoinChatChannelInput) (*JoinChatChannelOutput, error) {
-			chatChannel, err := models.FindChatG(ctx, input.ChatChannelId)
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opJoinChatChannel")
+			db := deps.Get("db").(*sql.DB)
+			chatChannel, err := models.FindChat(ctx, db, input.ChatChannelId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err404_ChatChannelNotFound,
 					err,
 				)
 			}
-			chatGroup, err := chatChannel.Parent().OneG(ctx)
+			chatGroup, err := chatChannel.Parent().One(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err404_ChatGroupNotFound,
@@ -62,7 +66,7 @@ func (impl *VersionedImpl) RegisterJoinChatChannel(api huma.API, vc libAPI.Versi
 					Err400_ChatGroupIsSelfOwned,
 				)
 			}
-			chatUserFound, err := models.ChatUserExistsG(ctx, input.ChatChannelId, input.UserId)
+			chatUserFound, err := models.ChatUserExists(ctx, db, input.ChatChannelId, input.UserId)
 			if chatUserFound || err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err400_ChatChannelAlreadyJoined,
@@ -72,7 +76,7 @@ func (impl *VersionedImpl) RegisterJoinChatChannel(api huma.API, vc libAPI.Versi
 				ChatID: input.ChatChannelId,
 				UserID: input.UserId,
 			}
-			return nil, chatUser.InsertG(ctx, boil.Infer())
+			return nil, chatUser.Insert(ctx, db, boil.Infer())
 		},
 	)
 }

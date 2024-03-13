@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -37,25 +38,28 @@ func (impl *VersionedImpl) RegisterDeleteChatGroup(api huma.API, vc libAPI.Versi
 			},
 		),
 		func(ctx context.Context, input *DeleteChatGroupInput) (*DeleteChatGroupOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opDeleteChatGroup")
+			db := deps.Get("db").(*sql.DB)
 			chatGroup, err := models.Chats(
 				models.ChatWhere.ID.EQ(input.ChatGroupId),
 				models.ChatWhere.ParentID.IsNull(),
 				models.ChatWhere.OwnerID.EQ(null.StringFrom(input.UserId)),
-			).OneG(ctx)
+			).One(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err404_ChatGroupNotFound,
 					err,
 				)
 			}
-			_, err = chatGroup.ParentChats().DeleteAllG(ctx)
+			_, err = chatGroup.ParentChats().DeleteAll(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
 					err,
 				)
 			}
-			_, err = chatGroup.DeleteG(ctx)
+			_, err = chatGroup.Delete(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,

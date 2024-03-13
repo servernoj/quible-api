@@ -22,16 +22,15 @@ type EmailSenderSetter interface {
 
 type ServiceAPI interface {
 	ErrorReporter
-	EmailSenderSetter
-	email.EmailSender
+	Deps
 }
 
 type PostInit func(ServiceAPI, *gin.Engine, VersionConfig, ...WithOption) huma.API
 
-func GetPostInit(title string, description string) PostInit {
+func GetPostInit(title string) PostInit {
 	return func(serviceAPI ServiceAPI, router *gin.Engine, vc VersionConfig, withOptions ...WithOption) huma.API {
 		// 1. Initialize config with version-prefixed fields
-		config := vc.GetConfig(title, description)
+		config := vc.GetConfig(title, vc.Description)
 		// 2. Create API instance
 		api := humagin.New(router, config)
 		// 3. Register all optional [shared] endpoints

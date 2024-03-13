@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	libAPI "github.com/quible-io/quible-api/lib/api"
+	"github.com/quible-io/quible-api/lib/misc"
 )
 
 const ErrServiceId = 1000
@@ -11,6 +12,10 @@ const ErrServiceId = 1000
 //go:generate stringer -type=ErrorCode
 
 type ErrorCode int
+
+func (ec ErrorCode) Ptr() *int {
+	return misc.Of(int(ec))
+}
 
 const (
 	Err207_Shift = libAPI.ErrStatusGain*http.StatusMultiStatus + ErrServiceId
@@ -113,7 +118,7 @@ var ErrorMap = libAPI.ErrorMap[ErrorCode]{
 	Err400_FileTooLarge:                   "invalid file size",
 	Err400_InvalidClientId:                "unexpected clientId",
 	Err400_UserWithEmailOrUsernameExists:  "activated user with such username or email exists",
-	Err400_InvalidOrMalformedToken:        "activation token is missing or malformed",
+	Err400_InvalidOrMalformedToken:        "token is missing or malformed",
 	Err400_InsufficientPasswordComplexity: "insufficient password complexity",
 	Err400_ImageDataNotPresent:            "image data not present in multipart request body under key `image`",
 	Err400_UnsatisfactoryPassword:         "unsatisfactory value of the password field",

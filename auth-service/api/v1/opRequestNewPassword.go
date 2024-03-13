@@ -3,6 +3,8 @@ package v1
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -44,8 +46,11 @@ func (impl *VersionedImpl) RegisterRequestNewPassword(api huma.API, vc libAPI.Ve
 			},
 		),
 		func(ctx context.Context, input *RequestNewPasswordInput) (*RequestNewPasswordOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opRequestNewPassword")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Locate user record based on provided email
-			user, err := models.Users(models.UserWhere.Email.EQ(input.Body.Email)).OneG(ctx)
+			user, err := models.Users(models.UserWhere.Email.EQ(input.Body.Email)).One(ctx, db)
 			if err != nil {
 				// We intentionally don't send HTTP error for security reasons
 				log.Error().Str("email", input.Body.Email).Msg("Email not registered")
@@ -64,13 +69,20 @@ func (impl *VersionedImpl) RegisterRequestNewPassword(api huma.API, vc libAPI.Ve
 				&html,
 			)
 			// 3. Send out generated email
-			if err := impl.SendEmail(ctx, email.EmailPayload{
-				From:     "no-reply@quible.io",
-				To:       user.Email,
-				Subject:  "Password reset",
-				HTMLBody: html.String(),
-			}); err != nil {
-				return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+			if emailSender, ok := deps.Get("mailer").(email.EmailSender); ok {
+				if err := emailSender.SendEmail(ctx, email.EmailPayload{
+					From:     "no-reply@quible.io",
+					To:       user.Email,
+					Subject:  "Password reset",
+					HTMLBody: html.String(),
+				}); err != nil {
+					return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+				}
+			} else {
+				return nil, ErrorMap.GetErrorResponse(
+					Err424_UnableToSendEmail,
+					errors.New("email client unavailable"),
+				)
 			}
 			// 4. Return empty response to indicate success
 			return nil, nil

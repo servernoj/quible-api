@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -34,8 +35,14 @@ func (impl *VersionedImpl) RegisterGetUser(api huma.API, vc libAPI.VersionConfig
 			},
 		),
 		func(ctx context.Context, input *GetUserInput) (*GetUserOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opGetUser")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Locate user based on access token send via Authorization header
-			user, _ := models.FindUserG(ctx, input.UserId)
+			user, err := models.FindUser(ctx, db, input.UserId)
+			if err != nil {
+				return nil, ErrorMap.GetErrorResponse(Err401_InvalidAccessToken, err)
+			}
 			// 2. Return simplified version of the user object
 			response := &GetUserOutput{
 				Body: UserSimplified{

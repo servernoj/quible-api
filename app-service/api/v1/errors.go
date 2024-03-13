@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	libAPI "github.com/quible-io/quible-api/lib/api"
+	"github.com/quible-io/quible-api/lib/misc"
 )
 
 const ErrServiceId = 2000
@@ -11,6 +12,10 @@ const ErrServiceId = 2000
 //go:generate stringer -type=ErrorCode
 
 type ErrorCode int
+
+func (ec ErrorCode) Ptr() *int {
+	return misc.Of(int(ec))
+}
 
 const (
 	Err400_Shift = libAPI.ErrStatusGain*http.StatusBadRequest + ErrServiceId

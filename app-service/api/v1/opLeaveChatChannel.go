@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -36,17 +37,20 @@ func (impl *VersionedImpl) RegisterLeaveChatChannel(api huma.API, vc libAPI.Vers
 			},
 		),
 		func(ctx context.Context, input *LeaveChatChannelInput) (*LeaveChatChannelOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opLeaveChatChannel")
+			db := deps.Get("db").(*sql.DB)
 			chatUser, err := models.ChatUsers(
 				models.ChatUserWhere.ChatID.EQ(input.ChatChannelId),
 				models.ChatUserWhere.UserID.EQ(input.UserId),
-			).OneG(ctx)
+			).One(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err404_ChatChannelNotFound,
 					err,
 				)
 			}
-			if _, err := chatUser.DeleteG(ctx); err != nil {
+			if _, err := chatUser.Delete(ctx, db); err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
 					err,

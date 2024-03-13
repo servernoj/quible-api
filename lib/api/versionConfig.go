@@ -7,8 +7,9 @@ import (
 )
 
 type VersionConfig struct {
-	Tag    string
-	SemVer string
+	Tag         string
+	SemVer      string
+	Description string
 }
 
 func (vc VersionConfig) Prefixer(op huma.Operation) huma.Operation {

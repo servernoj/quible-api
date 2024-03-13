@@ -3,6 +3,8 @@ package v1
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -52,11 +54,14 @@ func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc libAPI.VersionCon
 			},
 		),
 		func(ctx context.Context, input *CreateUserInput) (*CreateUserOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opCreateUser")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Check if an activated user with the same username or email exists
 			foundUser, _ := models.Users(
 				qm.Or2(models.UserWhere.Email.EQ(input.Body.Email)),
 				qm.Or2(models.UserWhere.Username.EQ(input.Body.Username)),
-			).OneG(ctx)
+			).One(ctx, db)
 			if foundUser != nil && foundUser.ActivatedAt.Ptr() != nil {
 				return nil, ErrorMap.GetErrorResponse(Err400_UserWithEmailOrUsernameExists)
 			}
@@ -72,12 +77,12 @@ func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc libAPI.VersionCon
 			user.HashedPassword = input.Body.hashedPassword
 			if len(user.ID) > 0 {
 				// 2a. We update existing DB record
-				if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+				if _, err := user.Update(ctx, db, boil.Infer()); err != nil {
 					return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
 				}
 			} else {
 				// 2b. We create new DB record
-				if err := user.InsertG(ctx, boil.Infer()); err != nil {
+				if err := user.Insert(ctx, db, boil.Infer()); err != nil {
 					return nil, ErrorMap.GetErrorResponse(Err500_UnableToRegister, err)
 				}
 			}
@@ -85,7 +90,7 @@ func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc libAPI.VersionCon
 			if input.AutoActivate && os.Getenv("IS_DEV") == "1" {
 				// 3a. Auto-generate if requested on `dev` (and `local`) environments
 				user.ActivatedAt = null.TimeFrom(time.Now())
-				if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+				if _, err := user.Update(ctx, db, boil.Infer()); err != nil {
 					return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
 				}
 			} else {
@@ -101,13 +106,20 @@ func (impl *VersionedImpl) RegisterCreateUser(api huma.API, vc libAPI.VersionCon
 					),
 					&html,
 				)
-				if err := impl.SendEmail(ctx, email.EmailPayload{
-					From:     "no-reply@quible.io",
-					To:       user.Email,
-					Subject:  "Activate your Quible account",
-					HTMLBody: html.String(),
-				}); err != nil {
-					return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+				if emailSender, ok := deps.Get("mailer").(email.EmailSender); ok {
+					if err := emailSender.SendEmail(ctx, email.EmailPayload{
+						From:     "no-reply@quible.io",
+						To:       user.Email,
+						Subject:  "Activate your Quible account",
+						HTMLBody: html.String(),
+					}); err != nil {
+						return nil, ErrorMap.GetErrorResponse(Err424_UnableToSendEmail, err)
+					}
+				} else {
+					return nil, ErrorMap.GetErrorResponse(
+						Err424_UnableToSendEmail,
+						errors.New("email client unavailable"),
+					)
 				}
 			}
 			// 4. Prepare and return the response

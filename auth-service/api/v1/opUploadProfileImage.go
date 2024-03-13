@@ -3,6 +3,7 @@ package v1
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -103,6 +104,9 @@ func (impl *VersionedImpl) RegisterUploadProfileImage(api huma.API, vc libAPI.Ve
 			},
 		),
 		func(ctx context.Context, input *UploadProfileImageInput) (*UploadProfileImageOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opUploadProfileImage")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Analyze result of resolver execution
 			if input.ImageData == nil {
 				return nil, ErrorMap.GetErrorResponse(Err400_ImageDataNotPresent)
@@ -111,14 +115,17 @@ func (impl *VersionedImpl) RegisterUploadProfileImage(api huma.API, vc libAPI.Ve
 				return nil, ErrorMap.GetErrorResponse(Err400_FileTooLarge)
 			}
 			// 2. Locate the user record to be updated with image data
-			user, _ := models.FindUserG(ctx, input.UserId)
+			user, err := models.FindUser(ctx, db, input.UserId)
+			if err != nil {
+				return nil, ErrorMap.GetErrorResponse(Err401_InvalidAccessToken, err)
+			}
 			b, err := json.Marshal(input.ImageData)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToStoreImage, err)
 			}
 			user.Image = null.BytesFrom(b)
 			// 3. Update user's record
-			if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+			if _, err := user.Update(ctx, db, boil.Infer()); err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToStoreImage, err)
 			}
 			return nil, nil

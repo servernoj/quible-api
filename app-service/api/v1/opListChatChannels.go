@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -34,7 +35,10 @@ func (impl *VersionedImpl) RegisterListChatChannels(api huma.API, vc libAPI.Vers
 			},
 		),
 		func(ctx context.Context, input *ListChatChannelsInput) (*ListChatChannelsOutput, error) {
-			chatChannels, err := chatChannelsForUser(ctx, input.UserId)
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opListChatChannels")
+			db := deps.Get("db").(*sql.DB)
+			chatChannels, err := chatChannelsForUser(ctx, db, input.UserId)
 			if err != nil {
 				return nil, err
 			}

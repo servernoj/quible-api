@@ -3,10 +3,12 @@ package api
 import (
 	"fmt"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"testing"
 
 	"github.com/danielgtaylor/huma/v2/humatest"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,52 +17,74 @@ type TCRequest struct {
 	Args   []any
 	Params map[string]any
 }
-type TCResponse[EC ErrorCodeConstraints] struct {
+type TCResponse struct {
 	Status    int
-	ErrorCode *EC
+	ErrorCode *int
 }
-type TCData[EC ErrorCodeConstraints] struct {
+type TCEnv map[string]string
+type TCData struct {
 	Description string
+	Envs        TCEnv
 	Request     TCRequest
-	Response    TCResponse[EC]
+	Response    TCResponse
 	ExtraTests  []TCExtraTest
 	PreHook     func(*testing.T) any
 	PostHook    func(*testing.T, any)
 }
-type TCScenarios[EC ErrorCodeConstraints] map[string]TCData[EC]
+type TCScenarios map[string]TCScenario
 
-func (scenario *TCData[EC]) GetRunner(testAPI humatest.TestAPI, method string, pathFormat string, pathArgs ...any) func(*testing.T) {
+type TCScenario func(*testing.T) TCData
+
+func (scenario TCScenario) GetRunner(testAPI humatest.TestAPI, method string, pathFormat string, pathParamsKeys ...string) func(*testing.T) {
 	return func(t *testing.T) {
+		tcData := scenario(t)
 		assert := assert.New(t)
+		// set/unset environment variables
+		for k, v := range tcData.Envs {
+			os.Setenv(k, v)
+		}
+		t.Cleanup(
+			func() {
+				for k := range tcData.Envs {
+					os.Unsetenv(k)
+				}
+			},
+		)
 		var state any
 		// pre-hook (per-subtest initialization)
-		if scenario.PreHook != nil {
-			state = scenario.PreHook(t)
+		if tcData.PreHook != nil {
+			state = tcData.PreHook(t)
+		}
+		// inflate pathParams into pathArgs via tcData.Params map
+		pathArgs := make([]any, len(pathParamsKeys))
+		for idx, key := range pathParamsKeys {
+			pathArgs[idx] = tcData.Request.Params[key]
 		}
 		response := testAPI.Do(
 			method,
-			fmt.Sprintf(pathFormat, pathArgs...),
-			scenario.Request.Args...,
+			fmt.Sprintf("/api"+pathFormat, pathArgs...),
+			tcData.Request.Args...,
 		)
 		// response status
-		assert.EqualValues(scenario.Response.Status, response.Code, "response status should match the expectation")
+		assert.EqualValues(tcData.Response.Status, response.Code, "response status should match the expectation")
 		// error code in case of error
-		if scenario.Response.ErrorCode != nil {
+		if tcData.Response.ErrorCode != nil {
 			assert.Contains(
 				response.Body.String(),
-				strconv.Itoa(int(*scenario.Response.ErrorCode)),
+				strconv.Itoa(*tcData.Response.ErrorCode),
 				"error code should match expectation",
 			)
 		}
 		// extra tests (if present)
-		for _, fn := range scenario.ExtraTests {
+		for _, fn := range tcData.ExtraTests {
 			assert.True(
-				fn(scenario.Request, response),
+				fn(tcData.Request, response),
 			)
 		}
 		// post-hook (post execution assertion)
-		if scenario.PostHook != nil {
-			scenario.PostHook(t, state)
+		if tcData.PostHook != nil {
+			tcData.PostHook(t, state)
 		}
+		log.Info().Msg("Done")
 	}
 }

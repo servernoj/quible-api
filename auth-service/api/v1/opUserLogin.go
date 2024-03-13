@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -46,10 +47,13 @@ func (impl *VersionedImpl) RegisterUserLogin(api huma.API, vc libAPI.VersionConf
 			},
 		),
 		func(ctx context.Context, input *UserLoginInput) (*UserLoginOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opUserLogin")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Locate the user in DB
 			foundUser, err := models.Users(
 				models.UserWhere.Email.EQ(input.Body.Email),
-			).OneG(ctx)
+			).One(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err400_EmailNotRegistered, err)
 			}
@@ -73,7 +77,7 @@ func (impl *VersionedImpl) RegisterUserLogin(api huma.API, vc libAPI.VersionConf
 			}
 			// 5. Update user's record to reference freshly generated refresh token
 			foundUser.Refresh = refreshToken.ID
-			if _, err := foundUser.UpdateG(ctx, boil.Whitelist("refresh")); err != nil {
+			if _, err := foundUser.Update(ctx, db, boil.Whitelist("refresh")); err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
 			}
 			// 6. Prepare and return the response

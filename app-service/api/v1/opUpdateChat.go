@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"reflect"
 
@@ -45,8 +46,11 @@ func (impl *VersionedImpl) RegisterUpdateChat(api huma.API, vc libAPI.VersionCon
 			},
 		),
 		func(ctx context.Context, input *UpdateChatInput) (*UpdateChatOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opUpdateChat")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Retrieve the chat record for update
-			chat, err := models.FindChatG(ctx, input.ChatId)
+			chat, err := models.FindChat(ctx, db, input.ChatId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err404_ChatRecordNotFound, err)
 			}
@@ -76,7 +80,7 @@ func (impl *VersionedImpl) RegisterUpdateChat(api huma.API, vc libAPI.VersionCon
 				}
 			}
 			// 3. Store updated chat record
-			if _, err := chat.UpdateG(ctx, boil.Infer()); err != nil {
+			if _, err := chat.Update(ctx, db, boil.Infer()); err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableUpdateChatRecord, err)
 			}
 			// 4. Prepare and return the response

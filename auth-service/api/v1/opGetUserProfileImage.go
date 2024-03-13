@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -36,8 +37,11 @@ func (impl *VersionedImpl) RegisterGetUserProfileImage(api huma.API, vc libAPI.V
 			},
 		),
 		func(ctx context.Context, input *GetUserProfileImageInput) (*GetUserProfileImageOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opGetUserProfileImage")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Retrieve the user based on `userId` path parameter
-			user, err := models.FindUserG(ctx, input.UserId)
+			user, err := models.FindUser(ctx, db, input.UserId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err404_UserNotFound, err)
 			}

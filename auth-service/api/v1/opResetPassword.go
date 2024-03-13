@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -87,6 +88,9 @@ func (impl *VersionedImpl) RegisterResetPassword(api huma.API, vc libAPI.Version
 			},
 		),
 		func(ctx context.Context, input *ResetPasswordInput) (*ResetPasswordOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opResetPassword")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Identify `userId` from the provided activation token
 			tokenClaims, err := jwt.VerifyJWT(input.Body.Token, jwt.TokenActionPasswordReset)
 			if err != nil {
@@ -94,14 +98,14 @@ func (impl *VersionedImpl) RegisterResetPassword(api huma.API, vc libAPI.Version
 			}
 			userId := tokenClaims["userId"].(string)
 			// 2. Retrieve associated user record
-			user, err := models.FindUserG(ctx, userId)
+			user, err := models.FindUser(ctx, db, userId)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err417_UnableToAssociateUser, err)
 			}
 			// 3. Branch based on the value of `input.Body.Step`
 			if input.Body.Step == "define" {
 				user.HashedPassword = input.hashedPassword
-				if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+				if _, err := user.Update(ctx, db, boil.Infer()); err != nil {
 					return nil, ErrorMap.GetErrorResponse(Err500_UnableToResetPassword, err)
 				}
 			}

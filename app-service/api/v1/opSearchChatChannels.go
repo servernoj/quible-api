@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -37,6 +38,9 @@ func (impl *VersionedImpl) RegisterSearchChatChannels(api huma.API, vc libAPI.Ve
 			},
 		),
 		func(ctx context.Context, input *SearchChatChannelsInput) (*SearchChatChannelsOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opSearchChatChannels")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Find all matching chat groups
 			chatGroups, err := models.Chats(
 				models.ChatWhere.Title.ILIKE("%"+input.Q+"%"),
@@ -45,7 +49,7 @@ func (impl *VersionedImpl) RegisterSearchChatChannels(api huma.API, vc libAPI.Ve
 				qm.Load(
 					models.ChatRels.ParentChats,
 				),
-			).AllG(ctx)
+			).All(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,

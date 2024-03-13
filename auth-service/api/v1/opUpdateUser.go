@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"reflect"
 
@@ -44,9 +45,15 @@ func (impl *VersionedImpl) RegisterUpdateUser(api huma.API, vc libAPI.VersionCon
 			},
 		),
 		func(ctx context.Context, input *UpdateUserInput) (*UpdateUserOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opUpdateUser")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Retrieve the user record for update
-			user, _ := models.FindUserG(ctx, input.UserId)
-			// 2. Update user record with respect to provided PATCH data
+			user, err := models.FindUser(ctx, db, input.UserId)
+			if err != nil {
+				return nil, ErrorMap.GetErrorResponse(Err401_InvalidAccessToken, err)
+			}
+			// 2. Update user record with respect to provided PAlibAPI.TCH data
 			patchDataType := reflect.TypeOf(input.Body)
 			patchDataValue := reflect.ValueOf(input.Body)
 			userValue := reflect.ValueOf(user).Elem()
@@ -61,7 +68,7 @@ func (impl *VersionedImpl) RegisterUpdateUser(api huma.API, vc libAPI.VersionCon
 				}
 			}
 			// 3. Store updated user record
-			if _, err := user.UpdateG(ctx, boil.Infer()); err != nil {
+			if _, err := user.Update(ctx, db, boil.Infer()); err != nil {
 				return nil, ErrorMap.GetErrorResponse(Err500_UnableToUpdateUser, err)
 			}
 			// 4. Prepare and return the response

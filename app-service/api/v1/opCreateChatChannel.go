@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -45,10 +46,13 @@ func (impl *VersionedImpl) RegisterCreateChatChannel(api huma.API, vc libAPI.Ver
 			},
 		),
 		func(ctx context.Context, input *CreateChatChannelInput) (*CreateChatChannelOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opCreateChatChannel")
+			db := deps.Get("db").(*sql.DB)
 			chatGroupFound, err := models.Chats(
 				models.ChatWhere.ID.EQ(input.GroupId),
 				models.ChatWhere.ParentID.IsNull(),
-			).ExistsG(ctx)
+			).Exists(ctx, db)
 			if err != nil || !chatGroupFound {
 				return nil, ErrorMap.GetErrorResponse(
 					Err404_ChatGroupNotFound,
@@ -58,7 +62,7 @@ func (impl *VersionedImpl) RegisterCreateChatChannel(api huma.API, vc libAPI.Ver
 			channelFound, _ := models.Chats(
 				models.ChatWhere.Resource.EQ(input.Body.Name),
 				models.ChatWhere.ParentID.EQ(null.StringFrom(input.GroupId)),
-			).ExistsG(ctx)
+			).Exists(ctx, db)
 			if channelFound {
 				return nil, ErrorMap.GetErrorResponse(
 					Err400_ChannelExists,
@@ -72,7 +76,7 @@ func (impl *VersionedImpl) RegisterCreateChatChannel(api huma.API, vc libAPI.Ver
 				OwnerID:   null.StringFromPtr(nil),
 				IsPrivate: null.BoolFromPtr(nil),
 			}
-			if err := chatChannel.InsertG(ctx, boil.Infer()); err != nil {
+			if err := chatChannel.Insert(ctx, db, boil.Infer()); err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
 					err,

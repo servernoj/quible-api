@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -41,8 +42,11 @@ func (impl *VersionedImpl) RegisterListChatChannelsGrouped(api huma.API, vc libA
 			},
 		),
 		func(ctx context.Context, input *ListChatChannelsGroupedInput) (*ListChatChannelsGroupedOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opListChatChannelsGrouped")
+			db := deps.Get("db").(*sql.DB)
 			// 1. Get all user's chat channels
-			chatChannels, err := chatChannelsForUser(ctx, input.UserId)
+			chatChannels, err := chatChannelsForUser(ctx, db, input.UserId)
 			if err != nil {
 				return nil, err
 			}

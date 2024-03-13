@@ -3,6 +3,7 @@ package v1
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -50,6 +51,9 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 			},
 		),
 		func(ctx context.Context, input *InviteUserInput) (*InviteUserOutput, error) {
+			// 0. Dependences
+			deps := impl.Deps.GetContext("opInviteUser")
+			db := deps.Get("db").(*sql.DB)
 			// 1. test if request chat channel exists
 			chatChannel, err := models.Chats(
 				models.ChatWhere.ID.EQ(input.ChatChannelId),
@@ -57,7 +61,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 				qm.Load(
 					models.ChatRels.Parent,
 				),
-			).OneG(ctx)
+			).One(ctx, db)
 			if err != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err404_ChatChannelNotFound,
@@ -75,7 +79,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 			// 2. Find invitee user by provided email
 			invitee, err := models.Users(
 				models.UserWhere.Email.EQ(input.Body.Email),
-			).OneG(ctx)
+			).One(ctx, db)
 			if err != nil || invitee == nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err400_ChatChannelInviteeNotUser,
@@ -89,7 +93,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 				)
 			}
 			// 4. Test if association between user and channel already exists
-			foundChatUser, err := models.FindChatUserG(ctx, input.ChatChannelId, invitee.ID)
+			foundChatUser, err := models.FindChatUser(ctx, db, input.ChatChannelId, invitee.ID)
 			if err != nil && foundChatUser != nil {
 				return nil, ErrorMap.GetErrorResponse(
 					Err500_UnknownError,
@@ -110,7 +114,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 					UserID:   invitee.ID,
 					Disabled: true,
 				}
-				if err := chatUser.InsertG(ctx, boil.Infer()); err != nil {
+				if err := chatUser.Insert(ctx, db, boil.Infer()); err != nil {
 					return nil, ErrorMap.GetErrorResponse(
 						Err500_UnableCreateChatUser,
 						err,
@@ -118,7 +122,7 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 				}
 			}
 			// 5. Send invitation email
-			invitor, _ := models.FindUserG(ctx, input.UserId)
+			invitor, _ := models.FindUser(ctx, db, input.UserId)
 			token, _ := jwt.GenerateToken(
 				invitor,
 				jwt.TokenActionInvitationToPrivateChat,
@@ -139,15 +143,22 @@ func (impl *VersionedImpl) RegisterInviteUser(api huma.API, vc libAPI.VersionCon
 				),
 				&html,
 			)
-			if err := impl.SendEmail(ctx, email.EmailPayload{
-				From:     "no-reply@quible.io",
-				To:       invitee.Email,
-				Subject:  "Invitation to join private chat channel",
-				HTMLBody: html.String(),
-			}); err != nil {
+			if emailSender, ok := deps.Get("mailer").(email.EmailSender); ok {
+				if err := emailSender.SendEmail(ctx, email.EmailPayload{
+					From:     "no-reply@quible.io",
+					To:       invitee.Email,
+					Subject:  "Invitation to join private chat channel",
+					HTMLBody: html.String(),
+				}); err != nil {
+					return nil, ErrorMap.GetErrorResponse(
+						Err424_UnableToSendEmail,
+						err,
+					)
+				}
+			} else {
 				return nil, ErrorMap.GetErrorResponse(
 					Err424_UnableToSendEmail,
-					err,
+					errors.New("email client unavailable"),
 				)
 			}
 			return nil, nil
